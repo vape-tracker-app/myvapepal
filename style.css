@@ -181,7 +181,7 @@ body {
     z-index: 6;
 }
 
-/* Dashboards Grille */
+/* Dashboards Grille Verticaux */
 .grille-dashboards {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -193,32 +193,71 @@ body {
     background: var(--bg-carte);
     border: 1px solid var(--border-carte);
     border-radius: 14px;
-    padding: 10px 12px;
+    padding: 12px 10px;
     display: flex;
-    align-items: center;
-    gap: 10px;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: flex-start;
+    gap: 3px;
     backdrop-filter: blur(10px);
 }
 
-.stat-icone { font-size: 1.3rem; }
-.stat-titre { font-size: 0.7rem; color: var(--texte-secondaire); }
+/* Ligne 1 : Icône + Titre côte à côte */
+.stat-entete {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    width: 100%;
+}
 
+.stat-icone {
+    font-size: 1.1rem;
+    line-height: 1;
+}
+
+.stat-titre {
+    font-size: 0.72rem;
+    color: var(--texte-secondaire);
+    font-weight: 500;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Ligne 2 : Valeur Principale */
 .stat-valeur {
     font-family: 'Cinzel', serif;
-    font-size: 1.25rem;
+    font-size: 1.3rem;
     font-weight: 800;
-    line-height: 1.2;
+    line-height: 1.25;
+    margin-top: 2px;
 }
 
 .stat-valeur-texte {
     font-family: 'Cinzel', serif;
-    font-size: 0.95rem;
+    font-size: 1rem;
     font-weight: 800;
+    line-height: 1.25;
+    margin-top: 2px;
+    white-space: nowrap;
+}
+
+/* Lignes 3 & 4 : Informations secondaires */
+.stat-unite {
+    font-size: 0.7rem;
+    color: var(--texte-secondaire);
     line-height: 1.2;
 }
 
-.stat-unite { font-size: 0.7rem; color: var(--texte-secondaire); }
+.stat-unite-mois {
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: #fce7f3;
+    line-height: 1.2;
+    margin-top: 1px;
+}
 
+/* Couleurs par Carte */
 .stat-verte { border-color: rgba(63, 185, 80, 0.25); }
 .stat-verte .stat-valeur { color: var(--vert-stat); }
 
