@@ -221,7 +221,7 @@ function afficherObservations() {
             conteneurPerso.innerHTML = '';
         } else {
             conteneurPerso.innerHTML = persos.map(p => `
-                <div class="item-observation active" style="justify-content:space-between;">
+                <div class="item-observation active" style="justify-content:space-between; margin-bottom:6px;">
                     <div>
                         <strong style="font-size:0.85rem;">✨ ${p.texte}</strong>
                         <p class="texte-secondaire" style="font-size:0.72rem; color:#ffb7c5; margin-top:2px;">Observé depuis le ${new Date(p.dateConstat).toLocaleDateString('fr-FR')}</p>
@@ -234,6 +234,7 @@ function afficherObservations() {
 }
 
 function basculerObservation(id, texte) {
+    if (!observations) observations = [];
     const idx = observations.findIndex(o => o.id === id);
     if (idx >= 0) {
         observations.splice(idx, 1);
@@ -252,8 +253,14 @@ function basculerObservation(id, texte) {
 function ajouterObsPerso() {
     const champ = document.getElementById('saisie-obs-perso');
     if (!champ) return;
+    
     const txt = champ.value.trim();
-    if (!txt) return;
+    if (!txt) {
+        alert('Veuillez saisir un texte pour votre observation.');
+        return;
+    }
+
+    if (!observations) observations = [];
 
     observations.push({
         id: `perso_${Date.now()}`,
@@ -853,7 +860,6 @@ function sauvegarderDepense() {
     mettreAJourTout();
 }
 
-// SAUVEGARDE D'OBJECTIF DE NICOTINE STRUCTURÉ
 function sauvegarderObjectif() {
     const valStr = document.getElementById('obj-nicotine-valeur').value;
     const date = document.getElementById('obj-date').value;
