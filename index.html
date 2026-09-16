@@ -10,7 +10,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;800&display=swap" rel="stylesheet">
     
     <link rel="manifest" href="manifest.json">
-    <link rel="stylesheet" href="style.css?v=v124">
+    <link rel="stylesheet" href="style.css?v=v126">
     <meta name="theme-color" content="#0b0e14">
 </head>
 <body>
@@ -331,10 +331,53 @@
                 <div id="liste-recettes"></div>
             </section>
 
-            <!-- ÉCRAN 3 : SANTÉ -->
+            <!-- ÉCRAN 3 : PARCOURS (REMPLACE L'ANCIEN ÉCRAN SANTÉ) -->
             <section id="ecran-sante" class="ecran masque">
-                <h2>Jalons de Santé 🫁</h2>
-                <div id="timeline-sante"></div>
+                <h2>Mon Parcours 🗺️</h2>
+
+                <!-- SECTION 1 : MON PARCOURS SANS CIGARETTE -->
+                <div class="carte" style="margin-bottom: 16px;">
+                    <h3>🚭 Mon parcours sans cigarette</h3>
+                    <div style="margin: 10px 0;">
+                        <span id="parcours-jours-titre" style="font-family:'Cinzel', serif; font-size:1.4rem; font-weight:800; color:#2ea043;">0 jour sans cigarette</span>
+                        <p class="texte-secondaire" style="margin-top: 2px;">Votre cerisier continue de grandir 🌸</p>
+                    </div>
+
+                    <h4 style="margin-top: 14px; font-size: 0.85rem; color: var(--rose-sakura);">Jalons de santé (Post-arrêt du tabac)</h4>
+                    <p class="texte-secondaire" style="font-size: 0.75rem; margin-bottom: 10px;">Repères constatés généralement après l'arrêt de la cigarette combustible.</p>
+                    <div id="timeline-parcours"></div>
+                </div>
+
+                <!-- SECTION 2 : MA VAPE -->
+                <div class="carte" style="margin-bottom: 16px;">
+                    <h3>💧 Ma Vape (Aperçu)</h3>
+                    <div style="display:flex; justify-content:space-between; margin-top:8px;">
+                        <span>Nicotine actuelle :</span> <strong id="parcours-nico-valeur">-- mg/ml</strong>
+                    </div>
+                    <div id="parcours-bloc-objectif-futur" style="display:flex; justify-content:space-between; margin-top:4px;">
+                        <span>Prochain objectif :</span> <strong id="parcours-obj-valeur" style="color:#ffb7c5;">Aucun</strong>
+                    </div>
+                    <hr style="border-color: rgba(255,255,255,0.1); margin: 8px 0;">
+                    <div style="display:flex; justify-content:space-between;">
+                        <span>Flacons consommés :</span> <strong id="parcours-flacons-comptage">0 flacon(s)</strong>
+                    </div>
+                </div>
+
+                <!-- SECTION 3 : DEPUIS MON CHANGEMENT -->
+                <div class="carte">
+                    <h3>✨ Depuis mon changement</h3>
+                    <p class="texte-secondaire" style="margin: 6px 0 12px 0;">Qu'avez-vous remarqué depuis votre arrêt de la cigarette ?</p>
+                    
+                    <div id="liste-observations-preset"></div>
+
+                    <!-- AJOUT D'UNE OBSERVATION PERSONNALISÉE -->
+                    <div style="margin-top: 12px; display:flex; gap:8px;">
+                        <input type="text" id="saisie-obs-perso" placeholder="Autre observation personnelle..." style="font-size:0.8rem; padding:8px;">
+                        <button type="button" class="btn-primaire" onclick="ajouterObsPerso()" style="width:auto; padding:8px 12px; font-size:0.8rem; white-space:nowrap;">Ajouter ➕</button>
+                    </div>
+
+                    <div id="liste-observations-perso" style="margin-top: 10px;"></div>
+                </div>
             </section>
 
             <!-- ÉCRAN 4 : FINANCES -->
@@ -427,15 +470,18 @@
                 </div>
             </section>
 
-            <!-- ÉCRAN 5 : OBJECTIFS -->
+            <!-- ÉCRAN 5 : OBJECTIFS OPTIMISÉ -->
             <section id="ecran-objectifs" class="ecran masque">
                 <h2>Mes Objectifs 🎯</h2>
                 <button id="btn-ouvrir-ajout-objectif" class="btn-primaire" type="button" style="margin-bottom: 14px;">Ajouter un objectif ➕</button>
 
                 <div id="form-objectif" class="form-card masque">
                     <div class="groupe-champ">
-                        <label>Titre de l'objectif</label>
-                        <input type="text" id="obj-titre" placeholder="Ex: Passer à 8mg/ml" required>
+                        <label>Dosage Nicotine Objectif (mg/ml)</label>
+                        <div style="position:relative; display:flex; align-items:center;">
+                            <input type="number" step="0.5" min="0" id="obj-nicotine-valeur" placeholder="Ex: 8" required style="padding-right: 50px;">
+                            <span style="position:absolute; right:12px; color:var(--rose-sakura); font-weight:600; pointer-events:none;">mg/ml</span>
+                        </div>
                     </div>
                     <div class="groupe-champ">
                         <label>Date cible</label>
@@ -547,8 +593,8 @@
                 <span>DIY</span>
             </button>
             <button class="nav-item" id="nav-sante" type="button">
-                <span class="icone">🫁</span>
-                <span>Santé</span>
+                <span class="icone">🗺️</span>
+                <span>Parcours</span>
             </button>
             <button class="nav-item" id="nav-finances" type="button">
                 <span class="icone">💰</span>
@@ -561,6 +607,6 @@
         </nav>
 
     </div>
-    <script src="app.js?v=v124"></script>
+    <script src="app.js?v=v126"></script>
 </body>
 </html>
