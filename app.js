@@ -72,6 +72,8 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 function initialiserInterface() {
+    const modale = document.getElementById('modale-confirmation-date');
+    if (modale) modale.classList.add('masque');
     const entete = document.getElementById('entete-app');
     const nav = document.getElementById('navigation-basse');
     if (entete) entete.style.display = 'flex';
@@ -222,12 +224,20 @@ function demanderChangementDateArret() {
     }
 
     dateArretEnAttente = nouvelleDate;
-    document.getElementById('modale-confirmation-date').classList.remove('masque');
+    const modale = document.getElementById('modale-confirmation-date');
+    if (modale) {
+        modale.classList.remove('masque');
+        modale.style.display = 'flex'; // Force l'affichage flex au clic uniquement
+    }
 }
 
 function fermerModaleDate() {
     dateArretEnAttente = null;
-    document.getElementById('modale-confirmation-date').classList.add('masque');
+    const modale = document.getElementById('modale-confirmation-date');
+    if (modale) {
+        modale.classList.add('masque');
+        modale.style.display = 'none'; // Force le masque explicite
+    }
     if (configUser && configUser.dateArret) {
         document.getElementById('profil-date-arret').value = configUser.dateArret;
     }
