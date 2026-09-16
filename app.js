@@ -10,17 +10,23 @@ setTimeout(() => {
 // MYVAPEPAL PWA - CODE PRINCIPAL APPLICATION
 // =============================================================
 
-const JALONS_SANTE = [
-    { delaiHeures: 20, titre: "Pression sanguine", desc: "La pression sanguine et le pouls redeviennent normaux." },
-    { delaiHeures: 8, titre: "Oxygénation", desc: "La quantité de monoxyde de carbone dans le sang diminue de moitié." },
-    { delaiHeures: 24, titre: "Risque d'infarctus", desc: "Le monoxyde de carbone est éliminé. Le risque d'infarctus diminue." },
-    { delaiHeures: 48, titre: "Goût et Odorat", desc: "La nicotine est éliminée. Le goût et l'odorat s'améliorent." },
-    { delaiHeures: 72, titre: "Respiration", desc: "Les bronches se relâchent, respirer devient plus facile." },
-    { delaiHeures: 336, titre: "Energie (2 sem.)", desc: "La circulation sanguine s'améliore, le souffle revient." },
-    { delaiHeures: 720, titre: "Capacité pulmonaire (1 mois)", desc: "Toux et fatigue diminuent. Les poumons se nettoient." },
-    { delaiHeures: 2160, titre: "Fonction pulmonaire (3 mois)", desc: "La fonction pulmonaire s'est accrue de 10 à 30%." },
-    { delaiHeures: 6480, titre: "Toux et essoufflement (9 mois)", desc: "Les cils pulmonaires ont repoussé." },
-    { delaiHeures: 8760, titre: "Risque cardiaque (-50%)", desc: "Le risque de maladie cardiovasculaire est réduit de moitié." }
+// JALONS DE SANTÉ ET DE PARCOURS OMS / WHO
+const JALONS_OMS = [
+    { delaiHeures: 12, titre: "Monoxyde de carbone (CO)", desc: "Le taux de monoxyde de carbone dans le sang revient à un niveau normal.", urlSource: "https://www.who.int/tobacco/quitting/benefits/fr/" },
+    { delaiHeures: 336, titre: "Circulation & Poumons (2 sem.)", desc: "La circulation sanguine s'améliore et la fonction pulmonaire s'accroît.", urlSource: "https://www.who.int/tobacco/quitting/benefits/fr/" },
+    { delaiHeures: 2160, titre: "Toux et essoufflement (1 à 9 mois)", desc: "La toux et le souffle court diminuent progressivement.", urlSource: "https://www.who.int/tobacco/quitting/benefits/fr/" },
+    { delaiHeures: 8760, titre: "Risque cardiaque (-50% à 1 an)", desc: "Le risque de maladie coronarienne est environ deux fois inférieur à celui d'un fumeur.", urlSource: "https://www.who.int/tobacco/quitting/benefits/fr/" },
+    { delaiHeures: 43800, titre: "Risque d'AVC (5 ans)", desc: "Le risque d'accident vasculaire cérébral est équivalent à celui d'un non-fumeur.", urlSource: "https://www.who.int/tobacco/quitting/benefits/fr/" }
+];
+
+// OBSERVATIONS PAR DÉFAUT
+const OBSERVATIONS_PRESETS = [
+    { id: "obs_toux", texte: "Je tousse moins" },
+    { id: "obs_souffle", texte: "Je suis moins essoufflé(e)" },
+    { id: "obs_gout", texte: "Je retrouve davantage les goûts" },
+    { id: "obs_odeur", texte: "Je retrouve davantage les odeurs" },
+    { id: "obs_vetements", texte: "Mes vêtements ne sentent plus la cigarette" },
+    { id: "obs_reveil", texte: "Je me réveille moins encombré(e)" }
 ];
 
 let configUser = null;
@@ -28,6 +34,7 @@ let flacons = [];
 let recettes = [];
 let depenses = [];
 let objectifs = [];
+let observations = [];
 let dateArretEnAttente = null;
 
 try {
@@ -36,6 +43,7 @@ try {
     recettes = JSON.parse(localStorage.getItem('vt_recettes')) || [];
     depenses = JSON.parse(localStorage.getItem('vt_depenses')) || [];
     objectifs = JSON.parse(localStorage.getItem('vt_objectifs')) || [];
+    observations = JSON.parse(localStorage.getItem('vt_observations')) || [];
 } catch (e) {
     console.error("Erreur lecture LocalStorage", e);
 }
@@ -96,7 +104,7 @@ function mettreAJourTout() {
     afficherReserveEtMaturation();
     afficherHistoriqueFlacons();
     afficherRecettes();
-    afficherTimelineSante();
+    afficherParcours();
     afficherFinances();
     afficherObjectifs();
     remplirSelectRecettes();
@@ -116,6 +124,153 @@ function getHeuresEcoulees() {
     const debut = new Date(configUser.dateArret);
     const maintenant = new Date();
     return Math.abs(maintenant - debut) / (1000 * 60 * 60);
+}
+
+// =============================================================
+// GESTION DU NOUVEL ÉCRAN PARCOURS
+// =============================================================
+function afficherParcours() {
+    const jours = getJoursEcoules();
+    const heures = getHeuresEcoulees();
+
+    const elJoursTitre = document.getElementById('parcours-jours-titre');
+    if (elJoursTitre) {
+        elJoursTitre.textContent = `${jours} jour${jours > 1 ? 's' : ''} sans cigarette`;
+    }
+
+    // SECTION 1 : JALONS OMS
+    const conteneurJalons = document.getElementById('timeline-parcours');
+    if (conteneurJalons) {
+        conteneurJalons.innerHTML = JALONS_OMS.map(j => {
+            const atteint = heures >= j.delaiHeures;
+            return `
+                <div class="carte" style="margin-bottom:10px; padding:10px 12px; background: rgba(255,255,255,0.02); border-color:${atteint ? 'rgba(63, 185, 80, 0.3)' : 'rgba(255,255,255,0.06)'};">
+                    <div style="display:flex; justify-content:space-between; align-items:center;">
+                        <strong style="font-size:0.85rem;">${j.titre}</strong>
+                        <div style="display:flex; align-items:center; gap:8px;">
+                            <a href="${j.urlSource}" target="_blank" rel="noopener" class="badge-source-oms">Source OMS 🔗</a>
+                            <span style="font-size:0.75rem; color:${atteint ? '#3fb950' : '#8b949e'}; font-weight:600;">
+                                ${atteint ? '✅ Atteint' : '⏳ En cours'}
+                            </span>
+                        </div>
+                    </div>
+                    <p class="texte-secondaire" style="margin-top:4px; font-size:0.8rem;">${j.desc}</p>
+                </div>
+            `;
+        }).join('');
+    }
+
+    // SECTION 2 : MA VAPE FACTUELLE
+    if (document.getElementById('parcours-nico-valeur')) {
+        if (configUser && configUser.vapote && configUser.nicotineActuelle !== undefined) {
+            document.getElementById('parcours-nico-valeur').textContent = `${configUser.nicotineActuelle} mg/ml`;
+        } else {
+            document.getElementById('parcours-nico-valeur').textContent = '0 mg/ml (Non vapoteur)';
+        }
+    }
+
+    const elObjVal = document.getElementById('parcours-obj-valeur');
+    const blocObj = document.getElementById('parcours-bloc-objectif-futur');
+
+    const maintenant = new Date();
+    const objectifsFuturs = objectifs
+        .filter(o => new Date(o.date) >= maintenant)
+        .sort((a, b) => new Date(a.date) - new Date(b.date));
+
+    if (objectifsFuturs.length > 0 && elObjVal) {
+        const pro = objectifsFuturs[0];
+        const dateFormatee = new Date(pro.date).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+        elObjVal.textContent = `${pro.titre} le ${dateFormatee}`;
+        if (blocObj) blocObj.style.display = 'flex';
+    } else {
+        if (blocObj) blocObj.style.display = 'none';
+    }
+
+    const terminesComptage = flacons.filter(f => f.termine).length;
+    if (document.getElementById('parcours-flacons-comptage')) {
+        document.getElementById('parcours-flacons-comptage').textContent = `${terminesComptage} flacon(s) terminé(s)`;
+    }
+
+    // SECTION 3 : OBSERVATIONS
+    afficherObservations();
+}
+
+function afficherObservations() {
+    const conteneurPresets = document.getElementById('liste-observations-preset');
+    if (conteneurPresets) {
+        conteneurPresets.innerHTML = OBSERVATIONS_PRESETS.map(p => {
+            const obsEnregistree = observations.find(o => o.id === p.id);
+            const cochee = !!obsEnregistree;
+            const dateStr = cochee && obsEnregistree.dateConstat ? new Date(obsEnregistree.dateConstat).toLocaleDateString('fr-FR') : '';
+
+            return `
+                <div class="item-observation ${cochee ? 'active' : ''}" onclick="basculerObservation('${p.id}', '${p.texte}')">
+                    <div>
+                        <strong style="font-size:0.85rem;">${cochee ? '☑️' : '☐'} ${p.texte}</strong>
+                        ${cochee ? `<p class="texte-secondaire" style="font-size:0.72rem; color:#ffb7c5; margin-top:2px;">Observé depuis le ${dateStr}</p>` : ''}
+                    </div>
+                </div>
+            `;
+        }).join('');
+    }
+
+    const conteneurPerso = document.getElementById('liste-observations-perso');
+    if (conteneurPerso) {
+        const persos = observations.filter(o => o.personnalise);
+        if (persos.length === 0) {
+            conteneurPerso.innerHTML = '';
+        } else {
+            conteneurPerso.innerHTML = persos.map(p => `
+                <div class="item-observation active" style="justify-content:space-between;">
+                    <div>
+                        <strong style="font-size:0.85rem;">✨ ${p.texte}</strong>
+                        <p class="texte-secondaire" style="font-size:0.72rem; color:#ffb7c5; margin-top:2px;">Observé depuis le ${new Date(p.dateConstat).toLocaleDateString('fr-FR')}</p>
+                    </div>
+                    <button type="button" class="btn-suppr" onclick="supprimerObsPerso('${p.id}')">🗑️</button>
+                </div>
+            `).join('');
+        }
+    }
+}
+
+function basculerObservation(id, texte) {
+    const idx = observations.findIndex(o => o.id === id);
+    if (idx >= 0) {
+        observations.splice(idx, 1);
+    } else {
+        observations.push({
+            id: id,
+            texte: texte,
+            dateConstat: new Date().toISOString(),
+            personnalise: false
+        });
+    }
+    localStorage.setItem('vt_observations', JSON.stringify(observations));
+    afficherParcours();
+}
+
+function ajouterObsPerso() {
+    const champ = document.getElementById('saisie-obs-perso');
+    if (!champ) return;
+    const txt = champ.value.trim();
+    if (!txt) return;
+
+    observations.push({
+        id: `perso_${Date.now()}`,
+        texte: txt,
+        dateConstat: new Date().toISOString(),
+        personnalise: true
+    });
+
+    localStorage.setItem('vt_observations', JSON.stringify(observations));
+    champ.value = '';
+    afficherParcours();
+}
+
+function supprimerObsPerso(id) {
+    observations = observations.filter(o => o.id !== id);
+    localStorage.setItem('vt_observations', JSON.stringify(observations));
+    afficherParcours();
 }
 
 // =============================================================
@@ -698,22 +853,27 @@ function sauvegarderDepense() {
     mettreAJourTout();
 }
 
+// SAUVEGARDE D'OBJECTIF DE NICOTINE STRUCTURÉ
 function sauvegarderObjectif() {
-    const titre = document.getElementById('obj-titre').value.trim();
+    const valStr = document.getElementById('obj-nicotine-valeur').value;
     const date = document.getElementById('obj-date').value;
-    if (!titre || !date) {
-        alert('Veuillez renseigner le titre et la date cible.');
+
+    if (valStr === '' || !date) {
+        alert('Veuillez renseigner le dosage de nicotine cible et la date.');
         return;
     }
+
+    const valNico = parseFloat(valStr);
     const nouvelObjectif = {
         id: Date.now().toString(),
-        titre: titre,
+        titre: `${valNico} mg/ml`,
         date: date
     };
+
     objectifs.unshift(nouvelObjectif);
     localStorage.setItem('vt_objectifs', JSON.stringify(objectifs));
     
-    document.getElementById('obj-titre').value = '';
+    document.getElementById('obj-nicotine-valeur').value = '';
     document.getElementById('obj-date').value = '';
     document.getElementById('form-objectif').classList.add('masque');
     mettreAJourTout();
@@ -932,25 +1092,6 @@ function supprimerFlacon(id) {
     mettreAJourTout();
 }
 
-function afficherTimelineSante() {
-    const conteneur = document.getElementById('timeline-sante');
-    if (!conteneur) return;
-    const heures = getHeuresEcoulees();
-
-    conteneur.innerHTML = JALONS_SANTE.map(j => {
-        const atteint = heures >= j.delaiHeures;
-        return `
-            <div class="carte jalon-sante ${atteint ? 'atteint' : ''}">
-                <div style="display:flex; justify-content:space-between;">
-                    <strong>${j.titre}</strong>
-                    <span>${atteint ? '✅ Atteint' : '⏳ En cours'}</span>
-                </div>
-                <p class="texte-secondaire" style="margin-top:6px;">${j.desc}</p>
-            </div>
-        `;
-    }).join('');
-}
-
 function afficherFinances() {
     const jours = getJoursEcoules();
     const cigsParJour = configUser ? (configUser.cigsJour || 15) : 15;
@@ -1070,10 +1211,10 @@ function afficherObjectifs() {
     }
 
     conteneur.innerHTML = objectifs.map(o => `
-        <div class="carte item-objectif">
+        <div class="carte item-objectif" style="display:flex; justify-content:space-between; align-items:center;">
             <div>
-                <strong>${o.titre}</strong>
-                <p class="texte-secondaire">Cible : ${new Date(o.date).toLocaleDateString()}</p>
+                <strong>🎯 Nicotine : ${o.titre}</strong>
+                <p class="texte-secondaire">Date cible : ${new Date(o.date).toLocaleDateString('fr-FR')}</p>
             </div>
             <button type="button" class="btn-suppr" onclick="supprimerObjectif('${o.id}')">🗑️</button>
         </div>
