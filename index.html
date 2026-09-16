@@ -275,12 +275,22 @@
                         <input type="number" id="recette-steep-days" placeholder="Ex: 10 (laisser vide si aucun)" min="0" step="1">
                     </div>
 
-                    <div class="box-calcul-live">
-                        <div class="titre-calcul-live">🧪 Ingrédients à mélanger :</div>
-                        <div class="ligne-calcul"><span>Arôme concentré :</span> <strong id="calc-arome">7.5 ml (15%)</strong></div>
-                        <div class="ligne-calcul"><span>Booster nicotine :</span> <strong id="calc-booster">15.0 ml (1.5 fioles)</strong></div>
-                        <div class="ligne-calcul"><span>Base neutre :</span> <strong id="calc-base">27.5 ml</strong></div>
-                    </div>
+                    <div class="box-calcul-live" style="background: rgba(255, 183, 197, 0.08); border: 1px solid rgba(255, 183, 197, 0.3); padding: 12px; border-radius: 12px; margin-top: 14px; margin-bottom: 14px;">
+    <div class="titre-calcul-live" style="color: var(--rose-sakura); font-weight: bold; margin-bottom: 8px;">🧪 Ingrédients à mélanger :</div>
+    <div class="ligne-calcul" style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+        <span>Arôme concentré :</span>
+        <strong id="calc-arome" style="color: #ffb7c5;">7.5 ml (15%)</strong>
+    </div>
+    <div class="ligne-calcul" style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+        <span>Booster nicotine :</span>
+        <strong id="calc-booster" style="color: #eab308;">15.0 ml (1.5 fioles)</strong>
+    </div>
+    <hr style="border: 0; border-top: 1px solid rgba(255, 255, 255, 0.1); margin: 8px 0;">
+    <div class="ligne-calcul" style="display: flex; justify-content: space-between;">
+        <span>Base neutre :</span>
+        <strong id="calc-base" style="color: #38bdf8;">27.5 ml</strong>
+    </div>
+</div>
 
                     <button type="button" class="btn-primaire" onclick="sauvegarderRecette()">Sauvegarder la recette</button>
                     <button type="button" id="btn-annuler-recette" class="btn-secondaire">Annuler</button>
