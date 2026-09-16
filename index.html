@@ -318,12 +318,22 @@
                         <input type="number" step="0.1" id="ajust-arome-pct" placeholder="9" value="9" required>
                     </div>
 
-                    <div class="box-calcul-live">
-                        <div class="titre-calcul-live">⚖️ Ce qu'il faut AJOUTER au flacon :</div>
-                        <div class="ligne-calcul"><span>Base neutre :</span> <strong id="ajust-calc-base">22.7 ml</strong></div>
-                        <div class="ligne-calcul"><span>Arôme concentré :</span> <strong id="ajust-calc-arome">2.25 ml</strong></div>
-                        <div class="ligne-calcul"><span>Volume final :</span> <strong id="ajust-calc-vol-final">100.0 ml</strong></div>
-                    </div>
+                    <div class="box-calcul-live" style="background: rgba(56, 189, 248, 0.08); border-color: rgba(56, 189, 248, 0.3); padding: 12px; border-radius: 12px; border: 1px solid rgba(56, 189, 248, 0.3); margin-top: 14px;">
+    <div class="titre-calcul-live" style="color: #38bdf8; font-weight: bold; margin-bottom: 8px;">⚖️ Ce qu'il faut AJOUTER au flacon :</div>
+    <div class="ligne-calcul" style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+        <span>Base neutre à verser :</span>
+        <strong id="ajust-calc-base" style="color: #38bdf8;">22.7 ml</strong>
+    </div>
+    <div class="ligne-calcul" style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+        <span>Arôme concentré à rajouter :</span>
+        <strong id="ajust-calc-arome" style="color: #ffb7c5;">2.25 ml</strong>
+    </div>
+    <hr style="border: 0; border-top: 1px solid rgba(255, 255, 255, 0.1); margin: 8px 0;">
+    <div class="ligne-calcul" style="display: flex; justify-content: space-between;">
+        <span>Volume final obtenu :</span>
+        <strong id="ajust-calc-vol-final" style="color: #e6edf3;">100.0 ml</strong>
+    </div>
+</div>
 
                     <button type="button" id="btn-fermer-ajustement" class="btn-secondaire">Fermer le calculateur</button>
                 </div>
