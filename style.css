@@ -1,4 +1,95 @@
-/* Bouton Profil dans l'En-tête */
+/* =============================================================
+   VARIABLES & DESIGN SYSTEM MYVAPEPAL
+   ============================================================= */
+:root {
+    --bg-principal: #0b0e14;
+    --bg-carte: rgba(22, 27, 34, 0.8);
+    --border-carte: rgba(255, 255, 255, 0.1);
+    --texte-principal: #e6edf3;
+    --texte-secondaire: #8b949e;
+    --rose-sakura: #ffb7c5;
+    --rose-accent: #f783ac;
+    --or-stat: #eab308;
+    --vert-stat: #2ea043;
+    --bleu-stat: #38bdf8;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+body {
+    background-color: var(--bg-principal);
+    color: var(--texte-principal);
+    display: flex;
+    justify-content: center;
+    min-height: 100vh;
+}
+
+#app-container {
+    width: 100%;
+    max-width: 480px;
+    padding: 16px;
+    padding-bottom: 90px;
+    position: relative;
+}
+
+/* Splash Screen */
+#splash-screen {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: #0b0e14;
+    z-index: 10000;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+}
+
+.splash-logo {
+    width: 90px;
+    height: 90px;
+    margin-bottom: 12px;
+}
+
+.splash-titre {
+    font-family: 'Cinzel', serif;
+    font-size: 1.8rem;
+    color: var(--rose-sakura);
+    letter-spacing: 1px;
+}
+
+.splash-baseline {
+    font-size: 0.88rem;
+    color: #e6edf3;
+    opacity: 0.85;
+    margin-top: 4px;
+    margin-bottom: 6px;
+    font-weight: 400;
+}
+
+.splash-sous-titre {
+    font-size: 1.2rem;
+}
+
+/* En-tête */
+#entete-app {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+}
+
+#entete-app h1 {
+    font-family: 'Cinzel', serif;
+    font-size: 1.4rem;
+    color: var(--rose-sakura);
+}
+
 .btn-icone-profil {
     background: rgba(255, 255, 255, 0.08);
     border: 1px solid rgba(255, 255, 255, 0.15);
@@ -8,21 +99,134 @@
     font-size: 0.82rem;
     font-weight: 600;
     cursor: pointer;
-    transition: all 0.2s ease;
 }
 
-.btn-icone-profil:active {
-    background: rgba(255, 183, 197, 0.2);
-    border-color: #ffb7c5;
+/* Cartes & Éléments */
+.carte, .form-card {
+    background: var(--bg-carte);
+    border: 1px solid var(--border-carte);
+    border-radius: 16px;
+    padding: 16px;
+    margin-bottom: 14px;
+    backdrop-filter: blur(10px);
 }
 
-/* Modale de confirmation zen */
+.texte-secondaire {
+    color: var(--texte-secondaire);
+    font-size: 0.85rem;
+}
+
+/* Dashboards Grille */
+.grille-dashboards {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 14px;
+}
+
+.carte-stat {
+    background: var(--bg-carte);
+    border: 1px solid var(--border-carte);
+    border-radius: 14px;
+    padding: 12px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.stat-icone { font-size: 1.4rem; }
+.stat-titre { font-size: 0.72rem; color: var(--texte-secondaire); }
+.stat-valeur { font-size: 1.1rem; font-weight: bold; }
+.stat-unite { font-size: 0.72rem; color: var(--texte-secondaire); }
+
+.stat-verte { border-color: rgba(46, 160, 67, 0.3); }
+.stat-bleue { border-color: rgba(56, 189, 248, 0.3); }
+.stat-doree { border-color: rgba(234, 179, 8, 0.3); }
+.stat-doree .stat-valeur { color: var(--or-stat); }
+.stat-rose { border-color: rgba(255, 183, 197, 0.3); }
+
+/* Formulaires & Champs */
+.groupe-champ {
+    margin-bottom: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.groupe-champ label {
+    font-size: 0.8rem;
+    color: var(--texte-secondaire);
+}
+
+input, select {
+    width: 100%;
+    padding: 10px;
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid var(--border-carte);
+    border-radius: 8px;
+    color: #fff;
+    font-size: 0.9rem;
+}
+
+/* Boutons */
+.btn-primaire, .btn-secondaire {
+    width: 100%;
+    padding: 12px;
+    border-radius: 10px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    cursor: pointer;
+    border: none;
+    text-align: center;
+}
+
+.btn-primaire {
+    background: linear-gradient(135deg, #f783ac, #ffb7c5);
+    color: #0b0e14;
+}
+
+.btn-secondaire {
+    background: rgba(255, 255, 255, 0.08);
+    color: var(--texte-principal);
+    border: 1px solid var(--border-carte);
+    margin-top: 8px;
+}
+
+/* Barre de navigation */
+#navigation-basse {
+    position: fixed;
+    bottom: 0; left: 50%;
+    transform: translateX(-50%);
+    width: 100%;
+    max-width: 480px;
+    background: rgba(11, 14, 20, 0.95);
+    border-top: 1px solid var(--border-carte);
+    display: flex;
+    justify-content: space-around;
+    padding: 8px 0;
+    backdrop-filter: blur(10px);
+}
+
+.nav-item {
+    background: none;
+    border: none;
+    color: var(--texte-secondaire);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    font-size: 0.7rem;
+    gap: 2px;
+    cursor: pointer;
+}
+
+.nav-item.actif {
+    color: var(--rose-sakura);
+}
+
+/* Modale Confirmation */
 .modale-fond {
     position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
+    top: 0; left: 0; right: 0; bottom: 0;
     background: rgba(11, 14, 20, 0.85);
     backdrop-filter: blur(6px);
     z-index: 9999;
@@ -39,8 +243,9 @@
     padding: 20px;
     max-width: 360px;
     width: 100%;
-    box-shadow: 0 10px 25px rgba(0,0,0,0.5);
 }
-.masque {
+
+/* RÈGLE ABSOLUE POUR LES MASQUES DE SECTIONS ET D'ÉCRANS */
+.masque, .ecran.masque, div.masque {
     display: none !important;
 }
