@@ -10,7 +10,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;800&display=swap" rel="stylesheet">
     
     <link rel="manifest" href="manifest.json">
-    <link rel="stylesheet" href="style.css?v=v130">
+    <link rel="stylesheet" href="style.css?v=v134">
     <meta name="theme-color" content="#0b0e14">
 </head>
 <body>
@@ -94,48 +94,49 @@
                     <div id="nom-stade-arbre" class="badge-stade">Stade 1 : Jeune pousse (0 à 1 mois) 🌿</div>
                 </div>
 
+                <!-- GRILLE DES CARTES STATISTIQUES (RÉORGANISÉE EN VERTICAL) -->
                 <div class="grille-dashboards">
-    <!-- 1. JOURS SANS TABAC -->
-    <div class="carte-stat stat-verte">
-        <div class="stat-entete">
-            <span class="stat-icone">🌿</span>
-            <span class="stat-titre">Jours sans tabac</span>
-        </div>
-        <div class="stat-valeur" id="card-jours">0</div>
-        <div class="stat-unite" id="prenom-accueil">bravo !</div>
-    </div>
+                    <!-- 1. JOURS SANS TABAC -->
+                    <div class="carte-stat stat-verte">
+                        <div class="stat-entete">
+                            <span class="stat-icone">🌿</span>
+                            <span class="stat-titre">Jours sans tabac</span>
+                        </div>
+                        <div class="stat-valeur" id="card-jours">0</div>
+                        <div class="stat-unite" id="prenom-accueil">bravo !</div>
+                    </div>
 
-    <!-- 2. CIGARETTES ÉVITÉES -->
-    <div class="carte-stat stat-bleue">
-        <div class="stat-entete">
-            <span class="stat-icone">🚭</span>
-            <span class="stat-titre">Cigarettes évitées</span>
-        </div>
-        <div class="stat-valeur" id="card-cigs">0</div>
-        <div class="stat-unite">non fumées</div>
-    </div>
+                    <!-- 2. CIGARETTES ÉVITÉES -->
+                    <div class="carte-stat stat-bleue">
+                        <div class="stat-entete">
+                            <span class="stat-icone">🚭</span>
+                            <span class="stat-titre">Cigarettes évitées</span>
+                        </div>
+                        <div class="stat-valeur" id="card-cigs">0</div>
+                        <div class="stat-unite">non fumées</div>
+                    </div>
 
-    <!-- 3. ÉCONOMIE NETTE -->
-    <div class="carte-stat stat-doree">
-        <div class="stat-entete">
-            <span class="stat-icone">💰</span>
-            <span class="stat-titre">Économie nette</span>
-        </div>
-        <div class="stat-valeur" id="card-economies">0,00 €</div>
-        <div class="stat-unite" id="card-economies-soustitre">depuis mon arrêt</div>
-        <div class="stat-unite-mois" id="card-economies-mois">+ 0,00 € ce mois-ci</div>
-    </div>
+                    <!-- 3. ÉCONOMIE NETTE -->
+                    <div class="carte-stat stat-doree">
+                        <div class="stat-entete">
+                            <span class="stat-icone">💰</span>
+                            <span class="stat-titre">Économie nette</span>
+                        </div>
+                        <div class="stat-valeur" id="card-economies">0,00 €</div>
+                        <div class="stat-unite" id="card-economies-soustitre">depuis mon arrêt</div>
+                        <div class="stat-unite-mois" id="card-economies-mois">+ 0,00 € ce mois-ci</div>
+                    </div>
 
-    <!-- 4. NICOTINE ACTUELLE -->
-    <div class="carte-stat stat-rose">
-        <div class="stat-entete">
-            <span class="stat-icone">💧</span>
-            <span class="stat-titre">Nicotine actuelle</span>
-        </div>
-        <div class="stat-valeur-texte" id="card-nicotine-valeur">-- mg/ml</div>
-        <div class="stat-unite" id="card-nicotine-objectif">Aucun objectif fixé</div>
-    </div>
-</div>
+                    <!-- 4. NICOTINE ACTUELLE -->
+                    <div class="carte-stat stat-rose">
+                        <div class="stat-entete">
+                            <span class="stat-icone">💧</span>
+                            <span class="stat-titre">Nicotine actuelle</span>
+                        </div>
+                        <div class="stat-valeur-texte" id="card-nicotine-valeur">-- mg/ml</div>
+                        <div class="stat-unite" id="card-nicotine-objectif">Aucun objectif fixé</div>
+                    </div>
+                </div>
 
                 <!-- CARTE FLACON EN COURS DU MOMENT -->
                 <div class="carte carte-flacon-actif" id="carte-flacon-principal">
@@ -280,21 +281,21 @@
                     </div>
 
                     <div class="box-calcul-live" style="background: rgba(255, 183, 197, 0.08); border: 1px solid rgba(255, 183, 197, 0.3); padding: 12px; border-radius: 12px; margin-top: 14px; margin-bottom: 14px;">
-    <div class="titre-calcul-live" style="color: var(--rose-sakura); font-weight: bold; margin-bottom: 8px;">🧪 Ingrédients à mélanger :</div>
-    <div class="ligne-calcul" style="display: flex; justify-content: space-between; margin-bottom: 4px;">
-        <span>Arôme concentré :</span>
-        <strong id="calc-arome" style="color: #ffb7c5;">7.5 ml (15%)</strong>
-    </div>
-    <div class="ligne-calcul" style="display: flex; justify-content: space-between; margin-bottom: 4px;">
-        <span>Booster nicotine :</span>
-        <strong id="calc-booster" style="color: #eab308;">15.0 ml (1.5 fioles)</strong>
-    </div>
-    <hr style="border: 0; border-top: 1px solid rgba(255, 255, 255, 0.1); margin: 8px 0;">
-    <div class="ligne-calcul" style="display: flex; justify-content: space-between;">
-        <span>Base neutre :</span>
-        <strong id="calc-base" style="color: #38bdf8;">27.5 ml</strong>
-    </div>
-</div>
+                        <div class="titre-calcul-live" style="color: var(--rose-sakura); font-weight: bold; margin-bottom: 8px;">🧪 Ingrédients à mélanger :</div>
+                        <div class="ligne-calcul" style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                            <span>Arôme concentré :</span>
+                            <strong id="calc-arome" style="color: #ffb7c5;">7.5 ml (15%)</strong>
+                        </div>
+                        <div class="ligne-calcul" style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                            <span>Booster nicotine :</span>
+                            <strong id="calc-booster" style="color: #eab308;">15.0 ml (1.5 fioles)</strong>
+                        </div>
+                        <hr style="border: 0; border-top: 1px solid rgba(255, 255, 255, 0.1); margin: 8px 0;">
+                        <div class="ligne-calcul" style="display: flex; justify-content: space-between;">
+                            <span>Base neutre :</span>
+                            <strong id="calc-base" style="color: #38bdf8;">27.5 ml</strong>
+                        </div>
+                    </div>
 
                     <button type="button" class="btn-primaire" onclick="sauvegarderRecette()">Sauvegarder la recette</button>
                     <button type="button" id="btn-annuler-recette" class="btn-secondaire">Annuler</button>
@@ -333,21 +334,21 @@
                     </div>
 
                     <div class="box-calcul-live" style="background: rgba(56, 189, 248, 0.08); border-color: rgba(56, 189, 248, 0.3); padding: 12px; border-radius: 12px; border: 1px solid rgba(56, 189, 248, 0.3); margin-top: 14px;">
-    <div class="titre-calcul-live" style="color: #38bdf8; font-weight: bold; margin-bottom: 8px;">⚖️ Ce qu'il faut AJOUTER au flacon :</div>
-    <div class="ligne-calcul" style="display: flex; justify-content: space-between; margin-bottom: 4px;">
-        <span>Base neutre à verser :</span>
-        <strong id="ajust-calc-base" style="color: #38bdf8;">22.7 ml</strong>
-    </div>
-    <div class="ligne-calcul" style="display: flex; justify-content: space-between; margin-bottom: 4px;">
-        <span>Arôme concentré à rajouter :</span>
-        <strong id="ajust-calc-arome" style="color: #ffb7c5;">2.25 ml</strong>
-    </div>
-    <hr style="border: 0; border-top: 1px solid rgba(255, 255, 255, 0.1); margin: 8px 0;">
-    <div class="ligne-calcul" style="display: flex; justify-content: space-between;">
-        <span>Volume final obtenu :</span>
-        <strong id="ajust-calc-vol-final" style="color: #e6edf3;">100.0 ml</strong>
-    </div>
-</div>
+                        <div class="titre-calcul-live" style="color: #38bdf8; font-weight: bold; margin-bottom: 8px;">⚖️ Ce qu'il faut AJOUTER au flacon :</div>
+                        <div class="ligne-calcul" style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                            <span>Base neutre à verser :</span>
+                            <strong id="ajust-calc-base" style="color: #38bdf8;">22.7 ml</strong>
+                        </div>
+                        <div class="ligne-calcul" style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+                            <span>Arôme concentré à rajouter :</span>
+                            <strong id="ajust-calc-arome" style="color: #ffb7c5;">2.25 ml</strong>
+                        </div>
+                        <hr style="border: 0; border-top: 1px solid rgba(255, 255, 255, 0.1); margin: 8px 0;">
+                        <div class="ligne-calcul" style="display: flex; justify-content: space-between;">
+                            <span>Volume final obtenu :</span>
+                            <strong id="ajust-calc-vol-final" style="color: #e6edf3;">100.0 ml</strong>
+                        </div>
+                    </div>
 
                     <button type="button" id="btn-fermer-ajustement" class="btn-secondaire">Fermer le calculateur</button>
                 </div>
@@ -631,6 +632,6 @@
         </nav>
 
     </div>
-    <script src="app.js?v=v130"></script>
+    <script src="app.js?v=v134"></script>
 </body>
 </html>
