@@ -110,6 +110,65 @@ function getHeuresEcoulees() {
     return Math.abs(maintenant - debut) / (1000 * 60 * 60);
 }
 
+// =============================================================
+// CALCUL DES ÉCONOMIES MENSUELLES ET GLOBALES
+// =============================================================
+function calculerEconomiePourMois(annee, moisIndex) {
+    if (!configUser || !configUser.dateArret) return { tabac: 0, depenses: 0, nette: 0, jours: 0 };
+
+    const dateArret = new Date(configUser.dateArret);
+    const debutMois = new Date(annee, moisIndex, 1);
+    const finMois = new Date(annee, moisIndex + 1, 0, 23, 59, 59, 999);
+    const maintenant = new Date();
+
+    // Si le mois demandé est entièrement antérieur à l'arrêt
+    if (finMois < dateArret) {
+        return { tabac: 0, depenses: 0, nette: 0, jours: 0 };
+    }
+
+    // Début réel du calcul
+    let debutCalcul = debutMois;
+    if (dateArret > debutMois) {
+        debutCalcul = dateArret;
+    }
+
+    // Fin réelle du calcul
+    let finCalcul = finMois;
+    if (maintenant < finMois) {
+        finCalcul = maintenant;
+    }
+
+    if (finCalcul < debutCalcul) {
+        return { tabac: 0, depenses: 0, nette: 0, jours: 0 };
+    }
+
+    const diffMs = Math.max(0, finCalcul - debutCalcul);
+    const joursCalcul = diffMs / (1000 * 60 * 60 * 24);
+
+    const cigsParJour = configUser.cigsJour || 15;
+    const prixPaquet = configUser.prixPaquet || 12.5;
+    const cigsParPaquet = configUser.cigsPaquet || 20;
+
+    const cigsEvitees = joursCalcul * cigsParJour;
+    const economieTabac = (cigsEvitees / cigsParPaquet) * prixPaquet;
+
+    // Filtrage des dépenses vape du mois
+    const depensesMois = depenses.filter(d => {
+        const dDate = new Date(d.date);
+        return dDate >= debutCalcul && dDate <= finCalcul;
+    });
+
+    const totalDepensesVape = depensesMois.reduce((acc, d) => acc + d.montant, 0);
+    const economieNette = economieTabac - totalDepensesVape;
+
+    return {
+        tabac: economieTabac,
+        depenses: totalDepensesVape,
+        nette: economieNette,
+        jours: Math.round(joursCalcul)
+    };
+}
+
 function mettreAJourDashboard() {
     const jours = getJoursEcoules();
     const cigsParJour = configUser ? (configUser.cigsJour || 15) : 15;
@@ -117,17 +176,28 @@ function mettreAJourDashboard() {
     const cigsParPaquet = configUser ? (configUser.cigsPaquet || 20) : 20;
 
     const cigsEvitees = Math.floor(jours * cigsParJour);
-    const economieBrute = (cigsEvitees / cigsParPaquet) * prixPaquet;
+    const economieBruteTotale = (cigsEvitees / cigsParPaquet) * prixPaquet;
 
     const totalDepensesVape = depenses.reduce((acc, d) => acc + d.montant, 0);
-    const economieNette = economieBrute - totalDepensesVape;
+    const economieNetteTotale = economieBruteTotale - totalDepensesVape;
 
     if (document.getElementById('card-jours')) document.getElementById('card-jours').textContent = jours;
     if (document.getElementById('prenom-accueil')) {
         document.getElementById('prenom-accueil').textContent = (configUser && configUser.prenom) ? `Bravo ${configUser.prenom} !` : 'Jours d\'arrêt';
     }
     if (document.getElementById('card-cigs')) document.getElementById('card-cigs').textContent = cigsEvitees;
-    if (document.getElementById('card-economies')) document.getElementById('card-economies').textContent = `${economieNette.toFixed(2)} €`;
+    
+    // Économie totale
+    if (document.getElementById('card-economies')) document.getElementById('card-economies').textContent = `${economieNetteTotale.toFixed(2)} €`;
+
+    // Économie du mois en cours
+    const maintenant = new Date();
+    const ecoMois = calculerEconomiePourMois(maintenant.getFullYear(), maintenant.getMonth());
+    const elCardMois = document.getElementById('card-economies-mois');
+    if (elCardMois) {
+        const signe = ecoMois.nette >= 0 ? '+' : '';
+        elCardMois.textContent = `${signe} ${ecoMois.nette.toFixed(2)} € ce mois-ci`;
+    }
 
     const cardNicotineVal = document.getElementById('card-nicotine-valeur');
     const cardNicotineObj = document.getElementById('card-nicotine-objectif');
@@ -141,7 +211,6 @@ function mettreAJourDashboard() {
     }
 
     if (cardNicotineObj) {
-        const maintenant = new Date();
         const objectifsFuturs = objectifs
             .filter(o => new Date(o.date) >= maintenant)
             .sort((a, b) => new Date(a.date) - new Date(b.date));
@@ -768,25 +837,97 @@ function afficherFinances() {
     if (document.getElementById('dépenses-vape-total')) document.getElementById('dépenses-vape-total').textContent = `${totalDepenses.toFixed(2)} €`;
     if (document.getElementById('economie-nette-detail')) document.getElementById('economie-nette-detail').textContent = `${economieNette.toFixed(2)} €`;
 
-    const conteneur = document.getElementById('liste-depenses');
-    if (!conteneur) return;
-    if (depenses.length === 0) {
-        conteneur.innerHTML = '<p class="texte-vide">Aucune dépense enregistrée.</p>';
-        return;
+    // Mois en cours
+    const maintenant = new Date();
+    const ecoMois = calculerEconomiePourMois(maintenant.getFullYear(), maintenant.getMonth());
+    const nomMoisLong = maintenant.toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' });
+
+    if (document.getElementById('titre-mois-actuel')) {
+        document.getElementById('titre-mois-actuel').textContent = `Bilan de ${nomMoisLong.charAt(0).toUpperCase() + nomMoisLong.slice(1)} (en cours)`;
+    }
+    if (document.getElementById('tabac-evite-mois')) document.getElementById('tabac-evite-mois').textContent = `${ecoMois.tabac.toFixed(2)} €`;
+    if (document.getElementById('depenses-vape-mois')) document.getElementById('depenses-vape-mois').textContent = `${ecoMois.depenses.toFixed(2)} €`;
+    if (document.getElementById('economie-nette-mois')) {
+        const elNette = document.getElementById('economie-nette-mois');
+        const signe = ecoMois.nette >= 0 ? '+' : '';
+        elNette.textContent = `${signe}${ecoMois.nette.toFixed(2)} €`;
+        elNette.style.color = ecoMois.nette >= 0 ? '#3fb950' : '#f85149';
     }
 
-    conteneur.innerHTML = depenses.map(d => `
-        <div class="carte" style="display:flex; justify-content:space-between; align-items:center;">
-            <div>
-                <strong>${d.nom || d.categorie}</strong>
-                <p class="texte-secondaire">${new Date(d.date).toLocaleDateString()} - ${d.categorie}</p>
+    // Historique des dépenses individuelles
+    const conteneurDep = document.getElementById('liste-depenses');
+    if (conteneurDep) {
+        if (depenses.length === 0) {
+            conteneurDep.innerHTML = '<p class="texte-vide">Aucune dépense enregistrée.</p>';
+        } else {
+            conteneurDep.innerHTML = depenses.map(d => `
+                <div class="carte" style="display:flex; justify-content:space-between; align-items:center;">
+                    <div>
+                        <strong>${d.nom || d.categorie}</strong>
+                        <p class="texte-secondaire">${new Date(d.date).toLocaleDateString()} - ${d.categorie}</p>
+                    </div>
+                    <div style="display:flex; align-items:center; gap:10px;">
+                        <span style="color:#f85149; font-weight:bold;">-${d.montant.toFixed(2)} €</span>
+                        <button type="button" class="btn-suppr" onclick="supprimerDepense('${d.id}')">🗑️</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+    }
+
+    // Historique mensuel
+    afficherHistoriqueMensuel();
+}
+
+function afficherHistoriqueMensuel() {
+    const conteneur = document.getElementById('liste-historique-mensuel');
+    if (!conteneur || !configUser || !configUser.dateArret) return;
+
+    const dateArret = new Date(configUser.dateArret);
+    const maintenant = new Date();
+
+    let anneeCourante = dateArret.getFullYear();
+    let moisCourant = dateArret.getMonth();
+
+    const moisCumules = [];
+
+    while (
+        anneeCourante < maintenant.getFullYear() ||
+        (anneeCourante === maintenant.getFullYear() && moisCourant <= maintenant.getMonth())
+    ) {
+        const res = calculerEconomiePourMois(anneeCourante, moisCourant);
+        const dateMois = new Date(anneeCourante, moisCourant, 1);
+        const nomMois = dateMois.toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' });
+        const estMoisActuel = (anneeCourante === maintenant.getFullYear() && moisCourant === maintenant.getMonth());
+
+        moisCumules.unshift({
+            nom: nomMois.charAt(0).toUpperCase() + nomMois.slice(1),
+            donnees: res,
+            estActuel: estMoisActuel
+        });
+
+        moisCourant++;
+        if (moisCourant > 11) {
+            moisCourant = 0;
+            anneeCourante++;
+        }
+    }
+
+    conteneur.innerHTML = moisCumules.map(m => {
+        const couleurScore = m.donnees.nette >= 0 ? '#3fb950' : '#f85149';
+        const signe = m.donnees.nette >= 0 ? '+' : '';
+        return `
+            <div class="carte" style="display:flex; justify-content:space-between; align-items:center;">
+                <div>
+                    <strong>${m.nom} ${m.estActuel ? '<span style="font-size:0.75rem; color:#eab308; font-weight:normal;">(en cours)</span>' : ''}</strong>
+                    <p class="texte-secondaire">Tabac : ${m.donnees.tabac.toFixed(2)} € | Vape : ${m.donnees.depenses.toFixed(2)} €</p>
+                </div>
+                <span style="color:${couleurScore}; font-weight:bold; font-size:1.05rem;">
+                    ${signe}${m.donnees.nette.toFixed(2)} €
+                </span>
             </div>
-            <div style="display:flex; align-items:center; gap:10px;">
-                <span style="color:#f85149; font-weight:bold;">-${d.montant.toFixed(2)} €</span>
-                <button type="button" class="btn-suppr" onclick="supprimerDepense('${d.id}')">🗑️</button>
-            </div>
-        </div>
-    `).join('');
+        `;
+    }).join('');
 }
 
 function supprimerDepense(id) {
@@ -831,7 +972,6 @@ function afficherEcran(idEcran) {
 }
 
 function configurerEcouteurs() {
-    // SÉCURISATION : Navigation principale avec vérification d'existence
     const navAccueil = document.getElementById('nav-accueil');
     if (navAccueil) navAccueil.onclick = () => afficherEcran('ecran-accueil');
 
@@ -847,7 +987,6 @@ function configurerEcouteurs() {
     const navObjectifs = document.getElementById('nav-objectifs');
     if (navObjectifs) navObjectifs.onclick = () => afficherEcran('ecran-objectifs');
 
-    // Écouteurs de calcul DIY en direct
     const champsDIY = ['recette-volume', 'recette-nicotine', 'recette-arome', 'recette-taux-booster'];
     champsDIY.forEach(id => {
         const el = document.getElementById(id);
@@ -868,7 +1007,6 @@ function configurerEcouteurs() {
         }
     });
 
-    // Basculement onglets DIY
     const tabCreer = document.getElementById('tab-mode-creer');
     const tabAjuster = document.getElementById('tab-mode-ajuster');
     const formRecette = document.getElementById('form-recette');
@@ -918,7 +1056,6 @@ function configurerEcouteurs() {
         });
     }
 
-    // BOUTONS DE NAVIGATION INTERNE (SÉCURISÉS)
     const btnOuvAjout = document.getElementById('btn-ouvrir-ajout');
     if (btnOuvAjout) btnOuvAjout.onclick = () => afficherEcran('ecran-ajout');
 
@@ -977,7 +1114,6 @@ function configurerEcouteurs() {
         };
     }
 
-    // SELECTEURS AUTOMATIQUES DE RECETTES
     const selRecette = document.getElementById('select-recette');
     if (selRecette) {
         selRecette.onchange = (e) => {
