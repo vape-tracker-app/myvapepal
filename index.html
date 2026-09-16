@@ -10,7 +10,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;800&display=swap" rel="stylesheet">
     
     <link rel="manifest" href="manifest.json">
-    <link rel="stylesheet" href="style.css?v=v118">
+    <link rel="stylesheet" href="style.css?v=v119">
     <meta name="theme-color" content="#0b0e14">
 </head>
 <body>
@@ -21,6 +21,20 @@
         <h1 class="splash-titre">MyVapePal</h1>
         <p class="splash-baseline">Votre compagnon de vape</p>
         <span class="splash-sous-titre">🌸</span>
+    </div>
+
+    <!-- MODALE DE CONFIRMATION CHANGEMENT DE DATE D'ARRÊT -->
+    <div id="modale-confirmation-date" class="modale-fond masque">
+        <div class="modale-contenu">
+            <h3>Modifier votre date d'arrêt ? 🌸</h3>
+            <p class="texte-secondaire" style="margin: 12px 0 20px 0; line-height: 1.5;">
+                Cette modification recalculera votre parcours, vos statistiques financières et la progression de votre cerisier.
+            </p>
+            <div style="display:flex; gap:10px;">
+                <button type="button" class="btn-secondaire" onclick="fermerModaleDate()" style="flex:1;">Annuler</button>
+                <button type="button" class="btn-primaire" onclick="validerChangementDateArret()" style="flex:1;">Confirmer</button>
+            </div>
+        </div>
     </div>
 
     <div id="app-container">
@@ -63,10 +77,10 @@
             </div>
         </div>
 
-        <!-- EN-TÊTE PRINCIPAL -->
+        <!-- EN-TÊTE PRINCIPAL (UNIQUEMENT LE BOUTON PROFIL) -->
         <header id="entete-app">
             <h1>MyVapePal 🌸</h1>
-            <button id="btn-notifications" type="button">🔔 Activer notifs</button>
+            <button id="btn-ouvrir-profil" type="button" class="btn-icone-profil" aria-label="Mon Profil">👤 Profil</button>
         </header>
 
         <!-- CONTENU PRINCIPAL -->
@@ -147,6 +161,77 @@
                     <h2>Historique des flacons 📊</h2>
                     <div id="liste-historique"></div>
                 </div>
+            </section>
+
+            <!-- ÉCRAN PROFIL -->
+            <section id="ecran-profil" class="ecran masque">
+                <h2>Mon Profil 👤</h2>
+
+                <!-- 1. IDENTITÉ -->
+                <div class="carte" style="margin-bottom: 14px;">
+                    <h3>Identité</h3>
+                    <div class="groupe-champ" style="margin-top: 10px;">
+                        <label>Prénom / Pseudo</label>
+                        <input type="text" id="profil-prenom" placeholder="Votre prénom">
+                    </div>
+                    <button type="button" class="btn-primaire" onclick="sauvegarderPrenomProfil()" style="padding: 8px 12px; font-size: 0.85rem;">Enregistrer le prénom</button>
+                </div>
+
+                <!-- 2. MON ARRÊT -->
+                <div class="carte" style="margin-bottom: 14px;">
+                    <h3>🚭 Mon arrêt de la cigarette</h3>
+                    <div class="groupe-champ" style="margin-top: 10px;">
+                        <label>Date de la dernière cigarette</label>
+                        <input type="date" id="profil-date-arret">
+                    </div>
+                    <button type="button" class="btn-secondaire" onclick="demanderChangementDateArret()" style="padding: 8px 12px; font-size: 0.85rem;">Modifier la date d'arrêt</button>
+                </div>
+
+                <!-- 3. PARAMÈTRES FINANCIERS -->
+                <div class="carte" style="margin-bottom: 14px;">
+                    <h3>💰 Paramètres financiers</h3>
+                    <p class="texte-secondaire" style="margin: 6px 0 10px 0;">
+                        Consommation : <strong id="profil-resume-tabac">-- cigs/jour</strong> • <strong id="profil-resume-prix">-- € / paquet</strong>
+                    </p>
+                    <button type="button" class="btn-secondaire" onclick="afficherEcran('ecran-finances')" style="padding: 6px 12px; font-size: 0.8rem; width: auto;">Gérer dans Finances →</button>
+                </div>
+
+                <!-- 4. MA VAPE -->
+                <div class="carte" style="margin-bottom: 14px;">
+                    <h3>💧 Ma Vape</h3>
+                    <p class="texte-secondaire" style="margin-top: 6px;">
+                        Nicotine actuelle : <strong id="profil-nicotine-actuelle">-- mg/ml</strong>
+                    </p>
+                    <p class="texte-secondaire" id="profil-bloc-objectif" style="margin-top: 4px;">
+                        Prochain objectif : <strong id="profil-prochain-objectif">Aucun</strong>
+                    </p>
+                    <button type="button" class="btn-secondaire" onclick="afficherEcran('ecran-objectifs')" style="padding: 6px 12px; font-size: 0.8rem; width: auto; margin-top: 10px;">Gérer mes objectifs →</button>
+                </div>
+
+                <!-- 5. PRÉFÉRENCES -->
+                <div class="carte" style="margin-bottom: 14px;">
+                    <h3>⚙️ Préférences</h3>
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-top:8px;">
+                        <div>
+                            <strong>Notifications PWA</strong>
+                            <p class="texte-secondaire" id="profil-notif-statut">Alertes de maturation DIY</p>
+                        </div>
+                        <button type="button" id="btn-profil-notif" class="btn-primaire" style="width:auto; padding:6px 12px; font-size:0.8rem;">Activer</button>
+                    </div>
+                </div>
+
+                <!-- 6. MES DONNÉES -->
+                <div class="carte" style="margin-bottom: 14px; opacity: 0.9;">
+                    <h3>📂 Mes données</h3>
+                    <p class="texte-secondaire" style="margin-top: 6px;">
+                        Stockage : <strong>Local sur cet appareil</strong>
+                    </p>
+                    <p class="texte-secondaire" style="font-size: 0.75rem; margin-top: 4px;">
+                        Vos recettes, flacons et dépenses restent stockés en sécurité dans la mémoire de votre navigateur.
+                    </p>
+                </div>
+
+                <button type="button" class="btn-secondaire" onclick="afficherEcran('ecran-accueil')" style="margin-top: 10px;">← Retour à l'accueil</button>
             </section>
 
             <!-- ÉCRAN 2 : DIY -->
@@ -480,6 +565,6 @@
         </nav>
 
     </div>
-    <script src="app.js?v=v118"></script>
+    <script src="app.js?v=v119"></script>
 </body>
 </html>
