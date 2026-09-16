@@ -1,4 +1,4 @@
-const CACHE_NAME = 'vape-tracker-v131';
+const CACHE_NAME = 'vape-tracker-v132';
 
 const minuteriesSteep = {};
 
