@@ -10,7 +10,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;800&display=swap" rel="stylesheet">
     
     <link rel="manifest" href="manifest.json">
-    <link rel="stylesheet" href="style.css?v=v115">
+    <link rel="stylesheet" href="style.css?v=v117">
     <meta name="theme-color" content="#0b0e14">
 </head>
 <body>
@@ -103,8 +103,9 @@
                         <div>
                             <div class="stat-titre">Économie nette</div>
                             <div class="stat-valeur" id="card-economies">0,00 €</div>
+                            <div class="stat-unite" id="card-economies-soustitre">depuis mon arrêt</div>
+                            <div style="font-size: 0.78rem; font-weight: 600; color: #fce7f3; margin-top: 2px;" id="card-economies-mois">+ 0,00 € ce mois-ci</div>
                         </div>
-                        <div class="stat-unite">net d'achats vape</div>
                     </div>
 
                     <div class="carte-stat stat-rose">
@@ -257,11 +258,33 @@
             <!-- ÉCRAN 4 : FINANCES -->
             <section id="ecran-finances" class="ecran masque">
                 <h2>Suivi Financier 💰</h2>
+                
                 <div class="carte" style="margin-bottom: 16px;">
-                    <p>Tabac évité : <strong id="tabac-evite-total">0,00 €</strong></p>
-                    <p>Dépenses vape : <strong id="dépenses-vape-total" style="color:#f85149;">0,00 €</strong></p>
+                    <h3>Bilan Total depuis l'arrêt</h3>
+                    <div style="display:flex; justify-style:space-between; margin-top:8px;">
+                        <span>Tabac évitations :</span> <strong id="tabac-evite-total">0,00 €</strong>
+                    </div>
+                    <div style="display:flex; justify-content:space-between; margin-top:4px;">
+                        <span>Dépenses vape :</span> <strong id="dépenses-vape-total" style="color:#f85149;">0,00 €</strong>
+                    </div>
                     <hr style="border-color: rgba(255,255,255,0.1); margin: 8px 0;">
-                    <p>Économie réelle : <strong id="economie-nette-detail" style="color:#3fb950; font-size:1.1rem;">0,00 €</strong></p>
+                    <div style="display:flex; justify-content:space-between;">
+                        <span>Économie nette globale :</span> <strong id="economie-nette-detail" style="color:#3fb950; font-size:1.1rem;">0,00 €</strong>
+                    </div>
+                </div>
+
+                <div class="carte" style="margin-bottom: 16px; background: rgba(234, 179, 8, 0.05); border-color: rgba(234, 179, 8, 0.2);">
+                    <h3 id="titre-mois-actuel">Bilan du mois en cours</h3>
+                    <div style="display:flex; justify-content:space-between; margin-top:8px;">
+                        <span>Cigarettes évitées :</span> <strong id="tabac-evite-mois">0,00 €</strong>
+                    </div>
+                    <div style="display:flex; justify-content:space-between; margin-top:4px;">
+                        <span>Dépenses vape :</span> <strong id="depenses-vape-mois" style="color:#f85149;">0,00 €</strong>
+                    </div>
+                    <hr style="border-color: rgba(255,255,255,0.1); margin: 8px 0;">
+                    <div style="display:flex; justify-content:space-between;">
+                        <span>Économie nette du mois :</span> <strong id="economie-nette-mois" style="color:#eab308; font-size:1.1rem;">0,00 €</strong>
+                    </div>
                 </div>
 
                 <button id="btn-ouvrir-depense" class="btn-primaire" type="button" style="margin-bottom: 14px;">Ajouter un achat vape ➕</button>
@@ -287,8 +310,11 @@
                     <button type="button" id="btn-annuler-depense" class="btn-secondaire">Annuler</button>
                 </div>
 
-                <h3>Historique des dépenses</h3>
+                <h3 style="margin-top: 20px;">Historique des dépenses</h3>
                 <div id="liste-depenses" style="margin-top: 10px;"></div>
+
+                <h3 style="margin-top: 24px;">Historique mensuel des économies</h3>
+                <div id="liste-historique-mensuel" style="margin-top: 10px;"></div>
                 
                 <h3 style="margin-top: 24px;">Configuration Profil & Vapotage</h3>
                 <div id="form-config-tabac" class="form-card" style="margin-top: 10px;">
@@ -453,6 +479,6 @@
         </nav>
 
     </div>
-    <script src="app.js?v=v115"></script>
+    <script src="app.js?v=v117"></script>
 </body>
 </html>
