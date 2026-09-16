@@ -10,7 +10,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;800&display=swap" rel="stylesheet">
     
     <link rel="manifest" href="manifest.json">
-    <link rel="stylesheet" href="style.css?v=v123">
+    <link rel="stylesheet" href="style.css?v=v124">
     <meta name="theme-color" content="#0b0e14">
 </head>
 <body>
@@ -24,7 +24,7 @@
     </div>
 
     <!-- MODALE DE CONFIRMATION CHANGEMENT DE DATE D'ARRÊT -->
-    <div id="modale-confirmation-date" class="modale-fond masque" style="display: none;">
+    <div id="modale-confirmation-date" class="modale-fond masque">
         <div class="modale-contenu">
             <h3>Modifier votre date d'arrêt ? 🌸</h3>
             <p class="texte-secondaire" style="margin: 12px 0 20px 0; line-height: 1.5;">
@@ -77,10 +77,10 @@
             </div>
         </div>
 
-        <!-- EN-TÊTE PRINCIPAL (UNIQUEMENT LE BOUTON PROFIL) -->
+        <!-- EN-TÊTE PRINCIPAL -->
         <header id="entete-app">
             <h1>MyVapePal 🌸</h1>
-            <button id="btn-ouvrir-profil" type="button" class="btn-icone-profil" aria-label="Mon Profil">👤 Profil</button>
+            <button id="btn-ouvrir-profil" type="button" class="btn-icone-profil">👤 Profil</button>
         </header>
 
         <!-- CONTENU PRINCIPAL -->
@@ -226,9 +226,6 @@
                     <p class="texte-secondaire" style="margin-top: 6px;">
                         Stockage : <strong>Local sur cet appareil</strong>
                     </p>
-                    <p class="texte-secondaire" style="font-size: 0.75rem; margin-top: 4px;">
-                        Vos recettes, flacons et dépenses restent stockés en sécurité dans la mémoire de votre navigateur.
-                    </p>
                 </div>
 
                 <button type="button" class="btn-secondaire" onclick="afficherEcran('ecran-accueil')" style="margin-top: 10px;">← Retour à l'accueil</button>
@@ -321,12 +318,11 @@
                         <input type="number" step="0.1" id="ajust-arome-pct" placeholder="9" value="9" required>
                     </div>
 
-                    <div class="box-calcul-live" style="background: rgba(56, 189, 248, 0.08); border-color: rgba(56, 189, 248, 0.3);">
-                        <div class="titre-calcul-live" style="color:#38bdf8;">⚖️ Ce qu'il faut AJOUTER au flacon :</div>
-                        <div class="ligne-calcul"><span>Base neutre à verser :</span> <strong id="ajust-calc-base" style="color:#38bdf8;">22.7 ml</strong></div>
-                        <div class="ligne-calcul"><span>Arôme concentré à rajouter :</span> <strong id="ajust-calc-arome" style="color:#ffb7c5;">2.25 ml</strong></div>
-                        <hr style="border-color: rgba(255,255,255,0.1); margin: 6px 0;">
-                        <div class="ligne-calcul"><span>Volume final obtenu :</span> <strong id="ajust-calc-vol-final">100.0 ml</strong></div>
+                    <div class="box-calcul-live">
+                        <div class="titre-calcul-live">⚖️ Ce qu'il faut AJOUTER au flacon :</div>
+                        <div class="ligne-calcul"><span>Base neutre :</span> <strong id="ajust-calc-base">22.7 ml</strong></div>
+                        <div class="ligne-calcul"><span>Arôme concentré :</span> <strong id="ajust-calc-arome">2.25 ml</strong></div>
+                        <div class="ligne-calcul"><span>Volume final :</span> <strong id="ajust-calc-vol-final">100.0 ml</strong></div>
                     </div>
 
                     <button type="button" id="btn-fermer-ajustement" class="btn-secondaire">Fermer le calculateur</button>
@@ -565,6 +561,6 @@
         </nav>
 
     </div>
-    <script src="app.js?v=v119"></script>
+    <script src="app.js?v=v124"></script>
 </body>
 </html>
