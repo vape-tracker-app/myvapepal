@@ -127,6 +127,25 @@ function getHeuresEcoulees() {
 }
 
 // =============================================================
+// CALCUL DES JOURS CALENDAIRES INCLUSIFS
+// =============================================================
+function calculerJoursInclusifs(dateDebutStr, dateFinStr) {
+    if (!dateDebutStr || !dateFinStr) return 0;
+    const d1 = new Date(dateDebutStr);
+    const d2 = new Date(dateFinStr);
+
+    if (isNaN(d1.getTime()) || isNaN(d2.getTime())) return 0;
+
+    const utc1 = Date.UTC(d1.getFullYear(), d1.getMonth(), d1.getDate());
+    const utc2 = Date.UTC(d2.getFullYear(), d2.getMonth(), d2.getDate());
+
+    const diffMs = utc2 - utc1;
+    const diffJours = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+    return Math.max(1, diffJours + 1);
+}
+
+// =============================================================
 // GESTION DU NOUVEL ÉCRAN PARCOURS
 // =============================================================
 function afficherParcours() {
@@ -778,7 +797,9 @@ function sauvegarderFlacon() {
         nicotine: parseFloat(document.getElementById('nicotine').value) || 0,
         arome: parseFloat(document.getElementById('arome').value) || 0,
         preparedAt: dateFabrique.toISOString(),
+        startedAt: steepDays === 0 && !flacons.some(f => f.actif) ? dateFabrique.toISOString() : null,
         dateOuverture: dateFabrique.toISOString(),
+        finishedAt: null,
         steepDays: steepDays,
         steepReadyAt: dateFinSteep,
         actif: false,
@@ -822,7 +843,9 @@ function sauvegarderFlaconDirect() {
         nicotine: parseFloat(document.getElementById('nicotine-direct').value) || 0,
         arome: 0,
         preparedAt: dateDebut.toISOString(),
+        startedAt: dateDebut.toISOString(),
         dateOuverture: dateDebut.toISOString(),
+        finishedAt: null,
         steepDays: 0,
         steepReadyAt: null,
         actif: true,
@@ -930,7 +953,8 @@ function afficherFlaconActif() {
         if (document.getElementById('nom-liquide')) document.getElementById('nom-liquide').textContent = `💨 ${actif.nom}`;
         if (document.getElementById('details-nicotine')) document.getElementById('details-nicotine').textContent = `Nicotine : ${actif.nicotine} mg/ml | Type : ${actif.type}`;
         
-        const dateOuv = new Date(actif.dateOuverture || actif.preparedAt);
+        const dateDebut = actif.startedAt || actif.dateOuverture || actif.preparedAt;
+        const dateOuv = new Date(dateDebut);
         const dateFormatee = dateOuv.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' });
         
         if (document.getElementById('details-flacon')) {
@@ -1007,7 +1031,7 @@ function afficherReserveEtMaturation() {
                     <strong>${f.nom} (${f.nicotine} mg)</strong>
                     <button type="button" class="btn-suppr" onclick="supprimerFlacon('${f.id}')">🗑️</button>
                 </div>
-                <p class="texte-secondaire">Préparé le ${new Date(f.preparedAt || f.dateOuverture).toLocaleDateString()} (${f.volume} ml)</p>
+                <p class="texte-secondaire">Préparé le ${new Date(f.preparedAt || f.dateOuverture).toLocaleDateString('fr-FR')} (${f.volume} ml)</p>
                 ${moduleVisuel}
             </div>
         `;
@@ -1018,8 +1042,10 @@ function utiliserCeFlacon(id) {
     flacons.forEach(f => f.actif = false);
     const f = flacons.find(item => item.id === id);
     if (f) {
+        const maintenantIso = new Date().toISOString();
         f.actif = true;
-        f.dateOuverture = new Date().toISOString();
+        f.startedAt = f.startedAt || maintenantIso;
+        f.dateOuverture = f.startedAt;
         localStorage.setItem('vt_flacons', JSON.stringify(flacons));
         mettreAJourTout();
     }
@@ -1080,15 +1106,46 @@ function afficherHistoriqueFlacons() {
         return;
     }
 
-    conteneur.innerHTML = termines.map(f => `
-        <div class="carte">
-            <div style="display:flex; justify-content:space-between; align-items:center;">
-                <strong>🏁 ${f.nom} (${f.nicotine} mg)</strong>
-                <button type="button" class="btn-suppr" onclick="supprimerFlacon('${f.id}')">🗑️</button>
+    conteneur.innerHTML = termines.map(f => {
+        const dateDebutStr = f.startedAt || f.dateOuverture;
+        const dateFinStr = f.finishedAt || f.dateFermeture;
+
+        let detailsPeriode = '';
+
+        if (dateDebutStr && dateFinStr) {
+            const dateDebFmt = new Date(dateDebutStr).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+            const dateFinFmt = new Date(dateFinStr).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+            const joursConso = calculerJoursInclusifs(dateDebutStr, dateFinStr);
+            
+            const volume = parseFloat(f.volume) || 0;
+            const moyenneMlJour = (volume / joursConso).toFixed(1);
+
+            detailsPeriode = `
+                <p class="texte-secondaire" style="margin-top:2px;">
+                    ${volume} ml • Du ${dateDebFmt} au ${dateFinFmt} (${joursConso}j)
+                </p>
+                <p class="texte-secondaire" style="color:var(--rose-sakura); font-weight:600; margin-top:2px;">
+                    Moyenne : ${moyenneMlJour} ml/jour
+                </p>
+            `;
+        } else if (dateFinStr) {
+            const dateFinFmt = new Date(dateFinStr).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+            detailsPeriode = `<p class="texte-secondaire" style="margin-top:2px;">Terminé le ${dateFinFmt} (${f.volume} ml)</p>`;
+        } else {
+            const datePrec = new Date(f.preparedAt || f.dateOuverture).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+            detailsPeriode = `<p class="texte-secondaire" style="margin-top:2px;">Terminé le ${datePrec} (${f.volume} ml)</p>`;
+        }
+
+        return `
+            <div class="carte">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <strong>🏁 ${f.nom} (${f.nicotine} mg)</strong>
+                    <button type="button" class="btn-suppr" onclick="supprimerFlacon('${f.id}')">🗑️</button>
+                </div>
+                ${detailsPeriode}
             </div>
-            <p class="texte-secondaire">Préparé le ${new Date(f.preparedAt || f.dateOuverture).toLocaleDateString()} (${f.volume} ml)</p>
-        </div>
-    `).join('');
+        `;
+    }).join('');
 }
 
 function supprimerFlacon(id) {
@@ -1137,7 +1194,7 @@ function afficherFinances() {
                 <div class="carte" style="display:flex; justify-content:space-between; align-items:center;">
                     <div>
                         <strong>${d.nom || d.categorie}</strong>
-                        <p class="texte-secondaire">${new Date(d.date).toLocaleDateString()} - ${d.categorie}</p>
+                        <p class="texte-secondaire">${new Date(d.date).toLocaleDateString('fr-FR')} - ${d.categorie}</p>
                     </div>
                     <div style="display:flex; align-items:center; gap:10px;">
                         <span style="color:#f85149; font-weight:bold;">-${d.montant.toFixed(2)} €</span>
@@ -1428,9 +1485,11 @@ function configurerEcouteurs() {
         btnTerminer.onclick = () => {
             const actif = flacons.find(f => f.actif);
             if (actif) {
+                const maintenantIso = new Date().toISOString();
                 actif.actif = false;
                 actif.termine = true;
-                actif.dateFermeture = new Date().toISOString();
+                actif.finishedAt = maintenantIso;
+                actif.dateFermeture = maintenantIso;
                 localStorage.setItem('vt_flacons', JSON.stringify(flacons));
                 mettreAJourTout();
             }
