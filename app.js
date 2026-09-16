@@ -7,7 +7,7 @@ setTimeout(() => {
 }, 2500);
 
 // =============================================================
-// VAPE TRACKER PWA - CODE PRINCIPAL APPLICATION
+// MYVAPEPAL PWA - CODE PRINCIPAL APPLICATION
 // =============================================================
 
 const JALONS_SANTE = [
@@ -121,18 +121,15 @@ function calculerEconomiePourMois(annee, moisIndex) {
     const finMois = new Date(annee, moisIndex + 1, 0, 23, 59, 59, 999);
     const maintenant = new Date();
 
-    // Si le mois demandé est entièrement antérieur à l'arrêt
     if (finMois < dateArret) {
         return { tabac: 0, depenses: 0, nette: 0, jours: 0 };
     }
 
-    // Début réel du calcul
     let debutCalcul = debutMois;
     if (dateArret > debutMois) {
         debutCalcul = dateArret;
     }
 
-    // Fin réelle du calcul
     let finCalcul = finMois;
     if (maintenant < finMois) {
         finCalcul = maintenant;
@@ -152,7 +149,6 @@ function calculerEconomiePourMois(annee, moisIndex) {
     const cigsEvitees = joursCalcul * cigsParJour;
     const economieTabac = (cigsEvitees / cigsParPaquet) * prixPaquet;
 
-    // Filtrage des dépenses vape du mois
     const depensesMois = depenses.filter(d => {
         const dDate = new Date(d.date);
         return dDate >= debutCalcul && dDate <= finCalcul;
@@ -837,7 +833,6 @@ function afficherFinances() {
     if (document.getElementById('dépenses-vape-total')) document.getElementById('dépenses-vape-total').textContent = `${totalDepenses.toFixed(2)} €`;
     if (document.getElementById('economie-nette-detail')) document.getElementById('economie-nette-detail').textContent = `${economieNette.toFixed(2)} €`;
 
-    // Mois en cours
     const maintenant = new Date();
     const ecoMois = calculerEconomiePourMois(maintenant.getFullYear(), maintenant.getMonth());
     const nomMoisLong = maintenant.toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' });
@@ -854,7 +849,6 @@ function afficherFinances() {
         elNette.style.color = ecoMois.nette >= 0 ? '#3fb950' : '#f85149';
     }
 
-    // Historique des dépenses individuelles
     const conteneurDep = document.getElementById('liste-depenses');
     if (conteneurDep) {
         if (depenses.length === 0) {
@@ -875,7 +869,6 @@ function afficherFinances() {
         }
     }
 
-    // Historique mensuel
     afficherHistoriqueMensuel();
 }
 
@@ -1169,7 +1162,7 @@ function configurerEcouteurs() {
                 Notification.requestPermission().then(permission => {
                     if (permission === 'granted') {
                         alert('Notifications activées avec succès ! 🌸');
-                        new Notification('Vape Tracker 🌸', {
+                        new Notification('MyVapePal 🌸', {
                             body: 'Félicitations pour ton engagement ! Tu seras notifié lorsque tes préparations DIY seront prêtes.',
                             icon: 'icon.png'
                         });
