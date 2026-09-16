@@ -10,13 +10,13 @@ setTimeout(() => {
 // MYVAPEPAL PWA - CODE PRINCIPAL APPLICATION
 // =============================================================
 
-// JALONS DE SANTÉ ET DE PARCOURS OMS / WHO
+// JALONS DE SANTÉ ET DE PARCOURS INSTITUTIONNELS (SOURCES OFFICIELLES)
 const JALONS_OMS = [
-    { delaiHeures: 12, titre: "Monoxyde de carbone (CO)", desc: "Le taux de monoxyde de carbone dans le sang revient à un niveau normal.", urlSource: "https://www.who.int/tobacco/quitting/benefits/fr/" },
-    { delaiHeures: 336, titre: "Circulation & Poumons (2 sem.)", desc: "La circulation sanguine s'améliore et la fonction pulmonaire s'accroît.", urlSource: "https://www.who.int/tobacco/quitting/benefits/fr/" },
-    { delaiHeures: 2160, titre: "Toux et essoufflement (1 à 9 mois)", desc: "La toux et le souffle court diminuent progressivement.", urlSource: "https://www.who.int/tobacco/quitting/benefits/fr/" },
-    { delaiHeures: 8760, titre: "Risque cardiaque (-50% à 1 an)", desc: "Le risque de maladie coronarienne est environ deux fois inférieur à celui d'un fumeur.", urlSource: "https://www.who.int/tobacco/quitting/benefits/fr/" },
-    { delaiHeures: 43800, titre: "Risque d'AVC (5 ans)", desc: "Le risque d'accident vasculaire cérébral est équivalent à celui d'un non-fumeur.", urlSource: "https://www.who.int/tobacco/quitting/benefits/fr/" }
+    { delaiHeures: 12, titre: "Monoxyde de carbone (CO)", desc: "Le taux de monoxyde de carbone dans le sang revient à un niveau normal.", urlSource: "https://www.who.int/fr/news-room/fact-sheets/detail/tobacco" },
+    { delaiHeures: 336, titre: "Circulation & Poumons (2 sem.)", desc: "La circulation sanguine s'améliore et la fonction pulmonaire s'accroît.", urlSource: "https://www.who.int/fr/news-room/fact-sheets/detail/tobacco" },
+    { delaiHeures: 2160, titre: "Toux et essoufflement (1 à 9 mois)", desc: "La toux et le souffle court diminuent progressivement.", urlSource: "https://www.who.int/fr/news-room/fact-sheets/detail/tobacco" },
+    { delaiHeures: 8760, titre: "Risque cardiaque (-50% à 1 an)", desc: "Le risque de maladie coronarienne est environ deux fois inférieur à celui d'un fumeur.", urlSource: "https://www.who.int/fr/news-room/fact-sheets/detail/tobacco" },
+    { delaiHeures: 43800, titre: "Risque d'AVC (5 ans)", desc: "Le risque d'accident vasculaire cérébral est équivalent à celui d'un non-fumeur.", urlSource: "https://www.santepubliquefrance.fr/" }
 ];
 
 // OBSERVATIONS PAR DÉFAUT
