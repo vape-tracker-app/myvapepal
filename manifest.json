@@ -1,6 +1,6 @@
 {
-  "name": "Vape Tracker",
-  "short_name": "Vape Tracker 2",
+  "name": "MyVapePal",
+  "short_name": "MyVapePal",
   "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#0b0e14",
