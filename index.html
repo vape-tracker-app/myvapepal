@@ -10,7 +10,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;800&display=swap" rel="stylesheet">
     
     <link rel="manifest" href="manifest.json">
-    <link rel="stylesheet" href="style.css?v=v136">
+    <link rel="stylesheet" href="style.css?v=v137">
     <meta name="theme-color" content="#0b0e14">
 </head>
 <body>
@@ -197,13 +197,41 @@
                     <button type="button" class="btn-secondaire" onclick="demanderChangementDateArret()" style="padding: 8px 12px; font-size: 0.85rem;">Modifier la date d'arrêt</button>
                 </div>
 
-                <!-- 3. PARAMÈTRES FINANCIERS -->
+                <!-- 3. PARAMÈTRES TABAC ET VAPE -->
                 <div class="carte" style="margin-bottom: 14px;">
-                    <h3>💰 Paramètres financiers</h3>
+                    <h3>⚙️ Mes paramètres tabac & vape</h3>
                     <p class="texte-secondaire" style="margin: 6px 0 10px 0;">
                         Consommation : <strong id="profil-resume-tabac">-- cigs/jour</strong> • <strong id="profil-resume-prix">-- € / paquet</strong>
                     </p>
-                    <button type="button" class="btn-secondaire" onclick="afficherEcran('ecran-finances')" style="padding: 6px 12px; font-size: 0.8rem; width: auto;">Gérer dans Finances →</button>
+                    <details id="parametres-profil" class="parametres-profil">
+                        <summary class="btn-secondaire">Modifier mes paramètres</summary>
+                        <div id="form-config-tabac" class="form-card" style="margin-top: 10px;">
+                            <div class="groupe-champ">
+                                <label for="cigs-jour">Cigarettes / jour autrefois</label>
+                                <input type="number" id="cigs-jour" required>
+                            </div>
+                            <div class="groupe-champ">
+                                <label for="prix-paquet">Prix d'un paquet (€)</label>
+                                <input type="number" step="0.1" id="prix-paquet" required>
+                            </div>
+                            <div class="groupe-champ">
+                                <label for="cigs-paquet">Cigarettes dans un paquet</label>
+                                <input type="number" id="cigs-paquet" value="20" required>
+                            </div>
+                            <div class="groupe-champ">
+                                <label for="config-vapote">Vapotage actuel</label>
+                                <select id="config-vapote">
+                                    <option value="oui">Oui</option>
+                                    <option value="non">Non</option>
+                                </select>
+                            </div>
+                            <div class="groupe-champ" id="groupe-config-nicotine">
+                                <label for="config-nicotine">Dosage actuel en nicotine (mg/ml)</label>
+                                <input type="number" step="0.5" id="config-nicotine">
+                            </div>
+                            <button type="button" class="btn-secondaire" onclick="sauvegarderConfig()">Mettre à jour les paramètres</button>
+                        </div>
+                    </details>
                 </div>
 
                 <!-- 4. MA VAPE -->
@@ -465,39 +493,12 @@
                     <button type="button" id="btn-annuler-depense" class="btn-secondaire">Annuler</button>
                 </div>
 
-                <h3 style="margin-top: 20px;">Historique des dépenses</h3>
+                <h3 style="margin-top: 20px;">Historique mensuel des dépenses vape</h3>
                 <div id="liste-depenses" style="margin-top: 10px;"></div>
 
                 <h3 style="margin-top: 24px;">Historique mensuel des économies</h3>
                 <div id="liste-historique-mensuel" style="margin-top: 10px;"></div>
-                
-                <h3 style="margin-top: 24px;">Configuration Profil & Vapotage</h3>
-                <div id="form-config-tabac" class="form-card" style="margin-top: 10px;">
-                    <div class="groupe-champ">
-                        <label>Cigarettes / jour autrefois</label>
-                        <input type="number" id="cigs-jour" required>
-                    </div>
-                    <div class="groupe-champ">
-                        <label>Prix d'un paquet (€)</label>
-                        <input type="number" step="0.1" id="prix-paquet" required>
-                    </div>
-                    <div class="groupe-champ">
-                        <label>Cigarettes dans un paquet</label>
-                        <input type="number" id="cigs-paquet" value="20" required>
-                    </div>
-                    <div class="groupe-champ">
-                        <label>Vapotage actuel</label>
-                        <select id="config-vapote">
-                            <option value="oui">Oui</option>
-                            <option value="non">Non</option>
-                        </select>
-                    </div>
-                    <div class="groupe-champ" id="groupe-config-nicotine">
-                        <label>Dosage actuel en nicotine (mg/ml)</label>
-                        <input type="number" step="0.5" id="config-nicotine">
-                    </div>
-                    <button type="button" class="btn-secondaire" onclick="sauvegarderConfig()">Mettre à jour les paramètres</button>
-                </div>
+
             </section>
 
             <!-- ÉCRAN 5 : OBJECTIFS OPTIMISÉ -->
@@ -637,6 +638,6 @@
         </nav>
 
     </div>
-    <script src="app.js?v=v136"></script>
+    <script src="app.js?v=v137"></script>
 </body>
 </html>

@@ -80,6 +80,7 @@ function initialiserInterface() {
     
     try {
         if (document.getElementById('cigs-jour')) document.getElementById('cigs-jour').value = configUser.cigsJour || 15;
+        if (document.getElementById('cigs-paquet')) document.getElementById('cigs-paquet').value = configUser.cigsPaquet || 20;
         if (document.getElementById('prix-paquet')) document.getElementById('prix-paquet').value = configUser.prixPaquet || 12.5;
         if (document.getElementById('config-vapote')) document.getElementById('config-vapote').value = configUser.vapote ? 'oui' : 'non';
         if (document.getElementById('config-nicotine')) document.getElementById('config-nicotine').value = configUser.nicotineActuelle ?? 12;
@@ -1223,27 +1224,87 @@ function afficherFinances() {
         elNette.style.color = ecoMois.nette >= 0 ? '#3fb950' : '#f85149';
     }
 
-    const conteneurDep = document.getElementById('liste-depenses');
-    if (conteneurDep) {
-        if (depenses.length === 0) {
-            conteneurDep.innerHTML = '<p class="texte-vide">Aucune dépense enregistrée.</p>';
-        } else {
-            conteneurDep.innerHTML = depenses.map(d => `
-                <div class="carte" style="display:flex; justify-content:space-between; align-items:center;">
-                    <div>
-                        <strong>${d.nom || d.categorie}</strong>
-                        <p class="texte-secondaire">${new Date(d.date).toLocaleDateString('fr-FR')} - ${d.categorie}</p>
-                    </div>
-                    <div style="display:flex; align-items:center; gap:10px;">
-                        <span style="color:#f85149; font-weight:bold;">-${d.montant.toFixed(2)} €</span>
-                        <button type="button" class="btn-suppr" onclick="supprimerDepense('${d.id}')">🗑️</button>
-                    </div>
-                </div>
-            `).join('');
-        }
-    }
+    afficherDepensesMensuelles();
 
     afficherHistoriqueMensuel();
+}
+
+// Regroupement à l'affichage uniquement : conserver les achats et leurs dates.
+function regrouperDepensesParMois(achats) {
+    const groupes = new Map();
+    achats.forEach(achat => {
+        const date = new Date(achat.date);
+        const valide = !isNaN(date.getTime());
+        const cle = valide ? `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}` : 'sans-date';
+        if (!groupes.has(cle)) {
+            const nom = valide ? date.toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' }) : 'Date non renseignée';
+            groupes.set(cle, { cle, nom: nom.charAt(0).toUpperCase() + nom.slice(1), total: 0, achats: [] });
+        }
+        const groupe = groupes.get(cle);
+        groupe.total += achat.montant;
+        groupe.achats.push(achat);
+    });
+    return [...groupes.values()].sort((a, b) => {
+        if (a.cle === 'sans-date') return 1;
+        if (b.cle === 'sans-date') return -1;
+        return b.cle.localeCompare(a.cle);
+    }).map(groupe => ({ ...groupe, achats: groupe.achats.sort((a, b) => new Date(b.date) - new Date(a.date)) }));
+}
+
+function afficherDepensesMensuelles() {
+    const conteneur = document.getElementById('liste-depenses');
+    if (!conteneur) return;
+    const moisOuverts = new Set([...conteneur.querySelectorAll('details[open]')].map(el => el.dataset.mois));
+    conteneur.replaceChildren();
+    if (depenses.length === 0) {
+        conteneur.innerHTML = '<p class="texte-vide">Aucune dépense enregistrée.</p>';
+        return;
+    }
+    const euros = montant => montant.toLocaleString('fr-FR', { style: 'currency', currency: 'EUR' });
+    regrouperDepensesParMois(depenses).forEach(mois => {
+        const carte = document.createElement('details');
+        carte.className = 'carte depenses-mois';
+        carte.dataset.mois = mois.cle;
+        carte.open = moisOuverts.has(mois.cle);
+        const resume = document.createElement('summary');
+        const nom = document.createElement('strong');
+        nom.textContent = mois.nom;
+        const total = document.createElement('span');
+        total.className = 'depenses-total';
+        total.textContent = euros(mois.total);
+        const nombre = document.createElement('span');
+        nombre.className = 'texte-secondaire depenses-nombre';
+        nombre.textContent = `${mois.achats.length} achat${mois.achats.length > 1 ? 's' : ''}`;
+        resume.append(nom, total, nombre);
+        carte.appendChild(resume);
+        mois.achats.forEach(achat => {
+            const ligne = document.createElement('div');
+            ligne.className = 'depense-ligne';
+            const infos = document.createElement('div');
+            const titre = document.createElement('strong');
+            titre.textContent = achat.nom || achat.categorie;
+            const detail = document.createElement('p');
+            detail.className = 'texte-secondaire';
+            const date = new Date(achat.date);
+            detail.textContent = `${isNaN(date.getTime()) ? 'Date non renseignée' : date.toLocaleDateString('fr-FR')} · ${achat.categorie}`;
+            infos.append(titre, detail);
+            const actions = document.createElement('div');
+            actions.className = 'depense-actions';
+            const montant = document.createElement('span');
+            montant.className = 'depenses-total';
+            montant.textContent = euros(achat.montant);
+            const supprimer = document.createElement('button');
+            supprimer.type = 'button';
+            supprimer.className = 'btn-suppr';
+            supprimer.textContent = '🗑️';
+            supprimer.setAttribute('aria-label', `Supprimer ${achat.nom || achat.categorie}`);
+            supprimer.onclick = () => supprimerDepense(achat.id);
+            actions.append(montant, supprimer);
+            ligne.append(infos, actions);
+            carte.appendChild(ligne);
+        });
+        conteneur.appendChild(carte);
+    });
 }
 
 function afficherHistoriqueMensuel() {

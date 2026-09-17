@@ -477,3 +477,35 @@ input:focus, select:focus {
 .masque, .ecran.masque, div.masque, form.masque {
     display: none !important;
 }
+
+/* Historiques des achats et paramètres repliables */
+.depenses-mois > summary {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    gap: 4px 8px;
+    align-items: center;
+    cursor: pointer;
+    list-style: none;
+}
+.depenses-mois > summary::-webkit-details-marker { display: none; }
+.depenses-mois > summary::before { content: '▸'; color: var(--rose-sakura); }
+.depenses-mois[open] > summary::before { content: '▾'; }
+.depenses-nombre { grid-column: 2 / -1; }
+.depenses-total { color: #f85149; font-weight: bold; white-space: nowrap; }
+.depense-ligne {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid var(--border-carte);
+}
+.depense-ligne > div:first-child { min-width: 0; flex: 1 1 140px; overflow-wrap: anywhere; }
+.depense-actions { display: flex; align-items: center; gap: 10px; margin-left: auto; }
+.parametres-profil > summary { cursor: pointer; width: fit-content; }
+.depenses-mois > summary:focus-visible,
+.parametres-profil > summary:focus-visible { outline: 2px solid var(--rose-sakura); outline-offset: 4px; }
+
+#groupe-config-nicotine.masque-champ { display: none; }
