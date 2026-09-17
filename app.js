@@ -111,6 +111,7 @@ function mettreAJourTout() {
     afficherObjectifs();
     remplirSelectRecettes();
     afficherProfil();
+    if (typeof MyVapePush !== 'undefined') MyVapePush.sync();
 }
 
 function getJoursEcoules() {
@@ -347,26 +348,7 @@ function afficherProfil() {
         }
     }
 
-    const btnProfilNotif = document.getElementById('btn-profil-notif');
-    const elNotifStatut = document.getElementById('profil-notif-statut');
-    if (btnProfilNotif && elNotifStatut) {
-        if ('Notification' in window && Notification.permission === 'granted') {
-            elNotifStatut.textContent = 'Notifications activées 🌸';
-            btnProfilNotif.textContent = 'Activées';
-            btnProfilNotif.style.background = '#238636';
-            btnProfilNotif.style.borderColor = '#2ea043';
-        } else {
-            elNotifStatut.textContent = 'Recevoir une alerte quand un DIY est prêt';
-            btnProfilNotif.textContent = 'Activer';
-            btnProfilNotif.onclick = () => {
-                Notification.requestPermission().then(permission => {
-                    if (permission === 'granted') {
-                        afficherProfil();
-                    }
-                });
-            };
-        }
-    }
+    if (typeof MyVapePush !== 'undefined') MyVapePush.render();
 }
 
 function sauvegarderPrenomProfil() {
@@ -815,9 +797,6 @@ function sauvegarderFlacon() {
     flacons.unshift(nouveauFlacon);
     localStorage.setItem('vt_flacons', JSON.stringify(flacons));
 
-    if (steepDays > 0) {
-        programmerNotificationSteep(nouveauFlacon);
-    }
 
     document.getElementById('nom').value = '';
     mettreAJourTout();
@@ -913,37 +892,6 @@ function sauvegarderObjectif() {
 // =============================================================
 // GESTION DES NOTIFICATIONS
 // =============================================================
-function programmerNotificationSteep(flacon) {
-    if (!('Notification' in window) || Notification.permission !== 'granted') return;
-    if (!flacon.steepReadyAt) return;
-
-    const dateFin = new Date(flacon.steepReadyAt).getTime();
-    const maintenant = new Date().getTime();
-    const delaiMs = dateFin - maintenant;
-
-    if (delaiMs <= 0) return;
-
-    if (navigator.serviceWorker && navigator.serviceWorker.controller) {
-        navigator.serviceWorker.controller.postMessage({
-            action: 'PROGRAMMER_STEEP_NOTIF',
-            flaconId: flacon.id,
-            nom: flacon.nom,
-            steepDays: flacon.steepDays,
-            steepReadyAt: flacon.steepReadyAt,
-            delaiMs: delaiMs
-        });
-    }
-}
-
-function annulerNotificationSteep(flaconId) {
-    if (navigator.serviceWorker && navigator.serviceWorker.controller) {
-        navigator.serviceWorker.controller.postMessage({
-            action: 'ANNULER_STEEP_NOTIF',
-            flaconId: flaconId
-        });
-    }
-}
-
 // =============================================================
 // AFFICHAGE ACCUEIL & RÉSERVE
 // =============================================================
@@ -1188,7 +1136,6 @@ function afficherHistoriqueFlacons() {
 }
 
 function supprimerFlacon(id) {
-    annulerNotificationSteep(id);
     flacons = flacons.filter(f => f.id !== id);
     localStorage.setItem('vt_flacons', JSON.stringify(flacons));
     mettreAJourTout();

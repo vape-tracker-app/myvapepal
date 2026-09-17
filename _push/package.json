@@ -1,0 +1,8 @@
+{
+  "name": "myvapepal-notifications",
+  "private": true,
+  "type": "module",
+  "scripts": {"test": "node --test", "build": "esbuild src/worker.js --bundle --format=esm --platform=node --outfile=dist/worker.js", "dev": "wrangler dev", "deploy": "wrangler deploy"},
+  "dependencies": {"web-push": "3.6.7"},
+  "devDependencies": {"esbuild": "0.25.10", "wrangler": "4.38.0"}
+}

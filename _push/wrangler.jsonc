@@ -1,0 +1,12 @@
+{
+  "name": "myvapepal-notifications",
+  "main": "src/worker.js",
+  "compatibility_date": "2025-09-17",
+  "compatibility_flags": ["nodejs_compat"],
+  "workers_dev": true,
+  "observability": {"enabled": false},
+  "vars": {"APP_ORIGIN": "https://vape-tracker-app.github.io", "VAPID_SUBJECT": "https://vape-tracker-app.github.io/myvapepal/"},
+  "ratelimits": [{"name":"RATE_LIMITER","namespace_id":"1001","simple":{"limit":20,"period":60}}],
+  "triggers": {"crons": ["*/5 * * * *"]},
+  "d1_databases": [{"binding": "DB", "database_name": "myvapepal-push", "database_id": "405de4ba-40b8-43f0-9c40-dad1b7a40007"}]
+}

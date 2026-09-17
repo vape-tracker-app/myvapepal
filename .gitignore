@@ -1,0 +1,7 @@
+_push/node_modules/
+_push/dist/
+_push/.wrangler/
+_push/.dev.vars*
+_push/.env*
+
+.pnpm-store/

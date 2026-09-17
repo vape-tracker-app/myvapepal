@@ -251,12 +251,14 @@
                     <h3>⚙️ Préférences</h3>
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-top:8px;">
                         <div>
-                            <strong>Notifications PWA</strong>
-                            <p class="texte-secondaire" id="profil-notif-statut">Alertes de maturation DIY</p>
+                            <strong>Notifications</strong>
+                            <p class="texte-secondaire" id="profil-notif-statut">Encouragements, steeps prêts et croissance du cerisier</p>
                         </div>
-                        <button type="button" id="btn-profil-notif" class="btn-primaire" style="width:auto; padding:6px 12px; font-size:0.8rem;">Activer</button>
+                        <button type="button" id="btn-profil-notif" class="btn-primaire" style="width:auto; padding:6px 12px; font-size:0.8rem;">Activer les notifications</button>
                     </div>
                 </div>
+
+                <p class="texte-secondaire" style="margin-bottom:14px;">En activant les notifications, tu transmets au service Cloudflare les informations nécessaires à leur envoi : abonnement de cet appareil, date d’arrêt, fuseau horaire, échéances de maturation, nom, dosage en nicotine et volume des flacons concernés. Les dépenses restent sur cet appareil. Tu peux désactiver les notifications à tout moment avec le bouton ci-dessus.</p>
 
                 <!-- 6. MES DONNÉES -->
                 <div class="carte" style="margin-bottom: 14px; opacity: 0.9;">
@@ -638,6 +640,8 @@
         </nav>
 
     </div>
-    <script src="app.js?v=v137"></script>
+    <script src="push-storage.js?v=v138"></script>
+    <script src="app.js?v=v138"></script>
+    <script src="push.js?v=v140"></script>
 </body>
 </html>
