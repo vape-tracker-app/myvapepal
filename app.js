@@ -101,6 +101,7 @@ function mettreAJourTout() {
     mettreAJourDashboard();
     mettreAJourCerisierHD();
     afficherFlaconActif();
+    afficherDernierChangementResistance();
     afficherReserveEtMaturation();
     afficherHistoriqueFlacons();
     afficherRecettes();
@@ -945,6 +946,43 @@ function annulerNotificationSteep(flaconId) {
 // =============================================================
 // AFFICHAGE ACCUEIL & RÉSERVE
 // =============================================================
+// Donnée indépendante des flacons : aucune migration des données existantes.
+function afficherDernierChangementResistance() {
+    const libelle = document.getElementById('date-resistance');
+    if (!libelle) return;
+
+    let date = null;
+    try {
+        const valeur = localStorage.getItem('vt_date_resistance');
+        if (valeur && /^\d{4}-\d{2}-\d{2}$/.test(valeur)) {
+            const candidate = new Date(`${valeur}T12:00:00`);
+            if (!isNaN(candidate.getTime()) &&
+                candidate.getFullYear() === Number(valeur.slice(0, 4)) &&
+                candidate.getMonth() + 1 === Number(valeur.slice(5, 7)) &&
+                candidate.getDate() === Number(valeur.slice(8, 10))) date = candidate;
+        }
+    } catch (err) {
+        console.warn('Lecture de la date de résistance impossible', err);
+    }
+
+    libelle.textContent = date
+        ? `Résistance changée le ${date.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' })}`
+        : 'Aucun changement de résistance enregistré';
+}
+
+function changerResistance() {
+    const maintenant = new Date();
+    // Conserver le jour local du changement, même si le fuseau horaire change.
+    const date = `${maintenant.getFullYear()}-${String(maintenant.getMonth() + 1).padStart(2, '0')}-${String(maintenant.getDate()).padStart(2, '0')}`;
+    try {
+        localStorage.setItem('vt_date_resistance', date);
+    } catch (err) {
+        alert('Le changement de résistance n’a pas pu être enregistré. Veuillez réessayer.');
+        return;
+    }
+    afficherDernierChangementResistance();
+}
+
 function afficherFlaconActif() {
     const actif = flacons.find(f => f.actif);
     const btnTerminer = document.getElementById('btn-terminer');
@@ -1301,6 +1339,9 @@ function afficherEcran(idEcran) {
 }
 
 function configurerEcouteurs() {
+    const btnResistance = document.getElementById('btn-changer-resistance');
+    if (btnResistance) btnResistance.onclick = changerResistance;
+
     const navAccueil = document.getElementById('nav-accueil');
     if (navAccueil) navAccueil.onclick = () => afficherEcran('ecran-accueil');
 
