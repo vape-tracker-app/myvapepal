@@ -1,0 +1,1 @@
+{"name":"myvapepal-backup","private":true,"type":"module","scripts":{"build":"esbuild src/client.js --bundle --format=iife --global-name=MyVapeBackup --target=es2020 --minify --outfile=../backup.js","test":"node --test test/*.test.js"},"dependencies":{"firebase":"12.19.0"},"devDependencies":{"@firebase/rules-unit-testing":"5.0.2","esbuild":"0.25.10","firebase-tools":"15.30.1"}}

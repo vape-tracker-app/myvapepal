@@ -19,7 +19,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;800&display=swap" rel="stylesheet">
     
     <link rel="manifest" href="manifest.json">
-    <link rel="stylesheet" href="style.css?v=v151">
+    <link rel="stylesheet" href="style.css?v=v155">
     <meta name="theme-color" content="#0b0e14">
 </head>
 <body>
@@ -148,13 +148,15 @@
                     </div>
                 </div>
 
+                <div id="suivi-objectif" class="carte suivi-objectif" aria-live="polite" hidden></div>
                 <!-- CARTE FLACON EN COURS DU MOMENT -->
                 <div class="carte carte-flacon-actif" id="carte-flacon-principal">
                     <h2>Flacon en cours 💨</h2>
                     <div class="contenu-flacon">
                         <h3 id="nom-liquide">Aucun flacon actif</h3>
                         <p id="details-nicotine" class="texte-secondaire"></p>
-                        <p id="details-flacon" class="texte-secondaire"></p>
+                        <div id="couleur-flacon-actif"></div>
+                    <p id="details-flacon" class="texte-secondaire"></p>
                     </div>
 
                     <div style="margin: 12px 0;">
@@ -268,15 +270,41 @@
                     </div>
                 </div>
 
-                <p class="texte-secondaire" style="margin-bottom:14px;">En activant les notifications, tu transmets au service Cloudflare les informations nécessaires à leur envoi : abonnement de cet appareil, date d’arrêt, fuseau horaire, échéances de maturation, nom, dosage en nicotine et volume des flacons concernés. Les dépenses restent sur cet appareil. Tu peux désactiver les notifications à tout moment avec le bouton ci-dessus.</p>
+                <p class="texte-secondaire" style="margin-bottom:14px;">En activant les notifications, tu transmets au service Cloudflare les informations nécessaires à leur envoi : abonnement de cet appareil, date d’arrêt, fuseau horaire, objectifs de nicotine et leurs dates, échéances de maturation, nom, dosage en nicotine et volume des flacons concernés. Les dépenses ne sont pas transmises au service de notifications. Tu peux désactiver les notifications à tout moment avec le bouton ci-dessus.</p>
 
-                <!-- 6. MES DONNÉES -->
-                <div class="carte" style="margin-bottom: 14px; opacity: 0.9;">
-                    <h3>📂 Mes données</h3>
-                    <p class="texte-secondaire" style="margin-top: 6px;">
-                        Stockage : <strong>Local sur cet appareil</strong>
-                    </p>
+                <!-- Compte entièrement facultatif, uniquement dans le profil. -->
+                <div class="carte backup-card">
+                    <h3>☁️ Sauvegarder mon parcours</h3>
+                    <h4 id="backup-greeting" hidden></h4>
+                    <p class="texte-secondaire">Retrouve tes données si tu changes de téléphone. Ajoute ton adresse e-mail pour activer la sauvegarde en ligne. Tu recevras uniquement les e-mails nécessaires à ta connexion, jamais de publicité ni de newsletter.</p>
+                    <p class="texte-secondaire">La sauvegarde comprend ton profil, tes flacons, tes recettes, tes dépenses, tes objectifs, tes observations et la date de changement de résistance. Si tu actives la sauvegarde, ces données seront conservées dans ton espace privé chez Firebase (Google). Tes autorisations de notifications restent propres à chaque appareil.</p>
+                    <p id="backup-status" role="status" aria-live="polite">Données enregistrées uniquement sur ce téléphone.</p>
+                    <form id="backup-login">
+                        <label for="backup-email">Adresse e-mail (facultatif)</label>
+                        <input id="backup-email" type="email" autocomplete="email" maxlength="254" required placeholder="toi@exemple.fr">
+                        <label for="backup-password">Mot de passe</label>
+                        <input id="backup-password" type="password" autocomplete="current-password" required maxlength="128" placeholder="Au moins 8 caractères pour créer un compte">
+                        <button id="backup-send" type="submit" class="btn-primaire" disabled>Me connecter</button>
+                        <button id="backup-register" type="button" class="btn-secondaire" disabled>Créer mon compte gratuit</button>
+                        <button id="backup-reset" type="button" class="btn-secondaire" disabled>Mot de passe oublié</button>
+                    </form>
+                    <div id="backup-verification" hidden>
+                        <button id="backup-verified" type="button" class="btn-primaire">J’ai confirmé mon adresse</button>
+                        <button id="backup-resend" type="button" class="btn-secondaire">Renvoyer le mail de vérification</button>
+                    </div>
+                    <div id="backup-session" hidden>
+                        <p id="backup-email-connected"></p>
+                        <button id="backup-save" type="button" class="btn-secondaire">Sauvegarder maintenant</button>
+                        <button id="backup-retry" type="button" class="btn-secondaire">Vérifier la sauvegarde en ligne</button>
+                    </div>
+                    <div id="backup-choice" hidden>
+                        <p id="backup-choice-text"></p>
+                        <button id="backup-keep" type="button" class="btn-primaire">Sauvegarder les données de ce téléphone</button>
+                        <button id="backup-restore" type="button" class="btn-secondaire">Retrouver ma sauvegarde en ligne</button>
+                    </div>
+                    <button id="backup-undo" type="button" class="btn-secondaire" hidden>Revenir aux données d’avant restauration</button>
                 </div>
+                <button id="backup-signout" type="button" class="btn-secondaire" hidden>Se déconnecter</button>
 
                 <button type="button" class="btn-secondaire" onclick="afficherEcran('ecran-accueil')" style="margin-top: 10px;">← Retour à l'accueil</button>
             </section>
@@ -550,6 +578,7 @@
                     <div class="groupe-champ">
                         <label>Nom du produit / liquide</label>
                         <input type="text" id="nom" placeholder="Ex: Alucard" required>
+                        <label for="couleur-flacon">Couleur du flacon</label><div id="choix-couleur-flacon"></div>
                     </div>
                     <div class="groupe-champ">
                         <label>Type</label>
@@ -598,6 +627,7 @@
                     <div class="groupe-champ">
                         <label>Nom du produit / liquide</label>
                         <input type="text" id="nom-direct" placeholder="Ex: Red Astaire" required>
+                        <label for="couleur-direct">Couleur du flacon</label><div id="choix-couleur-direct"></div>
                     </div>
                     <div class="groupe-champ">
                         <label>Type</label>
@@ -651,7 +681,12 @@
 
     </div>
     <script src="push-storage.js?v=v138"></script>
-    <script src="app.js?v=v151"></script>
-    <script src="push.js?v=v140"></script>
+    <div id="confirmation-action" role="status" aria-live="polite" aria-atomic="true"></div>
+    <script src="backup-config.js?v=v153"></script>
+    <script src="backup.js?v=v155"></script>
+    <script src="enhancements.js?v=v155"></script>
+    <script src="objectifs.js?v=v155"></script>
+    <script src="app.js?v=v155"></script>
+    <script src="push.js?v=v155"></script>
 </body>
 </html>

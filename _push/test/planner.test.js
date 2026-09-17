@@ -59,3 +59,14 @@ test('legacy steep metadata remains optional; bad details rejected',()=>{
    assert.throws(()=>validateConfig({...config,steeps:[{...old,...extra}]},now));
  }
 });
+
+test('goal notification is local-day aware, once per deadline, and rescheduled independently',()=>{
+ const c={...config,goals:[{id:'goal1',date:'2026-09-17',nicotine:0}]};
+ const before=plan(c,{},at('2026-09-17T06:59:00Z'));assert.equal(before.events.filter(e=>e.id.startsWith('objectif-')).length,0);
+ const due=plan(c,before.state,at('2026-09-17T07:00:00Z'));assert.equal(due.events.filter(e=>e.id.startsWith('objectif-')).length,1);assert.match(due.events.find(e=>e.id.startsWith('objectif-')).body,/0 mg\/ml/);
+ assert.equal(plan(c,due.state,at('2026-09-18T08:00:00Z')).events.filter(e=>e.id.startsWith('objectif-')).length,0);
+ const later={...c,goals:[{...c.goals[0],date:'2026-09-19'}]};
+ assert.equal(plan(later,due.state,at('2026-09-19T08:00:00Z')).events.filter(e=>e.id.startsWith('objectif-')).length,1);
+ assert.equal(plan(config,due.state,at('2026-09-19T08:00:00Z')).events.filter(e=>e.id.startsWith('objectif-')).length,0);
+ assert.throws(()=>validateConfig({...c,goals:[{...c.goals[0],date:'2026-02-31'}]}));
+});

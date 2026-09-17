@@ -683,3 +683,34 @@ input:focus, select:focus {
 .parametres-profil > summary:focus-visible { outline: 2px solid var(--rose-sakura); outline-offset: 4px; }
 
 #groupe-config-nicotine.masque-champ { display: none; }
+
+/* Retours discrets et repères visuels des flacons. */
+#confirmation-action { position:fixed; bottom:calc(92px + env(safe-area-inset-bottom)); left:50%; transform:translate(-50%,12px); width:max-content; max-width:90vw; padding:12px 18px; border:1px solid #5a846a; border-radius:16px; background:#172a21; color:#e6f4ec; opacity:0; pointer-events:none; z-index:11000; transition:opacity .2s,transform .2s; }
+#confirmation-action.visible { opacity:1; transform:translate(-50%,0); }
+.carte-flacon-coloree { border-left:3px solid var(--couleur-flacon); }
+.couleur-flacon-select { width:auto; max-width:100%; margin-top:10px; min-height:40px; font-size:.8rem; }
+.celebration-petales { position:fixed; inset:0; overflow:hidden; pointer-events:none; z-index:10002; }
+.celebration-petales i { position:absolute; top:-20px; width:12px; height:17px; border-radius:80% 15% 80% 40%; background:linear-gradient(135deg,#ffe2e9,#f783ac); animation:petale-celebration 3.8s ease-in both; }
+@keyframes petale-celebration { from { transform:translate(0,-20px) rotate(0); opacity:0; } 12% {opacity:.85;} to {transform:translate(var(--derive),100vh) rotate(420deg);opacity:0;} }
+@media (prefers-reduced-motion:reduce) { .celebration-petales {display:none;} #confirmation-action {transition:none;} }
+
+[hidden] { display:none !important; }
+.backup-card p { margin:10px 0; line-height:1.5; }
+.backup-card button { margin-top:10px; }
+#backup-status { font-size:.85rem; color:var(--rose-sakura); }
+#backup-choice { border-top:1px solid var(--border-carte); margin-top:14px; padding-top:8px; }
+
+#btn-ouvrir-profil { max-width:48%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+
+/* Maturation : jauge fine assortie à la couleur du flacon. */
+.box-steep-live { margin-top:16px; }
+.steep-entete { display:flex; justify-content:space-between; align-items:baseline; gap:12px; margin-bottom:9px; }
+.steep-entete .badge-steep { color:var(--texte-principal); font-size:.8rem; font-weight:500; }
+.texte-steep-compteur { color:var(--texte-secondaire); font-size:.72rem; white-space:nowrap; font-variant-numeric:tabular-nums; }
+.barre-steep-fond { height:6px; border-radius:999px; overflow:hidden; background:rgba(255,255,255,.07); }
+.barre-steep-progression { height:100%; border-radius:inherit; background:linear-gradient(90deg, color-mix(in srgb, var(--couleur-flacon, #ffb7c5) 40%, #29303b), var(--couleur-flacon, #ffb7c5)); }
+.steep-temps-restant { margin-top:8px; color:var(--texte-secondaire); font-size:.75rem; line-height:1.5; }
+
+.suivi-objectif { border:1px solid #ffb7c544; }
+.suivi-objectif p { margin:12px 0; color:var(--texte-secondaire); }
+.celebration-objectif i:nth-child(4n) { background:#e8c878; width:6px; height:6px; border-radius:2px; }

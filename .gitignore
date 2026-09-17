@@ -5,3 +5,10 @@ _push/.dev.vars*
 _push/.env*
 
 .pnpm-store/
+
+_backup/node_modules/
+_backup/.env*
+
+firebase-debug.log*
+firestore-debug.log*
+_backup/.firebase/

@@ -62,6 +62,8 @@ export async function handle(request,env) {
             env.DB.prepare(`INSERT INTO devices(id,token_hash,endpoint,subscription,config,state,updated_at) VALUES(?,?,?,?,?,?,?)
                 ON CONFLICT(id) DO UPDATE SET endpoint=excluded.endpoint,subscription=excluded.subscription,config=excluded.config,state=excluded.state,updated_at=excluded.updated_at,revision=devices.revision+1
                 WHERE devices.token_hash=excluded.token_hash`).bind(id,hash,subscription.endpoint,JSON.stringify(subscription),JSON.stringify(config),JSON.stringify(state),now),
+            env.DB.prepare(`DELETE FROM deliveries WHERE device_id=? AND sent_at IS NULL AND event_id LIKE 'objectif-%' AND
+                NOT EXISTS(SELECT 1 FROM json_each(?) g WHERE deliveries.event_id='objectif-'||json_extract(g.value,'$.id')||':'||json_extract(g.value,'$.date'))`).bind(id,JSON.stringify(config.goals||[])),
             ...config.steeps.map(steep=>env.DB.prepare(
                 "UPDATE deliveries SET payload=json_set(payload,'$.body',?) WHERE device_id=? AND event_id=? AND sent_at IS NULL"
             ).bind(steepBody(steep),id,`steep-${steep.id}:${steep.readyAt}`)),

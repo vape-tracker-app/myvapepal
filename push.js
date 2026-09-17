@@ -29,6 +29,7 @@ const MyVapePush = (() => {
         return {
             dateArret:configUser.dateArret.slice(0,10),
             timezone:Intl.DateTimeFormat().resolvedOptions().timeZone,
+            goals:(typeof objectifs==='undefined'?[]:objectifs).filter(o=>o.statut!=='atteint').map(o=>({id:String(o.id),date:o.date,nicotine:parseFloat(o.titre)})),
             steeps:flacons.filter(f=>!f.termine && !f.actif && f.steepReadyAt && Number.isFinite(Date.parse(f.steepReadyAt)))
                 .map(f=>({
                     id:String(f.id),readyAt:new Date(f.steepReadyAt).toISOString(),

@@ -21,7 +21,14 @@ export function validateConfig(value, now = Date.now()) {
     if (dateArret > today) throw Error('Date future');
     if (!Array.isArray(steeps) || steeps.length > 100) throw Error('Liste invalide');
     const ids = new Set();
-    return {dateArret, timezone, steeps: steeps.map(s => {
+    const goals=value.goals || [];
+    if(!Array.isArray(goals)||goals.length>100)throw Error('Objectifs invalides');
+    const goalIds=new Set();
+    for(const g of goals){
+        if(!g || typeof g.id!=='string' || !/^[\w-]{1,80}$/.test(g.id) || goalIds.has(g.id) || typeof g.date!=='string' || !/^\d{4}-\d{2}-\d{2}$/.test(g.date) || !Number.isFinite(Date.parse(g.date+'T00:00:00Z')) || new Date(g.date+'T00:00:00Z').toISOString().slice(0,10)!==g.date || typeof g.nicotine!=='number' || !Number.isFinite(g.nicotine) || g.nicotine<0)throw Error('Objectif invalide');
+        goalIds.add(g.id);
+    }
+    return {dateArret, timezone, ...(goals.length?{goals:goals.map(({id,date,nicotine})=>({id,date,nicotine}))}:{}), steeps: steeps.map(s => {
         if (!s || typeof s.id !== 'string' || !/^[\w-]{1,80}$/.test(s.id) || ids.has(s.id)) throw Error('Flacon invalide');
         ids.add(s.id);
         if (typeof s.readyAt !== 'string' || !Number.isFinite(Date.parse(s.readyAt)) || Date.parse(s.readyAt)>now+366*DAY) throw Error('Échéance invalide');
@@ -66,6 +73,16 @@ export function plan(config, previous, now = Date.now()) {
             state.steepSent[key]=true;
         }
     }
+    state.goalSent={...previous.goalSent};
+    for(const goal of config.goals || []) {
+        const key=`${goal.id}:${goal.date}`;
+        if(goal.date<=local.date && local.hour>=9 && !state.goalSent[key]) {
+            events.push({id:`objectif-${key}`,title:'On fait le point ? 🎯',body:`${goal.date===local.date?'Aujourd’hui, tu visais':'Tu avais prévu de passer à'} ${goal.nicotine} mg/ml. Où en es-tu ?`,url:'./index.html',tag:`objectif-${goal.id}`});
+            state.goalSent[key]=true;
+        }
+    }
+    const goalKeys=new Set((config.goals||[]).map(g=>`${g.id}:${g.date}`));
+    state.goalSent=Object.fromEntries(Object.entries(state.goalSent).filter(([k])=>goalKeys.has(k)));
     const activeKeys = new Set(config.steeps.map(s=>`${s.id}:${s.readyAt}`));
     state.steepSent=Object.fromEntries(Object.entries(state.steepSent).filter(([k])=>activeKeys.has(k)));
     return {state,events};
