@@ -4,19 +4,29 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>MyVapePal 🌸</title>
+    <script>
+        // Avant le premier affichage : éviter un flash lors d'une restauration.
+        try {
+            if (sessionStorage.getItem('myvapepal-splash-seen')) {
+                document.documentElement.classList.add('splash-already-seen');
+            }
+            sessionStorage.setItem('myvapepal-splash-seen', '1');
+        } catch (_) { /* L'application reste utilisable sans stockage de session. */ }
+    </script>
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;800&display=swap" rel="stylesheet">
     
     <link rel="manifest" href="manifest.json">
-    <link rel="stylesheet" href="style.css?v=v137">
+    <link rel="stylesheet" href="style.css?v=v151">
     <meta name="theme-color" content="#0b0e14">
 </head>
 <body>
 
     <!-- ÉCRAN DE LANCEMENT AUTO-EFFAÇANT -->
     <div id="splash-screen">
+        <div class="splash-vapor" aria-hidden="true"><i></i><i></i><i></i></div>
         <img src="icon.png" alt="MyVapePal" class="splash-logo" onerror="this.style.display='none'">
         <h1 class="splash-titre">MyVapePal</h1>
         <p class="splash-baseline">Votre compagnon de vape</p>
@@ -641,7 +651,7 @@
 
     </div>
     <script src="push-storage.js?v=v138"></script>
-    <script src="app.js?v=v138"></script>
+    <script src="app.js?v=v151"></script>
     <script src="push.js?v=v140"></script>
 </body>
 </html>

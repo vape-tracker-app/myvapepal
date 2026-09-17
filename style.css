@@ -38,6 +38,7 @@ body {
 }
 
 /* Splash Screen */
+.splash-already-seen #splash-screen { display: none; }
 #splash-screen {
     position: fixed;
     top: 0; left: 0; right: 0; bottom: 0;
@@ -50,10 +51,183 @@ body {
     text-align: center;
 }
 
+/* Ce voile indépendant survit brièvement au fond du splash. */
+.splash-vapor-trail {
+    position: fixed;
+    inset: 0;
+    z-index: 10001;
+    pointer-events: none;
+    overflow: hidden;
+    opacity: 0;
+    animation: splash-trail-fade 1150ms 950ms ease-out both;
+}
+.splash-vapor-trail::before {
+    content: "";
+    position: absolute;
+    left: 24%;
+    top: 48%;
+    width: max(440px, 85vw);
+    height: max(440px, 65vh);
+    background: url('splash-vapor.svg') center / 100% 100% no-repeat;
+    transform-origin: center;
+    animation: splash-trail-drift 1150ms 950ms ease-out both;
+}
+@keyframes splash-trail-fade {
+    0% { opacity: 0; }
+    30% { opacity: .16; }
+    100% { opacity: 0; }
+}
+@keyframes splash-trail-drift {
+    from { transform: translate(0, -50%) scale(1.25) rotate(5deg); }
+    to { transform: translate(22%, -60%) scale(1.6) rotate(12deg); }
+}
+@media (prefers-reduced-motion: reduce) {
+    .splash-vapor-trail { display: none; }
+}
+
+/* Le jet entre à gauche, puis sa tête s'élargit en volutes. */
+#splash-screen { overflow: hidden; }
+#splash-screen::before,
+.splash-vapor {
+    content: "";
+    position: absolute;
+    top: 48%;
+    left: 0;
+    pointer-events: none;
+    opacity: 0;
+    z-index: 1;
+}
+/* Le filet reste relié au bord gauche pendant l'expiration. */
+#splash-screen::before {
+    width: 90vw;
+    height: 110px;
+    border-radius: 20% 55% 55% 20%;
+    background:
+        radial-gradient(ellipse at 55% 48%, #f1f4f8 12%, rgba(232,238,245,.9) 35%, transparent 69%);
+    filter: blur(16px);
+    transform-origin: left center;
+}
+/* Trois voiles texturés se déploient séparément pour former des volutes. */
+.splash-vapor {
+    width: max(440px, 85vw);
+    height: max(440px, 65vh);
+}
+.splash-vapor i {
+    position: absolute;
+    inset: 0;
+    background: url('splash-vapor.svg') center / 100% 100% no-repeat;
+    transform-origin: 38% 50%;
+}
+.splash-vapor i:nth-child(2) { opacity: .65; }
+.splash-vapor i:nth-child(3) { opacity: .45; }
+#splash-screen.splash-depart .splash-vapor i {
+    animation: splash-wisp 1400ms ease-out both;
+}
+#splash-screen.splash-depart .splash-vapor i:nth-child(2) {
+    animation-name: splash-wisp-upper;
+}
+#splash-screen.splash-depart .splash-vapor i:nth-child(3) {
+    animation-name: splash-wisp-lower;
+}
+@keyframes splash-wisp {
+    from { transform: rotate(-6deg) scale(.85); }
+    to { transform: rotate(7deg) scale(1.12); }
+}
+@keyframes splash-wisp-upper {
+    from { transform: translate(-6%, 8%) rotate(12deg) scale(.75); }
+    to { transform: translate(8%, -15%) rotate(-12deg) scale(1.2); }
+}
+@keyframes splash-wisp-lower {
+    from { transform: translate(-10%, -6%) rotate(-12deg) scale(.8); }
+    to { transform: translate(4%, 15%) rotate(15deg) scale(1.15); }
+}
+#splash-screen.splash-depart {
+    pointer-events: none;
+    animation: splash-fade 1400ms linear forwards;
+}
+#splash-screen.splash-depart > :not(.splash-vapor) {
+    animation: splash-content-fade 1400ms ease-out forwards;
+}
+#splash-screen.splash-depart::before {
+    animation: splash-jet 1400ms ease-out forwards;
+}
+#splash-screen.splash-depart .splash-vapor {
+    animation: splash-cloud 1400ms ease-out forwards;
+}
+@keyframes splash-content-fade {
+    0%, 28% { opacity: 1; transform: translateX(0); }
+    62%, 100% { opacity: 0; transform: translateX(22px); }
+}
+/* Le bord doux du masque suit la vapeur de gauche à droite.
+   Le fondu simple ci-dessus reste le repli sans prise en charge des masques. */
+@supports (mask-image: linear-gradient(to right, transparent, black)) or (-webkit-mask-image: linear-gradient(to right, transparent, black)) {
+    #splash-screen.splash-depart > :not(.splash-vapor) {
+        -webkit-mask-image: linear-gradient(to right, transparent 40%, #000 60%);
+        mask-image: linear-gradient(to right, transparent 40%, #000 60%);
+        -webkit-mask-size: 300% 100%;
+        mask-size: 300% 100%;
+        -webkit-mask-repeat: no-repeat;
+        mask-repeat: no-repeat;
+        animation-name: splash-content-wipe;
+    }
+}
+@keyframes splash-content-wipe {
+    0%, 28% {
+        -webkit-mask-position: 100% 0;
+        mask-position: 100% 0;
+    }
+    62%, 100% {
+        -webkit-mask-position: 0% 0;
+        mask-position: 0% 0;
+    }
+}
+@keyframes splash-fade {
+    0%, 68% { opacity: 1; }
+    100% { opacity: 0; }
+}
+@keyframes splash-jet {
+    0% { opacity: 0; transform: translate(-15%, -50%) scaleX(.05) scaleY(.3); }
+    15% { opacity: .45; }
+    45% { opacity: .55; transform: translate(-10%, -50%) scaleX(1) scaleY(.8); }
+    70% { opacity: .25; }
+    100% { opacity: 0; transform: translate(15%, -50%) scaleX(1.3) scaleY(1.5); }
+}
+@keyframes splash-cloud {
+    0% { opacity: 0; transform: translate(-100%, -50%) scale(.3); }
+    18% { opacity: .45; }
+    48% { opacity: .55; transform: translate(-10%, -50%) scale(.95); }
+    72% { opacity: .35; transform: translate(20%, -50%) scale(1.3); }
+    100% { opacity: 0; transform: translate(65%, -53%) scale(1.6); }
+}
+
 .splash-logo {
-    width: 90px;
-    height: 90px;
-    margin-bottom: 12px;
+    width: 120px;
+    height: 120px;
+    border-radius: 24px;
+    object-fit: cover;
+    margin-bottom: 20px;
+    animation: splash-heartbeat 1.4s ease-in-out 1;
+}
+
+@keyframes splash-heartbeat {
+    0%, 100% { transform: scale(1); }
+    18% { transform: scale(1.08); }
+    32% { transform: scale(1); }
+    46% { transform: scale(1.05); }
+    65% { transform: scale(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .splash-logo { animation: none; }
+    #splash-screen.splash-depart { animation: splash-fade 150ms linear forwards; }
+    #splash-screen.splash-depart > :not(.splash-vapor) {
+        animation: none;
+        -webkit-mask-image: none;
+        mask-image: none;
+    }
+    #splash-screen.splash-depart::before,
+    #splash-screen.splash-depart .splash-vapor,
+    #splash-screen.splash-depart .splash-vapor i { animation: none; }
 }
 
 .splash-titre {

@@ -1,10 +1,37 @@
-// =============================================================
-// AUTO-SUPPRESSION SECURE DU SPLASH SCREEN
-// =============================================================
-setTimeout(() => {
+// Une animation par session, jamais rejouée au retour au premier plan.
+(() => {
     const splash = document.getElementById('splash-screen');
-    if (splash) splash.remove();
-}, 2500);
+    if (!splash) return;
+    let vapeur;
+    let launchTimer;
+    function finish() {
+        clearTimeout(launchTimer);
+        splash.remove();
+        vapeur?.remove();
+        document.removeEventListener('visibilitychange', onVisibilityChange);
+        window.removeEventListener('pagehide', finish);
+    }
+    function onVisibilityChange() {
+        if (document.visibilityState === 'hidden') finish();
+    }
+    if (document.documentElement.classList.contains('splash-already-seen') || document.visibilityState === 'hidden') {
+        finish();
+        return;
+    }
+    document.addEventListener('visibilitychange', onVisibilityChange);
+    window.addEventListener('pagehide', finish);
+    launchTimer = setTimeout(() => {
+        splash.classList.add('splash-depart');
+        if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+            vapeur = document.createElement('div');
+            vapeur.className = 'splash-vapor-trail';
+            vapeur.setAttribute('aria-hidden', 'true');
+            document.body.appendChild(vapeur);
+        }
+        setTimeout(() => splash.remove(), 1400);
+        setTimeout(finish, 2100);
+    }, 950);
+})();
 
 // =============================================================
 // MYVAPEPAL PWA - CODE PRINCIPAL APPLICATION
