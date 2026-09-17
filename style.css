@@ -242,6 +242,11 @@ body {
     white-space: nowrap;
 }
 
+/* Afficher de vraies minuscules pour l’unité mg/ml. */
+#card-nicotine-valeur {
+    font-family: inherit;
+}
+
 /* Lignes 3 & 4 : Informations secondaires */
 .stat-unite {
     font-size: 0.7rem;
