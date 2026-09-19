@@ -16,7 +16,7 @@ export function validate(snapshot) {
             } else if(!Array.isArray(parsed) || parsed.length>10000 || parsed.some(v=>!v || typeof v!=='object' || Array.isArray(v)))throw Error('Liste invalide');
             const records=key==='vt_config'?[parsed]:parsed;
             const numeric=['cigsJour','prixPaquet','cigsPaquet','nicotineActuelle','volume','nicotine','arome','steepDays','montant','volumeTotal','volArome','volBooster','nbrFioles','volBase'];
-            const text=['nom','prenom','type','categorie','titre','texte','couleur','dateArret','date','dateConstat','preparedAt','startedAt','finishedAt','dateOuverture','dateFermeture','steepReadyAt'];
+            const text=['nom','prenom','type','categorie','titre','texte','couleur','categorieSaveur','dateArret','date','dateConstat','preparedAt','startedAt','finishedAt','dateOuverture','dateFermeture','steepReadyAt'];
             for(const record of records) {
                 for(const field of numeric)if(record[field]!=null && (!((typeof record[field]==='number' || (typeof record[field]==='string' && /^\d+(?:\.\d+)?$/.test(record[field]))) && Number.isFinite(Number(record[field])) && Number(record[field])>=0)))throw Error('Nombre invalide');
                 for(const field of text)if(record[field]!=null && (typeof record[field]!=='string'||record[field].length>5000))throw Error('Texte invalide');
