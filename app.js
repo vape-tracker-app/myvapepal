@@ -526,12 +526,12 @@ function mettreAJourDashboard() {
     const cardNicotineObj = document.getElementById('card-nicotine-objectif');
 
     if (cardNicotineVal) {
-        if (configUser && configUser.vapote && configUser.nicotineActuelle !== undefined) {
-            cardNicotineVal.textContent = `${configUser.nicotineActuelle} mg/ml`;
-        } else {
-            cardNicotineVal.textContent = '0 mg/ml (Non vapoteur)';
-        }
+    if (configUser && configUser.vapote && configUser.nicotineActuelle !== undefined) {
+        cardNicotineVal.textContent = `${configUser.nicotineActuelle} mg/ml`;
+    } else {
+        cardNicotineVal.textContent = '0 mg/ml (Non vapoteur)';
     }
+}
 
     if (cardNicotineObj) {
         const objectifsFuturs = objectifs

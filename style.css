@@ -416,9 +416,16 @@ body {
     white-space: nowrap;
 }
 
-/* Afficher de vraies minuscules pour l’unité mg/ml. */
-#card-nicotine-valeur {
+/* Nicotine : nombre comme les autres valeurs, unité en minuscules */
+#card-nicotine-valeur .nicotine-nombre {
+    font-family: 'Cinzel', serif;
+    font-size: 1.3rem;
+    font-weight: 800;
+}
+
+#card-nicotine-valeur .nicotine-unite {
     font-family: inherit;
+    font-size: 1rem;
 }
 
 /* Lignes 3 & 4 : Informations secondaires */

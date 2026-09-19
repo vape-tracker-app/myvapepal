@@ -29,7 +29,7 @@ async function loadRemote(){
 }
 async function reconcile(){
     if(!user||busy)return;
-    if(!user.verified){ready=false;status('Vérifie ton adresse grâce au mail reçu, puis clique sur « J’ai confirmé mon adresse ». Aucune donnée n’est encore sauvegardée en ligne.');panel();return;}
+    if(!user.verified){ready=false;status('Vérifie ton adresse grâce au mail reçu, puis clique sur « J’ai confirmé mon adresse ». Pense à consulter tes spams ou courriers indésirables. Aucune donnée n’est encore sauvegardée en ligne.');panel();return;}
     busy=true;ready=false;const ticket=epoch;
     try{
         status('Vérification de ta sauvegarde…');const row=await loadRemote();if(ticket!==epoch)return;
@@ -110,7 +110,7 @@ async function init(){
         if(register && password.length<8){status('Choisis un mot de passe d’au moins 8 caractères.');return;}
         $('backup-send').disabled=true;$('backup-register').disabled=true;
         try{
-            if(register){await client.register(email,password);status('Compte créé. Confirme ton adresse dans le mail reçu pour activer la sauvegarde.');}
+            if(register){await client.register(email,password);status('Compte créé. Confirme ton adresse dans le mail reçu pour activer la sauvegarde. Si tu ne le vois pas, consulte tes spams ou courriers indésirables.');}
             else await client.login(email,password);
             $('backup-password').value='';
         }catch{status(register?'Création impossible. Vérifie ton adresse et choisis un mot de passe plus long, ou utilise « Me connecter » si tu as déjà un compte.':'Connexion impossible. Vérifie ton adresse et ton mot de passe, ou utilise « Mot de passe oublié ».');}
@@ -121,13 +121,13 @@ async function init(){
     $('backup-reset').onclick=async()=>{
         const email=$('backup-email');if(!email.reportValidity())return;
         $('backup-reset').disabled=true;
-        try{await client.reset(email.value.trim());status('Si cette adresse correspond à un compte, tu recevras un mail pour choisir un nouveau mot de passe.');}
+        try{await client.reset(email.value.trim());status('Si cette adresse correspond à un compte, tu recevras un mail pour choisir un nouveau mot de passe. Pense à consulter tes spams ou courriers indésirables.');}
         catch{status('Envoi impossible pour le moment. Réessaie plus tard.');}
         finally{setTimeout(()=>$('backup-reset').disabled=false,60000);}
     };
     $('backup-resend').onclick=async()=>{
         $('backup-resend').disabled=true;
-        try{await client.resend();status('Mail de vérification envoyé. Pense aussi aux indésirables.');}
+        try{await client.resend();status('Mail de vérification envoyé. Pense à consulter tes spams ou courriers indésirables.');}
         catch{status('Envoi impossible. Patiente un peu avant de réessayer.');}
         finally{setTimeout(()=>$('backup-resend').disabled=false,60000);}
     };
