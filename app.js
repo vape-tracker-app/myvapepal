@@ -988,6 +988,26 @@ function afficherFlaconActif() {
         if (document.getElementById('details-flacon')) {
             document.getElementById('details-flacon').textContent = `Entamé le ${dateFormatee} (${actif.volume} ml)`;
         }
+        const zoneCategorie = document.getElementById('categorie-saveur-actif');
+
+if (zoneCategorie) {
+    if (!actif.categorieSaveur) {
+        zoneCategorie.innerHTML = `
+            <label class="texte-secondaire" for="categorie-actif">Type de saveur</label>
+            <select id="categorie-actif" onchange="definirCategorieSaveurFlacon('${actif.id}', this.value)">
+                <option value="" selected disabled>Choisir...</option>
+                <option value="fruite">🍓 Fruité</option>
+                <option value="gourmand">🍰 Gourmand</option>
+                <option value="classic">🍂 Classic</option>
+                <option value="menthe">🌿 Menthe / Frais</option>
+                <option value="boisson">🥤 Boisson</option>
+                <option value="autre">✨ Autre</option>
+            </select>
+        `;
+    } else {
+        zoneCategorie.replaceChildren();
+    }
+}
         if (btnTerminer) btnTerminer.style.display = 'block';
     } else {
         if (document.getElementById('nom-liquide')) document.getElementById('nom-liquide').textContent = 'Aucun flacon en cours';
@@ -1060,10 +1080,32 @@ function afficherReserveEtMaturation() {
                     <button type="button" class="btn-suppr" onclick="supprimerFlacon('${f.id}')">🗑️</button>
                 </div>
                 <p class="texte-secondaire">Préparé le ${new Date(f.preparedAt || f.dateOuverture).toLocaleDateString('fr-FR')} (${f.volume} ml)</p>
+                ${!f.categorieSaveur ? `
+    <div style="margin-top:8px;">
+        <label class="texte-secondaire" for="categorie-${f.id}">Type de saveur</label>
+        <select id="categorie-${f.id}" onchange="definirCategorieSaveurFlacon('${f.id}', this.value)">
+            <option value="" selected disabled>Choisir...</option>
+            <option value="fruite">🍓 Fruité</option>
+            <option value="gourmand">🍰 Gourmand</option>
+            <option value="classic">🍂 Classic</option>
+            <option value="menthe">🌿 Menthe / Frais</option>
+            <option value="boisson">🥤 Boisson</option>
+            <option value="autre">✨ Autre</option>
+        </select>
+    </div>
+` : ''}
                 ${moduleVisuel}
             </div>
         `;
     }).join('');
+}
+function definirCategorieSaveurFlacon(id, categorie) {
+    const flacon = flacons.find(f => f.id === id);
+    if (!flacon) return;
+
+    flacon.categorieSaveur = categorie;
+    localStorage.setItem('vt_flacons', JSON.stringify(flacons));
+    mettreAJourTout();
 }
 
 function utiliserCeFlacon(id) {
