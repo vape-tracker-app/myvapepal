@@ -808,7 +808,7 @@ function sauvegarderFlacon() {
     const nouveauFlacon = {
         id: Date.now().toString(),
         nom: nom,
-        couleur: document.getElementById('couleur-flacon')?.value || 'rose',
+        categorieSaveur: document.getElementById('categorie-saveur')?.value || 'autre',
         type: document.getElementById('type').value,
         volume: parseFloat(document.getElementById('volume').value) || 0,
         nicotine: parseFloat(document.getElementById('nicotine').value) || 0,
@@ -853,7 +853,7 @@ function sauvegarderFlaconDirect() {
     const nouveauFlaconActif = {
         id: Date.now().toString(),
         nom: nom,
-        couleur: document.getElementById('couleur-direct')?.value || 'rose',
+        categorieSaveur: document.getElementById('categorie-saveur-direct')?.value || 'autre',
         type: document.getElementById('type-direct').value,
         volume: parseFloat(document.getElementById('volume-direct').value) || 0,
         nicotine: parseFloat(document.getElementById('nicotine-direct').value) || 0,
@@ -1056,7 +1056,7 @@ function afficherReserveEtMaturation() {
         return `
             <div class="carte">
                 <div style="display:flex; justify-content:space-between; align-items:center;">
-                    <strong>${f.nom} (${f.nicotine} mg)</strong>
+                    <strong>${typeof MyVapeUI !== 'undefined' ? MyVapeUI.bottleIcon(f) + ' ' : ''}${f.nom} (${f.nicotine} mg)</strong>
                     <button type="button" class="btn-suppr" onclick="supprimerFlacon('${f.id}')">🗑️</button>
                 </div>
                 <p class="texte-secondaire">Préparé le ${new Date(f.preparedAt || f.dateOuverture).toLocaleDateString('fr-FR')} (${f.volume} ml)</p>

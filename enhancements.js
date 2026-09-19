@@ -1,6 +1,21 @@
 // Petites interactions locales : aucune donnée personnelle n'est envoyée ici.
 const MyVapeUI = (() => {
-    const colors = {rose:'#ffb7c5',lavande:'#bca7ef',menthe:'#8dd9bd',bleu:'#8dc8ef',peche:'#efb18e'};
+    const flavorCategories = {
+    fruite:   { label: 'Fruité',        icon: '🍓', color: '#ffb7c5' },
+    gourmand: { label: 'Gourmand',      icon: '🍰', color: '#c99a6b' },
+    classic:  { label: 'Classic',       icon: '🍂', color: '#9b7653' },
+    menthe:   { label: 'Menthe / Frais',icon: '🌿', color: '#8dd9bd' },
+    boisson:  { label: 'Boisson',       icon: '🥤', color: '#8dc8ef' },
+    autre:    { label: 'Autre',         icon: '✨', color: '#e8c85a' }
+};
+
+const legacyColors = {
+    rose:'#ffb7c5',
+    lavande:'#bca7ef',
+    menthe:'#8dd9bd',
+    bleu:'#8dc8ef',
+    peche:'#efb18e'
+};
     let toastTimer, pendingStage = null;
     function toast(message) {
         const el=document.getElementById('confirmation-action');
@@ -10,42 +25,56 @@ const MyVapeUI = (() => {
         el.classList.add('visible');
         toastTimer=setTimeout(()=>el.classList.remove('visible'),3500);
     }
-    function color(value){return colors[value] || colors.rose;}
-    function picker(value, onChange) {
-        const select=document.createElement('select');
-        select.className='couleur-flacon-select';
-        select.setAttribute('aria-label','Couleur du flacon');
-        for(const [key,label] of Object.entries({rose:'🌸 Rose',lavande:'🟣 Lavande',menthe:'🟢 Menthe',bleu:'🔵 Bleu',peche:'🟠 Pêche'})) {
-            const option=document.createElement('option');option.value=key;option.textContent=label;select.appendChild(option);
-        }
-        select.value=colors[value]?value:'rose';
-        select.addEventListener('change',()=>onChange(select.value));
-        return select;
+    function bottleColor(bottle) {
+    if (bottle?.categorieSaveur && flavorCategories[bottle.categorieSaveur]) {
+        return flavorCategories[bottle.categorieSaveur].color;
     }
+
+    if (bottle?.couleur && legacyColors[bottle.couleur]) {
+        return legacyColors[bottle.couleur];
+    }
+
+    return flavorCategories.autre.color;
+}
+
+function bottleIcon(bottle) {
+    return flavorCategories[bottle?.categorieSaveur]?.icon || '✨';
+}
     function decorateBottles() {
-        const reserve=flacons.filter(f=>!f.termine&&!f.actif);
-        const history=flacons.filter(f=>f.termine);
-        for(const [id,list] of [['liste-flacons-reserve',reserve],['liste-historique',history]]) {
-            document.querySelectorAll(`#${id} > .carte`).forEach((card,i)=>{
-                const bottle=list[i];if(!bottle)return;
-                card.querySelectorAll('.couleur-flacon-select').forEach(el=>el.remove());
-                card.classList.add('carte-flacon-coloree');
-                card.style.setProperty('--couleur-flacon',color(bottle.couleur));
-                card.appendChild(picker(bottle.couleur,value=>saveColor(bottle,value)));
-            });
-        }
-        const active=flacons.find(f=>f.actif);
-        const title=document.getElementById('nom-liquide');
-        if(title)title.style.color=active?color(active.couleur):'';
-        const slot=document.getElementById('couleur-flacon-actif');
-        if(slot){slot.replaceChildren();if(active)slot.appendChild(picker(active.couleur,value=>saveColor(active,value)));}
+    const reserve = flacons.filter(f => !f.termine && !f.actif);
+    const history = flacons.filter(f => f.termine);
+
+    for (const [id, list] of [
+        ['liste-flacons-reserve', reserve],
+        ['liste-historique', history]
+    ]) {
+        document.querySelectorAll(`#${id} > .carte`).forEach((card, i) => {
+            const bottle = list[i];
+            if (!bottle) return;
+
+            // Nettoyage des anciens sélecteurs de couleur
+            card.querySelectorAll('.couleur-flacon-select').forEach(el => el.remove());
+
+            // Couleur automatique selon la catégorie de saveur
+            card.classList.add('carte-flacon-coloree');
+            card.style.setProperty('--couleur-flacon', bottleColor(bottle));
+        });
     }
-    function saveColor(bottle,value) {
-        const previous=bottle.couleur;bottle.couleur=value;
-        try{localStorage.setItem('vt_flacons',JSON.stringify(flacons));}
-        catch{bottle.couleur=previous;toast('Couleur non enregistrée. Réessaie.');return;}
-        mettreAJourTout();toast('Couleur enregistrée');
+
+    const active = flacons.find(f => f.actif);
+    const title = document.getElementById('nom-liquide');
+
+    if (title && active) {
+        title.style.color = bottleColor(active);
+        title.textContent = `${bottleIcon(active)} ${active.nom}`;
+    } else if (title) {
+        title.style.color = '';
     }
+
+    // L'ancien emplacement du sélecteur de couleur reste vide
+    const slot = document.getElementById('couleur-flacon-actif');
+    if (slot) slot.replaceChildren();
+}
     function observeStage(stage) {
         if(!configUser?.dateArret)return;
         try {
@@ -78,13 +107,9 @@ const MyVapeUI = (() => {
         document.body.appendChild(shower);setTimeout(()=>shower.remove(),5200);
     }
     document.addEventListener('DOMContentLoaded',()=>{
-        for(const [container,input] of [['choix-couleur-flacon','couleur-flacon'],['choix-couleur-direct','couleur-direct']]) {
-            const slot=document.getElementById(container);if(!slot)continue;
-            const select=picker('rose',()=>{});select.id=input;slot.appendChild(select);
-        }
         setInterval(()=>{if(document.visibilityState==='visible'){celebrate();afficherReserveEtMaturation();decorateBottles();}},60000);
         setTimeout(celebrate,3200);
     });
     document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'){mettreAJourCerisierHD();celebrate();}});
-    return {toast,color,decorateBottles,observeStage,celebrate};
+    return {toast,bottleColor,bottleIcon,decorateBottles,observeStage,celebrate};
 })();
