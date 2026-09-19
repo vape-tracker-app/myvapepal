@@ -284,10 +284,10 @@ body {
         transform: translate(-35%, -50%) scale(.9);
     }
     20% {
-        opacity: .55;
+        opacity: .72;
     }
     65% {
-        opacity: .4;
+        opacity: .55;
     }
     100% {
         opacity: 0;
@@ -301,10 +301,10 @@ body {
         transform: translate(35%, -50%) scale(.9) scaleX(-1);
     }
     20% {
-        opacity: .55;
+        opacity: .72;
     }
     65% {
-        opacity: .4;
+        opacity: .55;
     }
     100% {
         opacity: 0;
