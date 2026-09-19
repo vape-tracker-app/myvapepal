@@ -249,6 +249,68 @@ body {
 .splash-sous-titre {
     font-size: 1.2rem;
 }
+/* Fumée légère lors de la navigation par swipe */
+.swipe-vapor {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    pointer-events: none;
+    overflow: hidden;
+}
+
+.swipe-vapor::before {
+    content: "";
+    position: absolute;
+    top: 50%;
+    width: max(380px, 75vw);
+    height: max(380px, 55vh);
+    background: url('splash-vapor.svg') center / 100% 100% no-repeat;
+    opacity: 0;
+}
+
+.swipe-vapor.gauche::before {
+    left: 0;
+    animation: swipe-vapor-gauche 450ms ease-out both;
+}
+
+.swipe-vapor.droite::before {
+    right: 0;
+    animation: swipe-vapor-droite 450ms ease-out both;
+}
+
+@keyframes swipe-vapor-gauche {
+    0% {
+        opacity: 0;
+        transform: translate(-25%, -50%) scale(.85);
+    }
+    35% {
+        opacity: .22;
+    }
+    100% {
+        opacity: 0;
+        transform: translate(55%, -55%) scale(1.2);
+    }
+}
+
+@keyframes swipe-vapor-droite {
+    0% {
+        opacity: 0;
+        transform: translate(25%, -50%) scale(.85) scaleX(-1);
+    }
+    35% {
+        opacity: .22;
+    }
+    100% {
+        opacity: 0;
+        transform: translate(-55%, -55%) scale(1.2) scaleX(-1);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .swipe-vapor {
+        display: none;
+    }
+}
 
 /* En-tête */
 #entete-app {

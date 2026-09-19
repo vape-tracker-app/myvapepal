@@ -1445,6 +1445,17 @@ const ECRANS_SWIPE = [
 
 let swipeStartX = 0;
 let swipeStartY = 0;
+
+function jouerFumeeSwipe(direction) {
+    const fumee = document.createElement('div');
+    fumee.className = `swipe-vapor ${direction}`;
+
+    document.body.appendChild(fumee);
+
+    setTimeout(() => {
+        fumee.remove();
+    }, 500);
+}
 function configurerSwipeNavigation() {
     const zone = document.body;
 
@@ -1481,6 +1492,11 @@ function configurerSwipeNavigation() {
             : indexActuel - 1;
 
         if (nouvelIndex < 0 || nouvelIndex >= ECRANS_SWIPE.length) return;
+
+const direction = deltaX < 0 ? 'gauche' : 'droite';
+
+jouerFumeeSwipe(direction);
+afficherEcran(ECRANS_SWIPE[nouvelIndex]);
 
         afficherEcran(ECRANS_SWIPE[nouvelIndex]);
     }, { passive: true });
