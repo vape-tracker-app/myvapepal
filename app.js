@@ -91,6 +91,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     configurerEcouteurs();
+    configurerSwipeNavigation();
 });
 
 function initialiserInterface() {
@@ -1433,6 +1434,53 @@ function afficherEcran(idEcran) {
     document.querySelectorAll('.nav-item').forEach(btn => btn.classList.remove('actif'));
     const navAssociee = document.getElementById(`nav-${idEcran.replace('ecran-', '')}`);
     if (navAssociee) navAssociee.classList.add('actif');
+}
+const ECRANS_SWIPE = [
+    'ecran-accueil',
+    'ecran-recettes',
+    'ecran-sante',
+    'ecran-finances',
+    'ecran-objectifs'
+];
+
+let swipeStartX = 0;
+let swipeStartY = 0;
+function configurerSwipeNavigation() {
+    const zone = document.body;
+
+    zone.addEventListener('touchstart', (e) => {
+        if (e.touches.length !== 1) return;
+
+        swipeStartX = e.touches[0].clientX;
+        swipeStartY = e.touches[0].clientY;
+    }, { passive: true });
+
+    zone.addEventListener('touchend', (e) => {
+        if (!e.changedTouches.length) return;
+
+        const deltaX = e.changedTouches[0].clientX - swipeStartX;
+        const deltaY = e.changedTouches[0].clientY - swipeStartY;
+
+        // On ignore les petits mouvements et les gestes surtout verticaux
+        if (Math.abs(deltaX) < 60 || Math.abs(deltaX) <= Math.abs(deltaY)) return;
+
+        // On ne swipe que depuis l'un des 5 écrans principaux
+        const ecranActuel = ECRANS_SWIPE.find(id => {
+            const ecran = document.getElementById(id);
+            return ecran && !ecran.classList.contains('masque');
+        });
+
+        if (!ecranActuel) return;
+
+        const indexActuel = ECRANS_SWIPE.indexOf(ecranActuel);
+        const nouvelIndex = deltaX < 0
+            ? indexActuel + 1
+            : indexActuel - 1;
+
+        if (nouvelIndex < 0 || nouvelIndex >= ECRANS_SWIPE.length) return;
+
+        afficherEcran(ECRANS_SWIPE[nouvelIndex]);
+    }, { passive: true });
 }
 
 function configurerEcouteurs() {
