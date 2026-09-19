@@ -1462,7 +1462,10 @@ function configurerSwipeNavigation() {
         const deltaY = e.changedTouches[0].clientY - swipeStartY;
 
         // On ignore les petits mouvements et les gestes surtout verticaux
-        if (Math.abs(deltaX) < 60 || Math.abs(deltaX) <= Math.abs(deltaY)) return;
+        if (
+    Math.abs(deltaX) < 60 ||
+    Math.abs(deltaX) < Math.abs(deltaY) * 1.5
+) return;
 
         // On ne swipe que depuis l'un des 5 écrans principaux
         const ecranActuel = ECRANS_SWIPE.find(id => {
