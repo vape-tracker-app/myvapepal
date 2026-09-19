@@ -526,11 +526,18 @@ function mettreAJourDashboard() {
     const cardNicotineVal = document.getElementById('card-nicotine-valeur');
     const cardNicotineObj = document.getElementById('card-nicotine-objectif');
 
-    if (cardNicotineVal) {
+ if (cardNicotineVal) {
     if (configUser && configUser.vapote && configUser.nicotineActuelle !== undefined) {
-        cardNicotineVal.textContent = `${configUser.nicotineActuelle} mg/ml`;
+        cardNicotineVal.innerHTML = `
+            <span class="nicotine-nombre">${configUser.nicotineActuelle}</span>
+            <span class="nicotine-unite">mg/ml</span>
+        `;
     } else {
-        cardNicotineVal.textContent = '0 mg/ml (Non vapoteur)';
+        cardNicotineVal.innerHTML = `
+            <span class="nicotine-nombre">0</span>
+            <span class="nicotine-unite">mg/ml</span>
+            <span class="nicotine-unite">(Non vapoteur)</span>
+        `;
     }
 }
 
