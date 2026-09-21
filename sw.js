@@ -18,7 +18,7 @@ self.addEventListener('push',event=>{
         if(seen[data.id])return;
         await self.registration.showNotification(data.title.slice(0,120),{
             body:data.body.slice(0,500),icon:new URL('icon.png',self.registration.scope).href,
-            badge:new URL('icon.png',self.registration.scope).href,
+            badge:new URL('badge.png',self.registration.scope).href,
             tag:data.tag || data.id,renotify:false,
             data:{url:new URL('index.html',self.registration.scope).href}
         });

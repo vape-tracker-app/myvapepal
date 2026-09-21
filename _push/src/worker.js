@@ -96,8 +96,21 @@ export async function schedule(env,now=Date.now(),send=sendPush) {
             const status=await send(JSON.parse(job.subscription),JSON.parse(job.payload),env);
             if(status===404 || status===410){await env.DB.prepare('DELETE FROM devices WHERE id=?').bind(job.device_id).run();continue;}
             if(status>=200 && status<300){await env.DB.prepare('UPDATE deliveries SET sent_at=?,lease=NULL WHERE device_id=? AND event_id=? AND lease=?').bind(now,job.device_id,job.event_id,lease).run();}
-            else await retry(env,job,lease,now);
-        } catch {await retry(env,job,lease,now);}
+            else {
+    console.error('PUSH HTTP ERROR', {
+        eventId: job.event_id,
+        status: status
+    });
+    await retry(env, job, lease, now);
+}
+        } catch (error) {
+    console.error('PUSH ERROR', {
+        eventId: job.event_id,
+        message: error?.message,
+        stack: error?.stack
+    });
+    await retry(env,job,lease,now);
+}
     }
     await env.DB.batch([
         env.DB.prepare('DELETE FROM devices WHERE updated_at<?').bind(now-180*DAY),
@@ -113,7 +126,7 @@ export async function sendPush(subscription,payload,env){
         TTL:86400, urgency:'normal', contentEncoding:'aes128gcm',
         vapidDetails:{subject:env.VAPID_SUBJECT,publicKey:env.VAPID_PUBLIC_KEY,privateKey:env.VAPID_PRIVATE_KEY}
     });
-    const response=await fetch(details.endpoint,{method:'POST',headers:details.headers,body:details.body,redirect:'error',signal:AbortSignal.timeout(15000)});
+    const response=await fetch(details.endpoint,{method:'POST',headers:details.headers,body:details.body,redirect:'manual',signal:AbortSignal.timeout(15000)});
     await response.body?.cancel();
     return response.status;
 }

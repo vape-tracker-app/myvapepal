@@ -4,7 +4,17 @@
   "compatibility_date": "2025-09-17",
   "compatibility_flags": ["nodejs_compat"],
   "workers_dev": true,
-  "observability": {"enabled": false},
+  "observability": {
+  "logs": {
+    "enabled": true,
+    "head_sampling_rate": 1,
+    "invocation_logs": true,
+    "persist": true
+  },
+  "traces": {
+    "enabled": false
+  }
+},
   "vars": {"APP_ORIGIN": "https://vape-tracker-app.github.io", "VAPID_SUBJECT": "https://vape-tracker-app.github.io/myvapepal/"},
   "ratelimits": [{"name":"RATE_LIMITER","namespace_id":"1001","simple":{"limit":20,"period":60}}],
   "triggers": {"crons": ["*/5 * * * *"]},

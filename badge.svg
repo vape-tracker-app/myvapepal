@@ -1,0 +1,119 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 140 100">
+
+  <!-- Ensemble légèrement penché façon signature -->
+  <g transform="skewX(-10) translate(10 0)" fill="#ffffff">
+
+    <!-- M calligraphique -->
+    <path d="
+      M10 70
+
+      C16 62 18 43 21 27
+      C23 17 27 12 30 16
+      C33 20 30 38 30 49
+      C30 58 31 63 34 65
+
+      C38 57 42 39 48 25
+      C51 17 55 13 57 17
+      C59 21 55 39 54 49
+      C53 59 54 65 58 68
+
+      C60 69 62 67 64 64
+
+      L61 69
+
+      C57 73 53 72 50 67
+      C47 61 49 48 50 39
+      C51 32 53 24 52 21
+
+      C47 31 43 48 39 59
+      C36 68 33 72 30 69
+      C25 65 26 52 26 42
+      C26 32 27 23 26 20
+
+      C23 32 22 50 20 61
+      C18 69 15 74 10 77
+      Z
+    "/>
+
+    <!-- Liaison très fine vers le V -->
+    <path d="
+      M57 67
+      C62 69 65 65 68 59
+      L70 60
+      C67 69 62 73 57 70
+      Z
+    "/>
+
+    <!-- V profond, façon grand geste de plume -->
+    <path d="
+      M68 59
+
+      C72 47 75 31 79 19
+      C80 16 82 14 84 15
+
+      C82 28 79 43 79 54
+      C79 64 80 70 84 72
+
+      C89 63 94 45 99 27
+      L102 28
+
+      C97 48 92 67 86 76
+      C83 80 80 79 77 75
+      C73 70 73 63 74 56
+
+      Z
+    "/>
+
+    <!-- Liaison délicate vers le P -->
+    <path d="
+      M84 72
+      C91 69 96 62 100 53
+      L102 55
+      C98 66 92 73 85 76
+      Z
+    "/>
+
+    <!--
+      P volontairement TRÈS classique :
+      hampe + panse fermée.
+      Aucun jambage vers le bas à droite.
+    -->
+    <path d="
+      M101 76
+
+      C103 63 105 47 107 32
+      C109 20 112 14 115 14
+
+      C115 19 113 25 112 30
+
+      C116 24 121 21 127 22
+      C135 23 139 29 137 36
+      C135 44 127 48 115 47
+
+      L112 44
+
+      C121 45 129 42 132 36
+      C134 31 131 26 126 26
+      C119 26 113 33 111 42
+
+      C109 52 108 65 108 76
+
+      Z
+    "/>
+
+  </g>
+
+  <!-- Paraphe de ministre 😈 -->
+  <path
+    d="
+      M42 84
+      C64 89 96 87 128 77
+      C132 76 135 76 137 77
+    "
+    fill="none"
+    stroke="#ffffff"
+    stroke-width="1.4"
+    stroke-linecap="round"
+  />
+
+</svg>
