@@ -1621,6 +1621,7 @@ function afficherEcran(idEcran) {
     document.querySelectorAll('.ecran').forEach(e => e.classList.add('masque'));
     const ecranCible = document.getElementById(idEcran);
     if (ecranCible) ecranCible.classList.remove('masque');
+    if (idEcran === 'ecran-sante') afficherParcours();
 
     document.querySelectorAll('.nav-item').forEach(btn => btn.classList.remove('actif'));
     const navAssociee = document.getElementById(`nav-${idEcran.replace('ecran-', '')}`);
@@ -1688,8 +1689,6 @@ const direction = deltaX < 0 ? 'gauche' : 'droite';
 
 jouerFumeeSwipe(direction);
 afficherEcran(ECRANS_SWIPE[nouvelIndex]);
-
-        afficherEcran(ECRANS_SWIPE[nouvelIndex]);
     }, { passive: true });
 }
 
@@ -1703,8 +1702,8 @@ function configurerEcouteurs() {
     const navRecettes = document.getElementById('nav-recettes');
     if (navRecettes) navRecettes.onclick = () => afficherEcran('ecran-recettes');
 
-    const navSante = document.getElementById('nav-sante');
-    if (navSante) navSante.onclick = () => afficherEcran('ecran-sante');
+const navSante = document.getElementById('nav-sante');
+if (navSante) navSante.onclick = () => afficherEcran('ecran-sante');
 
     const navFinances = document.getElementById('nav-finances');
     if (navFinances) navFinances.onclick = () => afficherEcran('ecran-finances');
