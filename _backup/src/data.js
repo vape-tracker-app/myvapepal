@@ -1,4 +1,4 @@
-export const KEYS=['vt_config','vt_flacons','vt_recettes','vt_depenses','vt_objectifs','vt_observations','vt_date_resistance'];
+export const KEYS=['vt_config','vt_flacons','vt_recettes','vt_depenses','vt_objectifs','vt_observations','vt_date_resistance','vt_victoire_quotidienne_date'];
 export function validate(snapshot) {
     if(!snapshot || snapshot.version!==1 || !snapshot.data || typeof snapshot.data!=='object' || Array.isArray(snapshot.data))throw Error('Sauvegarde incompatible');
     if(new TextEncoder().encode(JSON.stringify(snapshot)).length>750000)throw Error('Sauvegarde trop volumineuse');
@@ -7,7 +7,7 @@ export function validate(snapshot) {
         const value=snapshot.data[key];
         if(value==null){data[key]=null;continue;}
         if(typeof value!=='string')throw Error('Sauvegarde invalide');
-        if(key==='vt_date_resistance') {
+        if(key==='vt_date_resistance' || key==='vt_victoire_quotidienne_date') {
             if(!/^\d{4}-\d{2}-\d{2}$/.test(value) || !Number.isFinite(Date.parse(value)))throw Error('Date invalide');
         } else {
             const parsed=JSON.parse(value);

@@ -278,7 +278,7 @@
                     <h3>☁️ Sauvegarder mon parcours</h3>
                     <h4 id="backup-greeting" hidden></h4>
                     <p class="texte-secondaire">Retrouve tes données si tu changes de téléphone. Ajoute ton adresse e-mail pour activer la sauvegarde en ligne. Tu recevras uniquement les e-mails nécessaires à ta connexion, jamais de publicité ni de newsletter.</p>
-                    <p class="texte-secondaire">La sauvegarde comprend ton profil, tes flacons, tes recettes, tes dépenses, tes objectifs, tes observations et la date de changement de résistance. Si tu actives la sauvegarde, ces données seront conservées dans ton espace privé chez Firebase (Google). Tes autorisations de notifications restent propres à chaque appareil.</p>
+                    <p class="texte-secondaire">La sauvegarde comprend ton profil, tes flacons, tes recettes, tes dépenses, tes objectifs, tes p'tites victoires et la date de changement de résistance. Si tu actives la sauvegarde, ces données seront conservées dans ton espace privé chez Firebase (Google). Tes autorisations de notifications restent propres à chaque appareil.</p>
                     <p id="backup-status" role="status" aria-live="polite">Données enregistrées uniquement sur ce téléphone.</p>
                     <form id="backup-login">
                         <label for="backup-email">Adresse e-mail (facultatif)</label>
@@ -445,54 +445,95 @@
                 <div id="liste-recettes"></div>
             </section>
 
-            <!-- ÉCRAN 3 : PARCOURS -->
-            <section id="ecran-sante" class="ecran masque">
-                <h2>Mon Parcours 🗺️</h2>
+            <!-- ÉCRAN 3 : VICTOIRES -->
+<section id="ecran-sante" class="ecran masque">
 
-                <!-- SECTION 1 : MON PARCOURS SANS CIGARETTE -->
-                <div class="carte" style="margin-bottom: 16px;">
-                    <h3>🚭 Mon parcours sans cigarette</h3>
-                    <div style="margin: 10px 0;">
-                        <span id="parcours-jours-titre" style="font-family:'Cinzel', serif; font-size:1.4rem; font-weight:800; color:#2ea043;">0 jour sans cigarette</span>
-                        <p class="texte-secondaire" style="margin-top: 2px;">Votre cerisier continue de grandir 🌸</p>
-                    </div>
+    <h2>Le Salon des p'tites victoires 🌸</h2>
 
-                    <h4 style="margin-top: 14px; font-size: 0.85rem; color: var(--rose-sakura);">Jalons de santé (Post-arrêt du tabac)</h4>
-                    <p class="texte-secondaire" style="font-size: 0.75rem; margin-bottom: 10px;">Repères constatés généralement après l'arrêt de la cigarette combustible.</p>
-                    <div id="timeline-parcours"></div>
-                </div>
+    <p class="texte-secondaire" style="margin-bottom: 18px; line-height: 1.5;">
+        Parce qu'arrêter de fumer, ce n'est pas seulement compter les jours.
+        Ce sont aussi toutes ces petites choses qui changent au quotidien.
+    </p>
 
-                <!-- SECTION 2 : MA VAPE -->
-                <div class="carte" style="margin-bottom: 16px;">
-                    <h3>💧 Ma Vape (Aperçu)</h3>
-                    <div style="display:flex; justify-content:space-between; margin-top:8px;">
-                        <span>Nicotine actuelle :</span> <strong id="parcours-nico-valeur">-- mg/ml</strong>
-                    </div>
-                    <div id="parcours-bloc-objectif-futur" style="display:flex; justify-content:space-between; margin-top:4px;">
-                        <span>Prochain objectif :</span> <strong id="parcours-obj-valeur" style="color:#ffb7c5;">Aucun</strong>
-                    </div>
-                    <hr style="border-color: rgba(255,255,255,0.1); margin: 8px 0;">
-                    <div style="display:flex; justify-content:space-between;">
-                        <span>Flacons consommés :</span> <strong id="parcours-flacons-comptage">0 flacon(s)</strong>
-                    </div>
-                </div>
+    <!-- RÉSUMÉ -->
+    <div class="carte" style="margin-bottom: 16px; text-align:center;">
+        <div id="victoires-jours"
+             style="font-family:'Cinzel', serif; font-size:1.35rem; font-weight:800; color:#3fb950;">
+            0 jour sans cigarette
+        </div>
 
-                <!-- SECTION 3 : DEPUIS MON CHANGEMENT -->
-                <div class="carte">
-                    <h3>✨ Depuis mon changement</h3>
-                    <p class="texte-secondaire" style="margin: 6px 0 12px 0;">Qu'avez-vous remarqué depuis votre arrêt de la cigarette ?</p>
-                    
-                    <div id="liste-observations-preset"></div>
+        <p class="texte-secondaire" style="margin-top:5px;">
+            Ce qui change ne se résume pas à un compteur.
+        </p>
 
-                    <!-- AJOUT D'UNE OBSERVATION PERSONNALISÉE -->
-                    <div style="margin-top: 14px; display:flex; gap:8px;">
-                        <input type="text" id="saisie-obs-perso" placeholder="Autre observation personnelle..." style="flex:1; font-size:0.85rem; padding:10px; background: rgba(0, 0, 0, 0.35); border: 1px solid var(--border-carte); border-radius: 8px; color: #fff;">
-                        <button type="button" class="btn-primaire" onclick="ajouterObsPerso()" style="width:auto; padding:10px 16px; font-size:0.85rem; white-space:nowrap;">Ajouter ➕</button>
-                    </div>
+        <div id="victoires-compteur"
+             style="margin-top:12px; color:var(--rose-sakura); font-weight:700;">
+            0 p'tite victoire
+        </div>
+    </div>
 
-                    <div id="liste-observations-perso" style="margin-top: 10px;"></div>
-                </div>
-            </section>
+    <!-- AJOUTER UNE VICTOIRE -->
+    <div class="carte" style="margin-bottom: 16px;">
+        <h3>✨ Aujourd'hui, j'ai réalisé que...</h3>
+
+        <p class="texte-secondaire" style="margin:6px 0 12px 0;">
+            Une petite chose est devenue plus simple, plus agréable ou simplement différente ?
+        </p>
+
+        <input
+            type="text"
+            id="saisie-victoire"
+            placeholder="Ex : je peux prendre mon café sans penser à une cigarette."
+            maxlength="180"
+            style="width:100%; box-sizing:border-box;"
+        >
+
+        <button
+            type="button"
+            class="btn-primaire"
+            onclick="ajouterVictoire()"
+            style="margin-top:10px;">
+            Ajouter ma p'tite victoire 🌸
+        </button>
+    </div>
+<!-- SUGGESTION DE VICTOIRE -->
+<div class="carte" style="margin-bottom: 16px;">
+    <h3>✨ Et toi, tu l'as remarquée ?</h3>
+
+    <p
+        id="suggestion-victoire"
+        style="margin:12px 0; line-height:1.5; font-size:0.95rem;">
+        Tu peux sortir faire une course sans vérifier si tu as pensé à prendre ton briquet.
+    </p>
+
+    <div style="display:flex; gap:8px; margin-top:14px;">
+        <button
+            type="button"
+            class="btn-primaire"
+            id="btn-suggestion-oui"
+            onclick="validerSuggestionVictoire()"
+            style="flex:1;">
+            🌸 Oui, carrément !
+        </button>
+
+        <button
+            type="button"
+            class="btn-secondaire"
+            id="btn-suggestion-non"
+            onclick="passerSuggestionVictoire()"
+            style="flex:1;">
+            Pas encore
+        </button>
+    </div>
+</div>
+    <!-- MES VICTOIRES -->
+    <div class="carte">
+        <h3>🌸 Mes p'tites victoires</h3>
+
+        <div id="liste-victoires" style="margin-top:12px;"></div>
+    </div>
+
+</section>
 
             <!-- ÉCRAN 4 : FINANCES -->
             <section id="ecran-finances" class="ecran masque">
@@ -696,8 +737,8 @@
                 <span>DIY</span>
             </button>
             <button class="nav-item" id="nav-sante" type="button">
-                <span class="icone">🗺️</span>
-                <span>Parcours</span>
+                <span class="icone">✨</span>
+                <span>Victoires</span>
             </button>
             <button class="nav-item" id="nav-finances" type="button">
                 <span class="icone">💰</span>

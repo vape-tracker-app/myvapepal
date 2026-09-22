@@ -36,26 +36,34 @@
 // =============================================================
 // MYVAPEPAL PWA - CODE PRINCIPAL APPLICATION
 // =============================================================
-
-// JALONS DE SANTÉ ET DE PARCOURS INSTITUTIONNELS (SOURCES OFFICIELLES)
-const JALONS_OMS = [
-    { delaiHeures: 12, titre: "Monoxyde de carbone (CO)", desc: "Le taux de monoxyde de carbone dans le sang revient à un niveau normal.", urlSource: "https://www.who.int/fr/news-room/fact-sheets/detail/tobacco" },
-    { delaiHeures: 336, titre: "Circulation & Poumons (2 sem.)", desc: "La circulation sanguine s'améliore et la fonction pulmonaire s'accroît.", urlSource: "https://www.who.int/fr/news-room/fact-sheets/detail/tobacco" },
-    { delaiHeures: 2160, titre: "Toux et essoufflement (1 à 9 mois)", desc: "La toux et le souffle court diminuent progressivement.", urlSource: "https://www.who.int/fr/news-room/fact-sheets/detail/tobacco" },
-    { delaiHeures: 8760, titre: "Risque cardiaque (-50% à 1 an)", desc: "Le risque de maladie coronarienne est environ deux fois inférieur à celui d'un fumeur.", urlSource: "https://www.who.int/fr/news-room/fact-sheets/detail/tobacco" },
-    { delaiHeures: 43800, titre: "Risque d'AVC (5 ans)", desc: "Le risque d'accident vasculaire cérébral est équivalent à celui d'un non-fumeur.", urlSource: "https://www.santepubliquefrance.fr/" }
+// =============================================================
+// SALON DES P'TITES VICTOIRES - SUGGESTIONS
+// =============================================================
+const SUGGESTIONS_VICTOIRES = [
+    "Tu peux sortir faire une course sans vérifier si tu as pensé à prendre ton briquet.",
+    "Tu peux conduire sans devoir entrouvrir la fenêtre pour fumer, même quand il pleut ou qu'il fait froid.",
+    "Tes vêtements ne sentent plus la cigarette à la fin de la journée.",
+    "Tu n'as plus de cendrier à vider ni de mégots à jeter.",
+    "Tu peux rester avec les autres au lieu de t'éclipser pour aller fumer.",
+    "Tu peux prendre quelques bouffées de vape puis la ranger, sans devoir terminer une cigarette allumée.",
+    "Tu ne te demandes plus combien de cigarettes il te reste avant de sortir.",
+    "Tu peux partir de chez toi sans chercher frénétiquement un briquet au dernier moment.",
+    "L'odeur de cigarette te paraît différente depuis que tu ne fumes plus.",
+    "Ton café existe maintenant sans que la cigarette soit obligatoirement invitée avec.",
+    "Tu peux profiter d'un trajet entier sans chercher un endroit où t'arrêter pour fumer.",
+    "Tu n'as plus cette petite inquiétude d'avoir laissé une cigarette mal éteinte quelque part.",
+    "Tu peux passer devant un bureau de tabac sans avoir automatiquement quelque chose à y acheter.",
+    "Tu n'as plus besoin de prévoir où et quand tu pourras fumer avant une sortie.",
+    "Tes mains ne gardent plus cette odeur de cigarette après avoir fumé.",
+    "Tu peux embrasser quelqu'un sans te demander si ton haleine sent la cigarette.",
+    "Tu peux rester bien au chaud pendant une pause au lieu de sortir fumer.",
+    "Tu réalises parfois que plusieurs heures ont passé sans même avoir pensé à une cigarette.",
+    "Ton sac ou tes poches n'ont plus besoin d'avoir leur duo paquet + briquet attitré.",
+    "Tu peux choisir le moment où tu vapotes au lieu d'être coincé(e) avec une cigarette qui continue de brûler."
 ];
 
-// OBSERVATIONS PAR DÉFAUT
-const OBSERVATIONS_PRESETS = [
-    { id: "obs_toux", texte: "Je tousse moins" },
-    { id: "obs_souffle", texte: "Je suis moins essoufflé(e)" },
-    { id: "obs_gout", texte: "Je retrouve davantage les goûts" },
-    { id: "obs_odeur", texte: "Je retrouve davantage les odeurs" },
-    { id: "obs_vetements", texte: "Mes vêtements ne sentent plus la cigarette" },
-    { id: "obs_reveil", texte: "Je me réveille moins encombré(e)" }
-];
-
+let suggestionVictoireActuelle = "";
+let dateVictoireQuotidienne = localStorage.getItem('vt_victoire_quotidienne_date') || "";
 let configUser = null;
 let flacons = [];
 let recettes = [];
@@ -153,13 +161,6 @@ function getJoursEcoules() {
     return Math.floor(diffTemps / (1000 * 60 * 60 * 24));
 }
 
-function getHeuresEcoulees() {
-    if (!configUser || !configUser.dateArret) return 0;
-    const debut = new Date(configUser.dateArret);
-    const maintenant = new Date();
-    return Math.abs(maintenant - debut) / (1000 * 60 * 60);
-}
-
 // =============================================================
 // CALCUL DES JOURS CALENDAIRES INCLUSIFS
 // =============================================================
@@ -180,157 +181,263 @@ function calculerJoursInclusifs(dateDebutStr, dateFinStr) {
 }
 
 // =============================================================
-// GESTION DU NOUVEL ÉCRAN PARCOURS
+// SALON DES P'TITES VICTOIRES
 // =============================================================
 function afficherParcours() {
     const jours = getJoursEcoules();
-    const heures = getHeuresEcoulees();
 
-    const elJoursTitre = document.getElementById('parcours-jours-titre');
-    if (elJoursTitre) {
-        elJoursTitre.textContent = `${jours} jour${jours > 1 ? 's' : ''} sans cigarette`;
+    const elJours = document.getElementById('victoires-jours');
+    if (elJours) {
+        elJours.textContent = `${jours} jour${jours > 1 ? 's' : ''} sans cigarette`;
     }
 
-    // SECTION 1 : JALONS OMS
-    const conteneurJalons = document.getElementById('timeline-parcours');
-    if (conteneurJalons) {
-        conteneurJalons.innerHTML = JALONS_OMS.map(j => {
-            const atteint = heures >= j.delaiHeures;
-            return `
-                <div class="carte" style="margin-bottom:10px; padding:10px 12px; background: rgba(255,255,255,0.02); border-color:${atteint ? 'rgba(63, 185, 80, 0.3)' : 'rgba(255,255,255,0.06)'};">
-                    <div style="display:flex; justify-content:space-between; align-items:center;">
-                        <strong style="font-size:0.85rem;">${j.titre}</strong>
-                        <div style="display:flex; align-items:center; gap:8px;">
-                            <a href="${j.urlSource}" target="_blank" rel="noopener" class="badge-source-oms">Source OMS 🔗</a>
-                            <span style="font-size:0.75rem; color:${atteint ? '#3fb950' : '#8b949e'}; font-weight:600;">
-                                ${atteint ? '✅ Atteint' : '⏳ En cours'}
-                            </span>
-                        </div>
-                    </div>
-                    <p class="texte-secondaire" style="margin-top:4px; font-size:0.8rem;">${j.desc}</p>
-                </div>
-            `;
-        }).join('');
+    const elCompteur = document.getElementById('victoires-compteur');
+    if (elCompteur) {
+        const nombre = observations.length;
+        elCompteur.textContent = `${nombre} p'tite${nombre !== 1 ? 's' : ''} victoire${nombre !== 1 ? 's' : ''}`;
     }
 
-    // SECTION 2 : MA VAPE FACTUELLE
-    if (document.getElementById('parcours-nico-valeur')) {
-        if (configUser && configUser.vapote && configUser.nicotineActuelle !== undefined) {
-            document.getElementById('parcours-nico-valeur').textContent = `${configUser.nicotineActuelle} mg/ml`;
-        } else {
-            document.getElementById('parcours-nico-valeur').textContent = '0 mg/ml (Non vapoteur)';
-        }
-    }
-
-    const elObjVal = document.getElementById('parcours-obj-valeur');
-    const blocObj = document.getElementById('parcours-bloc-objectif-futur');
-
-    const maintenant = new Date();
-    const objectifsFuturs = objectifs
-        .filter(o => o.statut !== 'atteint' && new Date(o.date) >= maintenant)
-        .sort((a, b) => new Date(a.date) - new Date(b.date));
-
-    if (objectifsFuturs.length > 0 && elObjVal) {
-        const pro = objectifsFuturs[0];
-        const dateFormatee = new Date(pro.date).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' });
-        elObjVal.textContent = `${pro.titre} le ${dateFormatee}`;
-        if (blocObj) blocObj.style.display = 'flex';
-    } else {
-        if (blocObj) blocObj.style.display = 'none';
-    }
-
-    const terminesComptage = flacons.filter(f => f.termine).length;
-    if (document.getElementById('parcours-flacons-comptage')) {
-        document.getElementById('parcours-flacons-comptage').textContent = `${terminesComptage} flacon(s) terminé(s)`;
-    }
-
-    // SECTION 3 : OBSERVATIONS
     afficherObservations();
+    if (!suggestionVictoireActuelle) {
+    afficherNouvelleSuggestionVictoire();
 }
-
+}
+function echapperHTML(texte) {
+    const div = document.createElement('div');
+    div.textContent = texte;
+    return div.innerHTML;
+}
 function afficherObservations() {
-    const conteneurPresets = document.getElementById('liste-observations-preset');
-    if (conteneurPresets) {
-        conteneurPresets.innerHTML = OBSERVATIONS_PRESETS.map(p => {
-            const obsEnregistree = observations.find(o => o.id === p.id);
-            const cochee = !!obsEnregistree;
-            const dateStr = cochee && obsEnregistree.dateConstat ? new Date(obsEnregistree.dateConstat).toLocaleDateString('fr-FR') : '';
+    const conteneur = document.getElementById('liste-victoires');
+    if (!conteneur) return;
 
-            return `
-                <div class="item-observation ${cochee ? 'active' : ''}" onclick="basculerObservation('${p.id}', '${p.texte}')">
-                    <div>
-                        <strong style="font-size:0.85rem;">${cochee ? '☑️' : '☐'} ${p.texte}</strong>
-                        ${cochee ? `<p class="texte-secondaire" style="font-size:0.72rem; color:#ffb7c5; margin-top:2px;">Observé depuis le ${dateStr}</p>` : ''}
-                    </div>
-                </div>
-            `;
-        }).join('');
-    }
+    const victoires = [...observations]
+        .sort((a, b) => new Date(b.dateConstat) - new Date(a.dateConstat));
 
-    const conteneurPerso = document.getElementById('liste-observations-perso');
-    if (conteneurPerso) {
-        const persos = observations.filter(o => o.personnalise);
-        if (persos.length === 0) {
-            conteneurPerso.innerHTML = '';
-        } else {
-            conteneurPerso.innerHTML = persos.map(p => `
-                <div class="item-observation active" style="justify-content:space-between; margin-bottom:6px;">
-                    <div>
-                        <strong style="font-size:0.85rem;">✨ ${p.texte}</strong>
-                        <p class="texte-secondaire" style="font-size:0.72rem; color:#ffb7c5; margin-top:2px;">Observé depuis le ${new Date(p.dateConstat).toLocaleDateString('fr-FR')}</p>
-                    </div>
-                    <button type="button" class="btn-suppr" onclick="supprimerObsPerso('${p.id}')">🗑️</button>
-                </div>
-            `).join('');
-        }
-    }
-}
-
-function basculerObservation(id, texte) {
-    if (!observations) observations = [];
-    const idx = observations.findIndex(o => o.id === id);
-    if (idx >= 0) {
-        observations.splice(idx, 1);
-    } else {
-        observations.push({
-            id: id,
-            texte: texte,
-            dateConstat: new Date().toISOString(),
-            personnalise: false
-        });
-    }
-    localStorage.setItem('vt_observations', JSON.stringify(observations));
-    afficherParcours();
-}
-
-function ajouterObsPerso() {
-    const champ = document.getElementById('saisie-obs-perso');
-    if (!champ) return;
-    
-    const txt = champ.value.trim();
-    if (!txt) {
-        alert('Veuillez saisir un texte pour votre observation.');
+    if (victoires.length === 0) {
+        conteneur.innerHTML = `
+            <p class="texte-secondaire" style="text-align:center; padding:14px 4px;">
+                Ta première p'tite victoire n'attend que toi 🌸
+            </p>
+        `;
         return;
     }
 
-    if (!observations) observations = [];
+    conteneur.innerHTML = victoires.map(v => {
+        const date = v.dateConstat
+            ? new Date(v.dateConstat).toLocaleDateString('fr-FR', {
+                day: '2-digit',
+                month: 'long',
+                year: 'numeric'
+            })
+            : '';
 
+        return `
+    <div class="item-observation active" style="justify-content:space-between; margin-bottom:8px;">
+        <div>
+            <strong style="font-size:0.9rem;">🌸 ${echapperHTML(v.texte)}</strong>
+            ${date ? `
+                <p class="texte-secondaire" style="font-size:0.72rem; color:#ffb7c5; margin-top:4px;">
+                    ${date}
+                </p>
+            ` : ''}
+        </div>
+
+        <button
+            type="button"
+            class="btn-suppr"
+            onclick="supprimerVictoire('${v.id}')"
+            aria-label="Supprimer cette victoire">
+            🗑️
+        </button>
+    </div>
+`;
+    }).join('');
+}
+
+function ajouterVictoire() {
+    const champ = document.getElementById('saisie-victoire');
+    if (!champ) return;
+
+    const texte = champ.value.trim();
+
+    if (!texte) {
+        alert("Écris d'abord ta p'tite victoire 🌸");
+        return;
+    }
+const texteFormate =
+    "Aujourd'hui, j'ai réalisé que " +
+    texte.charAt(0).toLowerCase() +
+    texte.slice(1);
     observations.push({
-        id: `perso_${Date.now()}`,
-        texte: txt,
+        id: `victoire_${Date.now()}`,
+        texte: texteFormate,
         dateConstat: new Date().toISOString(),
         personnalise: true
     });
 
     localStorage.setItem('vt_observations', JSON.stringify(observations));
+
     champ.value = '';
+
     afficherParcours();
+
+    if (typeof MyVapeUI !== 'undefined') {
+        MyVapeUI.toast("P'tite victoire ajoutée 🌸");
+    }
+
+    if (typeof MyVapeBackup !== 'undefined') {
+        MyVapeBackup.changed();
+    }
+}
+function validerSuggestionVictoire() {
+    if (!suggestionVictoireActuelle) {
+        afficherNouvelleSuggestionVictoire();
+        return;
+    }
+
+    const existeDeja = observations.some(
+        o => o.texte === suggestionVictoireActuelle
+    );
+
+    if (!existeDeja) {
+        observations.push({
+            id: `victoire_${Date.now()}`,
+            texte: suggestionVictoireActuelle,
+            dateConstat: new Date().toISOString(),
+            personnalise: false
+        });
+
+        localStorage.setItem(
+            'vt_observations',
+            JSON.stringify(observations)
+        );
+    }
+
+    const maintenant = new Date();
+
+    const dateLocale = [
+        maintenant.getFullYear(),
+        String(maintenant.getMonth() + 1).padStart(2, '0'),
+        String(maintenant.getDate()).padStart(2, '0')
+    ].join('-');
+
+    dateVictoireQuotidienne = dateLocale;
+
+    localStorage.setItem(
+        'vt_victoire_quotidienne_date',
+        dateVictoireQuotidienne
+    );
+suggestionVictoireActuelle = "";
+    afficherParcours();
+
+    if (typeof MyVapeBackup !== 'undefined') {
+        MyVapeBackup.changed();
+    }
+
+    if (typeof MyVapeUI !== 'undefined') {
+        MyVapeUI.toast("P'tite victoire du jour ajoutée 🌸");
+    }
 }
 
-function supprimerObsPerso(id) {
+
+function passerSuggestionVictoire() {
+    afficherNouvelleSuggestionVictoire();
+}
+function afficherNouvelleSuggestionVictoire() {
+    const zone = document.getElementById('suggestion-victoire');
+    const btnOui = document.getElementById('btn-suggestion-oui');
+    const btnNon = document.getElementById('btn-suggestion-non');
+
+    if (!zone) return;
+    const maintenant = new Date();
+
+const dateAujourdhui = [
+    maintenant.getFullYear(),
+    String(maintenant.getMonth() + 1).padStart(2, '0'),
+    String(maintenant.getDate()).padStart(2, '0')
+].join('-');
+
+if (dateVictoireQuotidienne === dateAujourdhui) {
+    suggestionVictoireActuelle = "";
+
+    zone.innerHTML = `
+        <strong>🌸 Celle-là, elle est à toi !</strong><br>
+        <span class="texte-secondaire">
+            Ta p'tite victoire du jour a rejoint ton Salon.<br>
+            Reviens demain en découvrir une nouvelle ✨
+        </span>
+    `;
+
+    if (btnOui) btnOui.style.display = 'none';
+    if (btnNon) btnNon.style.display = 'none';
+
+    return;
+}
+
+    const textesDejaValides = observations.map(o => o.texte);
+
+    let suggestionsDisponibles = SUGGESTIONS_VICTOIRES.filter(
+        suggestion =>
+            !textesDejaValides.includes(suggestion) &&
+            suggestion !== suggestionVictoireActuelle
+    );
+
+    if (suggestionsDisponibles.length === 0) {
+        suggestionsDisponibles = SUGGESTIONS_VICTOIRES.filter(
+            suggestion => !textesDejaValides.includes(suggestion)
+        );
+    }
+
+    if (suggestionsDisponibles.length === 0) {
+        suggestionVictoireActuelle = "";
+
+        zone.textContent =
+            "Tu as déjà reconnu toutes les p'tites victoires proposées ici. Et quelque chose me dit que tu en découvriras encore d'autres toi-même 🌸";
+
+        if (btnOui) btnOui.style.display = 'none';
+        if (btnNon) btnNon.style.display = 'none';
+
+        return;
+    }
+
+    const index = Math.floor(
+        Math.random() * suggestionsDisponibles.length
+    );
+
+    suggestionVictoireActuelle = suggestionsDisponibles[index];
+
+    zone.textContent = suggestionVictoireActuelle;
+
+    if (btnOui) btnOui.style.display = '';
+    if (btnNon) btnNon.style.display = '';
+}
+function supprimerVictoire(id) {
+    const victoire = observations.find(o => o.id === id);
+    if (!victoire) return;
+
+    const confirmation = confirm(
+        "Supprimer cette p'tite victoire ? 🌸"
+    );
+
+    if (!confirmation) return;
+
     observations = observations.filter(o => o.id !== id);
-    localStorage.setItem('vt_observations', JSON.stringify(observations));
+
+    localStorage.setItem(
+        'vt_observations',
+        JSON.stringify(observations)
+    );
+
     afficherParcours();
+
+    if (typeof MyVapeBackup !== 'undefined') {
+        MyVapeBackup.changed();
+    }
+
+    if (typeof MyVapeUI !== 'undefined') {
+        MyVapeUI.toast("P'tite victoire supprimée");
+    }
 }
 
 // =============================================================
