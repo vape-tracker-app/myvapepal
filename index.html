@@ -378,13 +378,19 @@
 
                 <!-- MODE 2 : AJUSTEMENT -->
                 <div id="form-ajustement" class="form-card masque">
-                    <h3>Ajuster / Diluer un mélange trop fort</h3>
-                    <p class="texte-secondaire" style="margin-bottom:12px;">Calcule les ajouts de base et d'arôme pour réduire le taux de nicotine sans perdre le goût.</p>
+                    <h3>⚖️ Ajuster un mélange existant</h3>
+                    <p class="texte-secondaire" style="margin-bottom:12px;"><p class="texte-secondaire">
+    Modifiez le taux de nicotine, le pourcentage d’arôme ou le volume d’un mélange existant. MyVapePal calcule les quantités à ajouter.
+</p></p>
 
                     <div class="grille-champs-2col">
                         <div class="groupe-champ">
                             <label>Volume actuel (ml)</label>
                             <input type="number" id="ajust-vol-actuel" placeholder="75" value="75" step="0.1" required>
+                            <div class="groupe-champ">
+    <label>Volume final souhaité (ml) <span class="texte-secondaire">(facultatif)</span></label>
+    <input type="number" step="0.1" id="ajust-volume-final-vise" placeholder="Ex : 100">
+</div>
                         </div>
                         <div class="groupe-champ">
                             <label>Nicotine actuelle (mg/ml)</label>
@@ -407,6 +413,10 @@
                         <label>Arôme cible (%)</label>
                         <input type="number" step="0.1" id="ajust-arome-pct" placeholder="9" value="9" required>
                     </div>
+                    <div class="groupe-champ">
+    <label>Taux du booster nicotine (mg/ml)</label>
+    <input type="number" step="1" id="ajust-taux-booster" placeholder="20" value="20" required>
+</div>
 
                     <div class="box-calcul-live" style="background: rgba(56, 189, 248, 0.08); border-color: rgba(56, 189, 248, 0.3); padding: 12px; border-radius: 12px; border: 1px solid rgba(56, 189, 248, 0.3); margin-top: 14px;">
                         <div class="titre-calcul-live" style="color: #38bdf8; font-weight: bold; margin-bottom: 8px;">⚖️ Ce qu'il faut AJOUTER au flacon :</div>
@@ -414,6 +424,10 @@
                             <span>Base neutre à verser :</span>
                             <strong id="ajust-calc-base" style="color: #38bdf8;">22.7 ml</strong>
                         </div>
+                        <div class="ligne-calcul" style="display: flex; justify-content: space-between; margin-bottom: 4px;">
+    <span>Booster nicotine à verser :</span>
+    <strong id="ajust-calc-booster" style="color: #eab308;">0.0 ml</strong>
+</div>
                         <div class="ligne-calcul" style="display: flex; justify-content: space-between; margin-bottom: 4px;">
                             <span>Arôme concentré à rajouter :</span>
                             <strong id="ajust-calc-arome" style="color: #ffb7c5;">2.25 ml</strong>

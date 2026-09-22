@@ -642,19 +642,20 @@ function calculerDosagesDIY() {
 
     if (volBase < 0) {
         if (elArome) elArome.textContent = `${volArome.toFixed(2)} ml (${pctArome}%)`;
-        if (elBooster) elBooster.textContent = `${volBooster.toFixed(2)} ml`;
         if (elBase) {
             elBase.textContent = "Impossible (surdosage)";
             elBase.style.color = '#f85149';
         }
         return { volTotal, volArome, volBooster, volBase: 0, nbrFiolesBooster: 0 };
     }
-
+function formatNombre(valeur, decimales = 2) {
+    return parseFloat(valeur.toFixed(decimales)).toString();
+}
     const nbrFiolesBooster = (volBooster / 10).toFixed(1);
-    if (elArome) elArome.textContent = `${volArome.toFixed(2)} ml (${pctArome}%)`;
-    if (elBooster) elBooster.textContent = `${volBooster.toFixed(2)} ml (${nbrFiolesBooster} fiole${nbrFiolesBooster > 1 ? 's' : ''})`;
+    if (elArome) elArome.textContent = `${formatNombre(volArome)} ml (${formatNombre(pctArome)}%)`;
+    if (elBooster) elBooster.textContent = `${formatNombre(volBooster)} ml (${formatNombre(parseFloat(nbrFiolesBooster), 1)} fiole${parseFloat(nbrFiolesBooster) > 1 ? 's' : ''})`;
     if (elBase) {
-        elBase.textContent = `${volBase.toFixed(2)} ml`;
+        elBase.textContent = `${formatNombre(volBase)} ml`;
         elBase.style.color = '#e6edf3';
     }
 
@@ -672,78 +673,154 @@ function calculerDosagesDIY() {
 // =============================================================
 function calculerAjustementDIY() {
     const V0 = parseFloat(document.getElementById('ajust-vol-actuel').value) || 0;
+    const VfVise = parseFloat(document.getElementById('ajust-volume-final-vise').value) || 0;
     const N0 = parseFloat(document.getElementById('ajust-nico-actuelle').value) || 0;
     const A0 = parseFloat(document.getElementById('ajust-arome-actuel').value) || 0;
     const N1 = parseFloat(document.getElementById('ajust-nico-visee').value) || 0;
     const A1 = parseFloat(document.getElementById('ajust-arome-pct').value) || 0;
+    const Nb = parseFloat(document.getElementById('ajust-taux-booster').value) || 0;
 
     const elBase = document.getElementById('ajust-calc-base');
+    const elBooster = document.getElementById('ajust-calc-booster');
     const elArome = document.getElementById('ajust-calc-arome');
     const elVolFinal = document.getElementById('ajust-calc-vol-final');
 
-    if (V0 <= 0 || N0 <= 0 || N1 <= 0 || A0 < 0 || A0 >= 100 || A1 < 0 || A1 >= 100) {
-        if (elBase) elBase.textContent = "---";
+    function afficherErreur(message) {
+        if (elBase) elBase.textContent = message;
+        if (elBooster) elBooster.textContent = "---";
         if (elArome) elArome.textContent = "---";
         if (elVolFinal) elVolFinal.textContent = "---";
+    }
+
+    if (
+        V0 <= 0 ||
+        N0 < 0 ||
+        N1 < 0 ||
+        Nb <= 0 ||
+        A0 < 0 || A0 >= 100 ||
+        A1 < 0 || A1 >= 100
+    ) {
+        afficherErreur("Valeurs invalides");
         return;
     }
 
-    if (N1 >= N0) {
-        if (elBase) elBase.textContent = "Nico cible doit être < actuelle";
-        if (elArome) elArome.textContent = "---";
-        if (elVolFinal) elVolFinal.textContent = "---";
+    const F0 = V0 * A0 / 100;
+
+    let Vf = V0;
+    let boosterAAjouter = 0;
+    let aromeAAjouter = 0;
+    let baseAAjouter = 0;
+    // CAS PRIORITAIRE : un volume final précis est demandé
+if (VfVise > 0) {
+    if (VfVise < V0) {
+        afficherErreur("Le volume final doit être supérieur au volume actuel");
         return;
     }
 
-    const Vf = (V0 * N0) / N1;
-    const ajoutTotal = Vf - V0;
-    const F0 = (V0 * A0) / 100;
-    const F1 = (Vf * A1) / 100;
-    const aromeAAjouter = F1 - F0;
+    Vf = VfVise;
 
-    if (aromeAAjouter < 0) {
-        if (elBase) elBase.textContent = "Impossible";
-        if (elArome) elArome.textContent = "Cible arôme trop basse";
-        if (elVolFinal) elVolFinal.textContent = "---";
+    // Quantité de booster nécessaire pour atteindre le taux de nicotine visé
+    boosterAAjouter = (N1 * Vf - N0 * V0) / Nb;
+
+    // Quantité d'arôme nécessaire pour atteindre le pourcentage visé
+    aromeAAjouter = (A1 * Vf / 100) - F0;
+
+    // Tout ce qu'il reste à ajouter est de la base neutre
+    baseAAjouter = Vf - V0 - boosterAAjouter - aromeAAjouter;
+
+    if (
+        boosterAAjouter < -0.001 ||
+        aromeAAjouter < -0.001 ||
+        baseAAjouter < -0.001
+    ) {
+        afficherErreur("Ajustement impossible avec ce volume final");
         return;
     }
-
-    const baseAAjouter = ajoutTotal - aromeAAjouter;
-
-    if (baseAAjouter < 0) {
-        if (elBase) elBase.textContent = "Impossible (base < 0)";
-        if (elArome) elArome.textContent = "---";
-        if (elVolFinal) elVolFinal.textContent = "---";
-        return;
-    }
-
-    if (elBase) elBase.textContent = `${baseAAjouter.toFixed(1)} ml`;
-    if (elArome) elArome.textContent = `${aromeAAjouter.toFixed(2)} ml`;
-    if (elVolFinal) elVolFinal.textContent = `${Vf.toFixed(1)} ml`;
 }
 
-// =============================================================
-// FONCTIONS DIRECTES DE SAUVEGARDE
-// =============================================================
-function sauvegarderOnboarding() {
-    const prenom = document.getElementById('ob-prenom').value.trim();
-    const dateArret = document.getElementById('ob-date-arret').value;
-    if (!prenom || !dateArret) {
-        alert('Veuillez remplir votre prénom et votre date d\'arrêt.');
-        return;
+// CAS 1 : on réduit la nicotine
+else if (N1 < N0) {
+        if (N1 === 0) {
+            afficherErreur("Cible 0 mg impossible par simple dilution");
+            return;
+        }
+
+        Vf = (V0 * N0) / N1;
+
+        const ajoutTotal = Vf - V0;
+        const F1 = Vf * A1 / 100;
+
+        aromeAAjouter = F1 - F0;
+        baseAAjouter = ajoutTotal - aromeAAjouter;
+
+        if (aromeAAjouter < -0.001) {
+            afficherErreur("Cible arôme trop basse");
+            return;
+        }
+
+        if (baseAAjouter < -0.001) {
+            afficherErreur("Ajustement impossible");
+            return;
+        }
     }
-    const estVapoteur = document.getElementById('ob-vapote').value === 'oui';
-    configUser = {
-        prenom: prenom,
-        dateArret: dateArret,
-        cigsJour: parseFloat(document.getElementById('ob-cigs-jour').value) || 15,
-        prixPaquet: parseFloat(document.getElementById('ob-prix-paquet').value) || 12.5,
-        cigsPaquet: 20,
-        vapote: estVapoteur,
-        nicotineActuelle: estVapoteur ? parseFloat(document.getElementById('ob-nicotine-actuelle').value || 0) : 0
-    };
-    localStorage.setItem('vt_config', JSON.stringify(configUser));
-    initialiserInterface();
+
+    // CAS 2 : on augmente la nicotine
+    else if (N1 > N0) {
+        if (N1 >= Nb) {
+            afficherErreur("Booster trop faible pour cette cible");
+            return;
+        }
+
+        const denominateur = 1 - (N1 / Nb) - (A1 / 100);
+        const numerateur = V0 - (V0 * N0 / Nb) - F0;
+
+        if (denominateur <= 0) {
+            afficherErreur("Ajustement impossible");
+            return;
+        }
+
+        Vf = numerateur / denominateur;
+
+        boosterAAjouter = (N1 * Vf - N0 * V0) / Nb;
+        aromeAAjouter = (A1 * Vf / 100) - F0;
+        baseAAjouter = 0;
+
+        if (boosterAAjouter < -0.001 || aromeAAjouter < -0.001) {
+            afficherErreur("Ajustement impossible");
+            return;
+        }
+    }
+
+    // CAS 3 : nicotine identique
+    else {
+        if (A1 < A0) {
+            afficherErreur("Impossible de retirer de l'arôme");
+            return;
+        }
+
+        if (A1 === A0) {
+            Vf = V0;
+        } else {
+            Vf = V0 * (100 - A0) / (100 - A1);
+            aromeAAjouter = Vf - V0;
+        }
+    }
+
+    // Évite les petits -0.00 dus aux arrondis JavaScript
+    boosterAAjouter = Math.max(0, boosterAAjouter);
+    aromeAAjouter = Math.max(0, aromeAAjouter);
+    baseAAjouter = Math.max(0, baseAAjouter);
+
+    function formatNombre(valeur, decimales = 2) {
+    return parseFloat(valeur.toFixed(decimales)).toString();
+}
+    if (elBase) elBase.textContent = `${formatNombre(baseAAjouter)} ml`;
+    if (elBooster) {
+    const nbFioles = boosterAAjouter / 10;
+    elBooster.textContent = `${formatNombre(boosterAAjouter)} ml (${formatNombre(nbFioles, 1)} fiole${nbFioles > 1 ? 's' : ''} de 10 ml)`;
+}
+    if (elArome) elArome.textContent = `${aromeAAjouter.toFixed(2)} ml`;
+    if (elVolFinal) elVolFinal.textContent = `${formatNombre(Vf)} ml`;
 }
 
 function sauvegarderConfig() {
@@ -1541,7 +1618,7 @@ function configurerEcouteurs() {
         }
     });
 
-    const champsAjust = ['ajust-vol-actuel', 'ajust-nico-actuelle', 'ajust-arome-actuel', 'ajust-nico-visee', 'ajust-arome-pct'];
+    const champsAjust = ['ajust-vol-actuel', 'ajust-volume-final-vise', 'ajust-nico-actuelle', 'ajust-arome-actuel', 'ajust-nico-visee', 'ajust-arome-pct', 'ajust-taux-booster'];
     champsAjust.forEach(id => {
         const el = document.getElementById(id);
         if (el) {
