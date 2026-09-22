@@ -28,17 +28,28 @@ self.addEventListener('push',event=>{
     });
     event.waitUntil(pushQueue);
 });
-self.addEventListener('notificationclick',event=>{
+self.addEventListener('notificationclick', event => {
     event.notification.close();
-    event.waitUntil((async()=>{
-        const url=new URL('index.html',self.registration.scope).href;
-        const windows=await self.clients.matchAll({type:'window',includeUncontrolled:true});
-        for(const client of windows){
-            if(client.url.startsWith(self.registration.scope)){
-                await client.navigate(url);return client.focus();
+
+    event.waitUntil((async () => {
+        const url =
+            event.notification.data?.url ||
+            new URL('index.html', self.registration.scope).href;
+
+        const windows = await self.clients.matchAll({
+            type: 'window',
+            includeUncontrolled: true
+        });
+
+        for (const client of windows) {
+            if (client.url.startsWith(self.registration.scope)) {
+                await client.navigate(url);
+                await client.focus();
+                return;
             }
         }
-        return self.clients.openWindow(url);
+
+        await self.clients.openWindow(url);
     })());
 });
 
