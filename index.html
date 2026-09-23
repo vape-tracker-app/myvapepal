@@ -151,9 +151,9 @@
                 <div id="suivi-objectif" class="carte suivi-objectif" aria-live="polite" hidden></div>
                 <!-- CARTE FLACON EN COURS DU MOMENT -->
                 <div class="carte carte-flacon-actif" id="carte-flacon-principal">
-                    <h2>Flacon en cours 💨</h2>
+                    <h2>Mon All Day 💨</h2>
                     <div class="contenu-flacon">
-                        <h3 id="nom-liquide">Aucun flacon actif</h3>
+                        <h3 id="nom-liquide">Aucun All Day défini</h3>
                         <p id="details-nicotine" class="texte-secondaire"></p>
                         <div id="couleur-flacon-actif"></div>
                     <p id="details-flacon" class="texte-secondaire"></p>
@@ -164,6 +164,11 @@
                         <p id="date-resistance" class="texte-secondaire" role="status" aria-live="polite">Aucun changement de résistance enregistré</p>
                         <button id="btn-changer-resistance" class="btn-secondaire" type="button">Changer ma résistance</button>
                     </div>
+                    <button type="button"
+        class="btn-secondaire"
+        onclick="corrigerDateKami()">
+    Corriger date Kami
+</button>
 
                     <button id="btn-terminer" class="btn-secondaire" type="button" style="display:none; margin-bottom:8px;">Terminer ce flacon 🏁</button>
                     
@@ -172,6 +177,18 @@
                         <button id="btn-ouvrir-ajout" class="btn-secondaire" type="button" style="flex:1; font-size:0.82rem; padding:10px 6px; margin-top:0;">Préparer un flacon 🧪</button>
                     </div>
                 </div>
+
+                <!-- FLACONS ENTAMÉS -->
+<div class="carte" id="carte-flacons-entames" style="margin-top:16px;">
+    <h2>Mes flacons entamés 🌸</h2>
+    <p class="texte-secondaire" style="margin-bottom:12px;">
+        Les liquides actuellement ouverts.
+    </p>
+
+    <div id="liste-flacons-entames">
+        <p class="texte-vide">Aucun autre flacon entamé.</p>
+    </div>
+</div>
 
                 <!-- RÉSERVE ET MATURATION -->
                 <div id="section-flacons-reserve" style="margin-top: 20px;">

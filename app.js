@@ -138,6 +138,7 @@ function mettreAJourTout() {
     mettreAJourDashboard();
     mettreAJourCerisierHD();
     afficherFlaconActif();
+    afficherFlaconsEntames();
     afficherDernierChangementResistance();
     afficherReserveEtMaturation();
     afficherHistoriqueFlacons();
@@ -1006,18 +1007,14 @@ function sauvegarderFlacon() {
         nicotine: parseFloat(document.getElementById('nicotine').value) || 0,
         arome: parseFloat(document.getElementById('arome').value) || 0,
         preparedAt: dateFabrique.toISOString(),
-        startedAt: steepDays === 0 && !flacons.some(f => f.actif) ? dateFabrique.toISOString() : null,
-        dateOuverture: dateFabrique.toISOString(),
+        startedAt: null,
+dateOuverture: null,
         finishedAt: null,
         steepDays: steepDays,
         steepReadyAt: dateFinSteep,
         actif: false,
         termine: false
     };
-
-    if (steepDays === 0 && !flacons.some(f => f.actif)) {
-        nouveauFlacon.actif = true;
-    }
 
     flacons.unshift(nouveauFlacon);
     localStorage.setItem('vt_flacons', JSON.stringify(flacons));
@@ -1040,8 +1037,6 @@ function sauvegarderFlaconDirect() {
     const dateDebutStr = document.getElementById('date-debut-direct').value;
     const dateDebut = dateDebutStr ? new Date(dateDebutStr) : new Date();
 
-    flacons.forEach(f => f.actif = false);
-
     const nouveauFlaconActif = {
         id: Date.now().toString(),
         nom: nom,
@@ -1056,7 +1051,7 @@ function sauvegarderFlaconDirect() {
         finishedAt: null,
         steepDays: 0,
         steepReadyAt: null,
-        actif: true,
+        actif: false,
         termine: false
     };
 
@@ -1131,38 +1126,83 @@ function afficherDernierChangementResistance() {
     const libelle = document.getElementById('date-resistance');
     if (!libelle) return;
 
-    let date = null;
-    try {
-        const valeur = localStorage.getItem('vt_date_resistance');
-        if (valeur && /^\d{4}-\d{2}-\d{2}$/.test(valeur)) {
-            const candidate = new Date(`${valeur}T12:00:00`);
-            if (!isNaN(candidate.getTime()) &&
-                candidate.getFullYear() === Number(valeur.slice(0, 4)) &&
-                candidate.getMonth() + 1 === Number(valeur.slice(5, 7)) &&
-                candidate.getDate() === Number(valeur.slice(8, 10))) date = candidate;
-        }
-    } catch (err) {
-        console.warn('Lecture de la date de résistance impossible', err);
+    const actif = flacons.find(f => f.actif);
+
+    if (!actif) {
+        libelle.textContent = 'Aucun All Day défini';
+        return;
     }
 
-    libelle.textContent = date
-        ? `Résistance changée le ${date.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' })}`
-        : 'Aucun changement de résistance enregistré';
+    let valeur = actif.dateResistance || null;
+
+    // Compatibilité avec l'ancien système :
+    // l'ancienne date globale est attribuée au All Day actuel.
+    if (!valeur) {
+        try {
+            const ancienneDate = localStorage.getItem('vt_date_resistance');
+
+            if (ancienneDate && /^\d{4}-\d{2}-\d{2}$/.test(ancienneDate)) {
+                valeur = ancienneDate;
+                actif.dateResistance = ancienneDate;
+
+                localStorage.setItem('vt_flacons', JSON.stringify(flacons));
+            }
+        } catch (err) {
+            console.warn('Migration de la date de résistance impossible', err);
+        }
+    }
+
+    if (!valeur) {
+        libelle.textContent = '🔧 Aucun changement de résistance enregistré';
+        return;
+    }
+
+    const date = new Date(`${valeur}T12:00:00`);
+
+    libelle.textContent = !isNaN(date.getTime())
+    ? `🔧 Résistance changée le ${date.toLocaleDateString('fr-FR', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric'
+    })}`
+    : '🔧 Aucun changement de résistance enregistré';
 }
 
-function changerResistance() {
+function changerResistance(idFlacon = null) {
+    const f = idFlacon
+        ? flacons.find(item => item.id === idFlacon)
+        : flacons.find(item => item.actif);
+
+    if (!f || f.termine || !f.startedAt) {
+        if (typeof MyVapeUI !== 'undefined') {
+            MyVapeUI.toast('Aucun flacon entamé sélectionné');
+        }
+        return;
+    }
+
     const maintenant = new Date();
-    // Conserver le jour local du changement, même si le fuseau horaire change.
+
+    // Conserver le jour local du changement.
     const date = `${maintenant.getFullYear()}-${String(maintenant.getMonth() + 1).padStart(2, '0')}-${String(maintenant.getDate()).padStart(2, '0')}`;
+
+    f.dateResistance = date;
+
     try {
-        localStorage.setItem('vt_date_resistance', date);
+        localStorage.setItem('vt_flacons', JSON.stringify(flacons));
     } catch (err) {
         alert('Le changement de résistance n’a pas pu être enregistré. Veuillez réessayer.');
         return;
     }
+
     afficherDernierChangementResistance();
-    if (typeof MyVapeUI !== 'undefined') MyVapeUI.toast('Changement de résistance enregistré');
-    if (typeof MyVapeBackup !== 'undefined') MyVapeBackup.changed();
+
+    if (typeof MyVapeUI !== 'undefined') {
+        MyVapeUI.toast(`Résistance de ${f.nom} enregistrée 🌸`);
+    }
+
+    if (typeof MyVapeBackup !== 'undefined') {
+        MyVapeBackup.changed();
+    }
 }
 
 function afficherFlaconActif() {
@@ -1209,11 +1249,67 @@ if (zoneCategorie) {
     }
 }
 
+function afficherFlaconsEntames() {
+    const conteneur = document.getElementById('liste-flacons-entames');
+    if (!conteneur) return;
+
+    const entames = flacons.filter(f => !f.termine && f.startedAt);
+
+    if (entames.length === 0) {
+        conteneur.innerHTML = '<p class="texte-vide">Aucun flacon entamé.</p>';
+        return;
+    }
+
+    conteneur.innerHTML = entames.map(f => {
+        const dateDebut = new Date(f.startedAt);
+        const dateFormatee = dateDebut.toLocaleDateString('fr-FR', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric'
+        });
+
+        return `
+            <div class="carte" style="margin-top:10px; padding:12px;">
+                <strong>${echapperHTML(f.nom)}</strong>
+                <p class="texte-secondaire" style="margin-top:4px;">
+                    ${f.nicotine} mg/ml • ${f.volume} ml • Entamé le ${dateFormatee}
+                </p>
+                <p class="texte-secondaire" style="margin-top:4px;">
+    ${f.dateResistance
+        ? `🔧 Résistance changée le ${new Date(`${f.dateResistance}T12:00:00`).toLocaleDateString('fr-FR', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric'
+        })}`
+        : '🔧 Aucun changement de résistance enregistré'
+    }
+</p>
+
+                ${f.actif
+                    ? `<span style="color:#e8c85a; font-weight:700;">✦ ALL DAY</span>`
+                    : `<button type="button"
+                         class="btn-secondaire"
+                         style="width:auto; padding:6px 12px; font-size:0.8rem; margin-top:8px;"
+                         onclick="definirCommeAllDay('${f.id}')">
+                         Définir comme All Day
+                       </button>`
+                }
+                <button type="button"
+    class="btn-secondaire"
+    style="width:auto; padding:6px 12px; font-size:0.8rem; margin-top:8px;"
+    onclick="changerResistance('${f.id}')">
+    Changer ma résistance
+</button>
+            </div>
+        `;
+    }).join('');
+}
+
 function afficherReserveEtMaturation() {
     const conteneur = document.getElementById('liste-flacons-reserve');
     if (!conteneur) return;
 
-    const reserve = flacons.filter(f => !f.termine && !f.actif);
+    const reserve = flacons.filter(f => !f.termine && !f.startedAt);
 
     if (reserve.length === 0) {
         conteneur.innerHTML = '<p class="texte-vide">Aucun flacon en réserve ou en maturation.</p>';
@@ -1301,15 +1397,77 @@ function definirCategorieSaveurFlacon(id, categorie) {
 }
 
 function utiliserCeFlacon(id) {
-    flacons.forEach(f => f.actif = false);
     const f = flacons.find(item => item.id === id);
+
     if (f) {
         const maintenantIso = new Date().toISOString();
-        f.actif = true;
+
+        // Le flacon devient entamé sans modifier les autres flacons entamés.
         f.startedAt = f.startedAt || maintenantIso;
         f.dateOuverture = f.startedAt;
+
         localStorage.setItem('vt_flacons', JSON.stringify(flacons));
         mettreAJourTout();
+    }
+}
+
+function definirCommeAllDay(id) {
+    const f = flacons.find(item => item.id === id);
+
+    if (!f || f.termine || !f.startedAt) return;
+
+    // Un seul All Day à la fois
+    flacons.forEach(item => item.actif = false);
+    f.actif = true;
+
+    localStorage.setItem('vt_flacons', JSON.stringify(flacons));
+    mettreAJourTout();
+
+    if (typeof MyVapeUI !== 'undefined') {
+        MyVapeUI.toast(`${f.nom} est maintenant ton All Day ✨`);
+    }
+
+    if (typeof MyVapeBackup !== 'undefined') {
+        MyVapeBackup.changed();
+    }
+}
+function corrigerDateKami() {
+    const kami = flacons.find(f => f.nom.trim().toLowerCase() === 'kami');
+
+    if (!kami) {
+        alert('Flacon Kami introuvable');
+        return;
+    }
+
+    kami.startedAt = '2026-09-09T12:00:00';
+    kami.dateOuverture = '2026-09-09T12:00:00';
+
+    localStorage.setItem('vt_flacons', JSON.stringify(flacons));
+    mettreAJourTout();
+
+    alert('Date de Kami corrigée au 09/09/2026 🌸');
+}
+function terminerFlacon(id) {
+    const f = flacons.find(item => item.id === id);
+
+    if (!f || f.termine || !f.startedAt) return;
+
+    const maintenantIso = new Date().toISOString();
+
+    f.actif = false;
+    f.termine = true;
+    f.finishedAt = maintenantIso;
+    f.dateFermeture = maintenantIso;
+
+    localStorage.setItem('vt_flacons', JSON.stringify(flacons));
+    mettreAJourTout();
+
+    if (typeof MyVapeUI !== 'undefined') {
+        MyVapeUI.toast(`${f.nom} est terminé 🏁`);
+    }
+
+    if (typeof MyVapeBackup !== 'undefined') {
+        MyVapeBackup.changed();
     }
 }
 
