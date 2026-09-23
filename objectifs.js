@@ -3,7 +3,7 @@ const MyVapeGoals = (() => {
     const today=()=>{const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;};
     const pending=()=>objectifs.filter(o=>o.statut!=='atteint').sort((a,b)=>a.date.localeCompare(b.date));
     const dose=o=>Number.parseFloat(o.titre);
-    function element(tag,text,cls){const el=document.createElement(tag);el.textContent=text;if(cls)el.className=cls;return el;}
+    function element(tag,text,cls){const el=document.createElement(tag);MyVapeUI.illustrerTexte(el,text);if(cls)el.className=cls;return el;}
     function button(parent,text,fn){const b=element('button',text,'btn-secondaire');b.type='button';b.onclick=fn;parent.append(b);return b;}
     function persist(){localStorage.setItem('vt_objectifs',JSON.stringify(objectifs));}
     function next(){afficherEcran('ecran-objectifs');document.getElementById('form-objectif').classList.remove('masque');document.getElementById('obj-nicotine-valeur').focus();}

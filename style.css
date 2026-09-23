@@ -1039,3 +1039,26 @@ input:focus, select:focus {
     object-fit: contain;
     transform: rotate(-10deg);
 }
+
+/* Icônes illustrées de navigation, sans animation. */
+.nav-item .icone-menu {
+    display: block;
+    width: 27px;
+    height: 27px;
+    object-fit: contain;
+    transform: rotate(-8deg);
+}
+.nav-item { flex: 1; min-height: 44px; }
+.nav-item.actif > span:last-child { font-weight: 700; }
+
+/* Même illustration DIY dans les boutons, titres et recettes. */
+.icone-flacon {
+    display: inline-block;
+    width: 1.5em;
+    height: 1.5em;
+    object-fit: contain;
+    vertical-align: middle;
+    transform: rotate(-8deg);
+}
+
+.icone-inline { display: inline-block; width: 1.35em; height: 1.35em; object-fit: contain; vertical-align: middle; transform: rotate(-8deg); }

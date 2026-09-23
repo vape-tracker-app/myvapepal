@@ -218,7 +218,7 @@ function afficherObservations() {
     if (victoires.length === 0) {
         conteneur.innerHTML = `
             <p class="texte-secondaire" style="text-align:center; padding:14px 4px;">
-                Ta première p'tite victoire n'attend que toi 🌸
+                Ta première p'tite victoire n'attend que toi <img class="icone-inline" src="./assets/menu/accueil.png" alt="" width="24" height="24">
             </p>
         `;
         return;
@@ -236,7 +236,7 @@ function afficherObservations() {
         return `
     <div class="item-observation active" style="justify-content:space-between; margin-bottom:8px;">
         <div>
-            <strong style="font-size:0.9rem;">🌸 ${echapperHTML(v.texte)}</strong>
+            <strong style="font-size:0.9rem;"><img class="icone-inline" src="./assets/menu/accueil.png" alt="" width="24" height="24"> ${echapperHTML(v.texte)}</strong>
             ${date ? `
                 <p class="texte-secondaire" style="font-size:0.72rem; color:#ffb7c5; margin-top:4px;">
                     ${date}
@@ -363,7 +363,7 @@ if (dateVictoireQuotidienne === dateAujourdhui) {
     suggestionVictoireActuelle = "";
 
     zone.innerHTML = `
-        <strong>🌸 Celle-là, elle est à toi !</strong><br>
+        <strong><img class="icone-inline" src="./assets/menu/accueil.png" alt="" width="24" height="24"> Celle-là, elle est à toi !</strong><br>
         <span class="texte-secondaire">
             Ta p'tite victoire du jour a rejoint ton Salon.<br>
             Reviens demain en découvrir une nouvelle ✨
@@ -393,8 +393,8 @@ if (dateVictoireQuotidienne === dateAujourdhui) {
     if (suggestionsDisponibles.length === 0) {
         suggestionVictoireActuelle = "";
 
-        zone.textContent =
-            "Tu as déjà reconnu toutes les p'tites victoires proposées ici. Et quelque chose me dit que tu en découvriras encore d'autres toi-même 🌸";
+        MyVapeUI.illustrerTexte(zone,
+            "Tu as déjà reconnu toutes les p'tites victoires proposées ici. Et quelque chose me dit que tu en découvriras encore d'autres toi-même 🌸");
 
         if (btnOui) btnOui.style.display = 'none';
         if (btnNon) btnNon.style.display = 'none';
@@ -689,7 +689,7 @@ function mettreAJourCerisierHD() {
         numStade = 5;
     }
 
-    if (badge) badge.textContent = nomStade;
+    if (badge) MyVapeUI.illustrerTexte(badge, nomStade);
 
     if (conteneur) {
         const urlImage = `./arbre-stade-${numStade}-sans-nuage.png`;
@@ -1462,7 +1462,7 @@ function afficherReserveEtMaturation() {
         } else {
             moduleVisuel = `
                 <div style="margin-top:8px; display:flex; justify-content:space-between; align-items:center;">
-                    <span class="badge-steep pret">🌸 Prêt à savourer</span>
+                    <span class="badge-steep pret"><img class="icone-inline" src="./assets/menu/accueil.png" alt="" width="24" height="24"> Prêt à savourer</span>
                     <button type="button" class="btn-primaire" style="width:auto; padding:6px 14px; font-size:0.8rem;" onclick="utiliserCeFlacon('${f.id}')">
                         ${quantite > 1 ? 'Entamer 1 flacon 💨' : 'Utiliser ce flacon 💨'}
                     </button>
@@ -1594,7 +1594,7 @@ function afficherRecettes() {
     conteneur.innerHTML = recettes.map(r => `
         <div class="carte">
             <div style="display:flex; justify-content:space-between; align-items:center;">
-                <strong>🧪 ${r.nom}</strong>
+                <strong><img class="icone-flacon" src="./assets/menu/diy.png" alt="" width="24" height="24"> ${r.nom}</strong>
                 <button type="button" class="btn-suppr" onclick="supprimerRecette('${r.id}')">🗑️</button>
             </div>
             <p class="texte-secondaire" style="margin-top:4px;">
@@ -1602,7 +1602,7 @@ function afficherRecettes() {
                 ${r.steepDays ? ' | Steep : ' + r.steepDays + 'j' : ''}
             </p>
             <div style="background: rgba(255,255,255,0.03); border-radius: 8px; padding: 8px; margin-top: 8px; font-size: 0.8rem;">
-                <div style="display:flex; justify-content:space-between;"><span>🧪 Concentré (${r.arome}%) :</span> <strong>${(r.volArome || 0).toFixed(1)} ml</strong></div>
+                <div style="display:flex; justify-content:space-between;"><span><img class="icone-flacon" src="./assets/menu/diy.png" alt="" width="24" height="24"> Concentré (${r.arome}%) :</span> <strong>${(r.volArome || 0).toFixed(1)} ml</strong></div>
                 <div style="display:flex; justify-content:space-between; margin: 3px 0;"><span>⚡ Booster Nicotine :</span> <strong>${(r.volBooster || 0).toFixed(1)} ml (${r.nbrFioles || 0} fioles)</strong></div>
                 <div style="display:flex; justify-content:space-between;"><span>💧 Base Neutre :</span> <strong>${(r.volBase || 0).toFixed(1)} ml</strong></div>
             </div>
@@ -1867,7 +1867,7 @@ function afficherObjectifs() {
     conteneur.innerHTML = objectifs.map(o => `
         <div class="carte item-objectif" style="display:flex; justify-content:space-between; align-items:center;">
             <div>
-                <strong>🎯 Nicotine : ${o.titre}</strong>
+                <strong><img class="icone-inline" src="./assets/menu/objectifs.png" alt="" width="24" height="24"> Nicotine : ${o.titre}</strong>
                 <p class="texte-secondaire">Date cible : ${new Date(o.date).toLocaleDateString('fr-FR')}</p>
             </div>
             <button type="button" class="btn-suppr" onclick="supprimerObjectif('${o.id}')">🗑️</button>

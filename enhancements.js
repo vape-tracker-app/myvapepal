@@ -17,11 +17,23 @@ const legacyColors = {
     peche:'#efb18e'
 };
     let toastTimer, pendingStage = null;
+    function illustrerTexte(el, texte) {
+        const images = {'🌸':'menu/accueil', '💰':'accueil/economies', '🎯':'menu/objectifs'};
+        el.replaceChildren();
+        for (const morceau of String(texte).split(/(🌸|💰|🎯)/u)) {
+            if (images[morceau]) {
+                const image = document.createElement('img');
+                image.src = `./assets/${images[morceau]}.png`;
+                image.className = 'icone-inline'; image.alt = ''; image.width = 24; image.height = 24;
+                el.append(image);
+            } else el.append(document.createTextNode(morceau));
+        }
+    }
     function toast(message) {
         const el=document.getElementById('confirmation-action');
         if(!el)return;
         clearTimeout(toastTimer);
-        el.textContent='✓ '+message;
+        illustrerTexte(el, '✓ '+message);
         el.classList.add('visible');
         toastTimer=setTimeout(()=>el.classList.remove('visible'),3500);
     }
@@ -197,5 +209,5 @@ function bottleIcon(bottle) {
         setTimeout(celebrate,3200);
     });
     document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'){mettreAJourCerisierHD();celebrate();}});
-    return {toast,bottleColor,bottleIcon,decorateBottles,observeStage,celebrate};
+    return {illustrerTexte,toast,bottleColor,bottleIcon,decorateBottles,observeStage,celebrate};
 })();

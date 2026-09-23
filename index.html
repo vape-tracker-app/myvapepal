@@ -19,7 +19,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;800&display=swap" rel="stylesheet">
     
     <link rel="manifest" href="manifest.json">
-    <link rel="stylesheet" href="style.css?v=v181">
+    <link rel="stylesheet" href="style.css?v=v184">
     <meta name="theme-color" content="#0b0e14">
 </head>
 <body>
@@ -30,13 +30,13 @@
         <img src="icon.png" alt="MyVapePal" class="splash-logo" onerror="this.style.display='none'">
         <h1 class="splash-titre">MyVapePal</h1>
         <p class="splash-baseline">Votre compagnon de vape</p>
-        <span class="splash-sous-titre">🌸</span>
+        <span class="splash-sous-titre"><img class="icone-inline" src="./assets/menu/accueil.png" alt="" width="24" height="24"></span>
     </div>
 
     <!-- MODALE DE CONFIRMATION CHANGEMENT DE DATE D'ARRÊT -->
     <div id="modale-confirmation-date" class="modale-fond masque">
         <div class="modale-contenu">
-            <h3>Modifier votre date d'arrêt ? 🌸</h3>
+            <h3>Modifier votre date d'arrêt ? <img class="icone-inline" src="./assets/menu/accueil.png" alt="" width="24" height="24"></h3>
             <p class="texte-secondaire" style="margin: 12px 0 20px 0; line-height: 1.5;">
                 Cette modification recalculera votre parcours, vos statistiques financières et la progression de votre cerisier.
             </p>
@@ -51,7 +51,7 @@
         
         <!-- ÉCRAN DE BIENVENUE -->
         <div id="ecran-onboarding" class="ecran masque">
-            <h2>Bienvenue sur MyVapePal 🌸</h2>
+            <h2>Bienvenue sur MyVapePal <img class="icone-inline" src="./assets/menu/accueil.png" alt="" width="24" height="24"></h2>
             <p class="texte-secondaire" style="margin-bottom: 20px;">Configure tes informations pour commencer le suivi de ton sevrage et faire grandir ton cerisier.</p>
             <div id="form-onboarding" class="form-card">
                 <div class="groupe-champ">
@@ -89,7 +89,7 @@
 
         <!-- EN-TÊTE PRINCIPAL -->
         <header id="entete-app">
-            <h1>MyVapePal 🌸</h1>
+            <h1>MyVapePal <img class="icone-inline" src="./assets/menu/accueil.png" alt="" width="24" height="24"></h1>
             <button id="btn-ouvrir-profil" type="button" class="btn-icone-profil">👤 Profil</button>
         </header>
 
@@ -152,7 +152,7 @@
                 <div id="suivi-objectif" class="carte suivi-objectif" aria-live="polite" hidden></div>
                 <div style="display:flex; gap:8px; margin:10px 0 16px;">
                     <button id="btn-ouvrir-utilisation-directe" class="btn-primaire" type="button" style="flex:1; font-size:0.82rem; padding:10px 6px;">Utiliser un flacon prêt 💨</button>
-                    <button id="btn-ouvrir-ajout" class="btn-secondaire" type="button" style="flex:1; font-size:0.82rem; padding:10px 6px; margin-top:0;">Préparer un flacon 🧪</button>
+                    <button id="btn-ouvrir-ajout" class="btn-secondaire" type="button" style="flex:1; font-size:0.82rem; padding:10px 6px; margin-top:0;">Préparer un flacon <img class="icone-flacon" src="./assets/menu/diy.png" alt="" width="24" height="24"></button>
                 </div>
 
                 <!-- CARTE FLACON EN COURS DU MOMENT -->
@@ -186,7 +186,7 @@
 
                 <!-- FLACONS ENTAMÉS -->
 <div class="carte" id="carte-flacons-entames" style="margin-top:16px;">
-    <h2>Mes flacons entamés 🌸</h2>
+    <h2>Mes flacons entamés <img class="icone-inline" src="./assets/menu/accueil.png" alt="" width="24" height="24"></h2>
     <p class="texte-secondaire" style="margin-bottom:12px;">
         Les liquides actuellement ouverts.
     </p>
@@ -198,7 +198,7 @@
 
                 <!-- RÉSERVE ET MATURATION -->
                 <div id="section-flacons-reserve" style="margin-top: 20px;">
-                    <h2>Réserve & Maturation 🧪</h2>
+                    <h2>Réserve & Maturation <img class="icone-flacon" src="./assets/menu/diy.png" alt="" width="24" height="24"></h2>
                     <div id="liste-flacons-reserve"></div>
                 </div>
 
@@ -336,7 +336,7 @@
 
             <!-- ÉCRAN 2 : DIY -->
             <section id="ecran-recettes" class="ecran masque">
-                <h2>Laboratoire DIY 🧪</h2>
+                <h2>Laboratoire DIY <img class="icone-flacon" src="./assets/menu/diy.png" alt="" width="24" height="24"></h2>
                 
                 <div class="onglets-diy">
                     <button id="tab-mode-creer" class="btn-tab-diy actif" type="button">Créer une recette ➕</button>
@@ -379,7 +379,7 @@
                     </div>
 
                     <div class="box-calcul-live" style="background: rgba(255, 183, 197, 0.08); border: 1px solid rgba(255, 183, 197, 0.3); padding: 12px; border-radius: 12px; margin-top: 14px; margin-bottom: 14px;">
-                        <div class="titre-calcul-live" style="color: var(--rose-sakura); font-weight: bold; margin-bottom: 8px;">🧪 Ingrédients à mélanger :</div>
+                        <div class="titre-calcul-live" style="color: var(--rose-sakura); font-weight: bold; margin-bottom: 8px;"><img class="icone-flacon" src="./assets/menu/diy.png" alt="" width="24" height="24"> Ingrédients à mélanger :</div>
                         <div class="ligne-calcul" style="display: flex; justify-content: space-between; margin-bottom: 4px;">
                             <span>Arôme concentré :</span>
                             <strong id="calc-arome" style="color: #ffb7c5;">7.5 ml (15%)</strong>
@@ -471,7 +471,7 @@
             <!-- ÉCRAN 3 : VICTOIRES -->
 <section id="ecran-sante" class="ecran masque">
 
-    <h2>Le Salon des p'tites victoires 🌸</h2>
+    <h2>Le Salon des p'tites victoires <img class="icone-inline" src="./assets/menu/accueil.png" alt="" width="24" height="24"></h2>
 
     <p class="texte-secondaire" style="margin-bottom: 18px; line-height: 1.5;">
         Parce qu'arrêter de fumer, ce n'est pas seulement compter les jours.
@@ -516,7 +516,7 @@
             class="btn-primaire"
             onclick="ajouterVictoire()"
             style="margin-top:10px;">
-            Ajouter ma p'tite victoire 🌸
+            Ajouter ma p'tite victoire <img class="icone-inline" src="./assets/menu/accueil.png" alt="" width="24" height="24">
         </button>
     </div>
 <!-- SUGGESTION DE VICTOIRE -->
@@ -536,7 +536,7 @@
             id="btn-suggestion-oui"
             onclick="validerSuggestionVictoire()"
             style="flex:1;">
-            🌸 Oui, carrément !
+            <img class="icone-inline" src="./assets/menu/accueil.png" alt="" width="24" height="24"> Oui, carrément !
         </button>
 
         <button
@@ -551,7 +551,7 @@
 </div>
     <!-- MES VICTOIRES -->
     <div class="carte">
-        <h3>🌸 Mes p'tites victoires</h3>
+        <h3><img class="icone-inline" src="./assets/menu/accueil.png" alt="" width="24" height="24"> Mes p'tites victoires</h3>
 
         <div id="liste-victoires" style="margin-top:12px;"></div>
     </div>
@@ -560,7 +560,7 @@
 
             <!-- ÉCRAN 4 : FINANCES -->
             <section id="ecran-finances" class="ecran masque">
-                <h2>Suivi Financier 💰</h2>
+                <h2>Suivi Financier <img class="icone-inline" src="./assets/accueil/economies.png" alt="" width="24" height="24"></h2>
                 
                 <div class="carte" style="margin-bottom: 16px;">
                     <h3>Bilan Total depuis l'arrêt</h3>
@@ -623,7 +623,7 @@
 
             <!-- ÉCRAN 5 : OBJECTIFS OPTIMISÉ -->
             <section id="ecran-objectifs" class="ecran masque">
-                <h2>Mes Objectifs 🎯</h2>
+                <h2>Mes Objectifs <img class="icone-inline" src="./assets/menu/objectifs.png" alt="" width="24" height="24"></h2>
                 <button id="btn-ouvrir-ajout-objectif" class="btn-primaire" type="button" style="margin-bottom: 14px;">Ajouter un objectif ➕</button>
 
                 <div id="form-objectif" class="form-card masque">
@@ -647,7 +647,7 @@
 
             <!-- ÉCRAN FORMULAIRE AJOUT FLACON EN MATURATION -->
             <section id="ecran-ajout" class="ecran masque">
-                <h2>Préparer un flacon (avec maturation) 🧪</h2>
+                <h2>Préparer un flacon (avec maturation) <img class="icone-flacon" src="./assets/menu/diy.png" alt="" width="24" height="24"></h2>
                 <div id="form-flacon" class="form-card">
                     <div class="groupe-champ">
                         <label>Sélectionner une recette enregistrée (Optionnel)</label>
@@ -702,7 +702,7 @@
                         <label>Date & Heure de fabrication</label>
                         <input type="datetime-local" id="date-ouverture">
                     </div>
-                    <button type="button" class="btn-primaire" onclick="sauvegarderFlacon()">Mettre en préparation 🧪</button>
+                    <button type="button" class="btn-primaire" onclick="sauvegarderFlacon()">Mettre en préparation <img class="icone-flacon" src="./assets/menu/diy.png" alt="" width="24" height="24"></button>
                     <button type="button" id="btn-annuler" class="btn-secondaire">Annuler</button>
                 </div>
             </section>
@@ -758,23 +758,23 @@
         <!-- BARRE DE NAVIGATION BASSE -->
         <nav id="navigation-basse">
             <button class="nav-item actif" id="nav-accueil" type="button">
-                <span class="icone">🌸</span>
+                <img class="icone-menu" src="./assets/menu/accueil.png" alt="" width="27" height="27">
                 <span>Accueil</span>
             </button>
             <button class="nav-item" id="nav-recettes" type="button">
-                <span class="icone">🧪</span>
+                <img class="icone-menu" src="./assets/menu/diy.png" alt="" width="27" height="27">
                 <span>DIY</span>
             </button>
             <button class="nav-item" id="nav-sante" type="button">
-                <span class="icone">✨</span>
+                <img class="icone-menu" src="./assets/saveurs/autre.png" alt="" width="27" height="27">
                 <span>Victoires</span>
             </button>
             <button class="nav-item" id="nav-finances" type="button">
-                <span class="icone">💰</span>
+                <img class="icone-menu" src="./assets/accueil/economies.png" alt="" width="27" height="27">
                 <span>Finances</span>
             </button>
             <button class="nav-item" id="nav-objectifs" type="button">
-                <span class="icone">🎯</span>
+                <img class="icone-menu" src="./assets/menu/objectifs.png" alt="" width="27" height="27">
                 <span>Objectifs</span>
             </button>
         </nav>
@@ -784,9 +784,9 @@
     <div id="confirmation-action" role="status" aria-live="polite" aria-atomic="true"></div>
     <script src="backup-config.js?v=v153"></script>
     <script src="backup.js?v=v157"></script>
-    <script src="enhancements.js?v=v179"></script>
-    <script src="objectifs.js?v=v155"></script>
-    <script src="app.js?v=v180"></script>
+    <script src="enhancements.js?v=v184"></script>
+    <script src="objectifs.js?v=v184"></script>
+    <script src="app.js?v=v184"></script>
     <script src="push.js?v=v156"></script>
 </body>
 </html>
