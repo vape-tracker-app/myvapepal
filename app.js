@@ -731,11 +731,17 @@ function animationEauStade(numStade) {
     return `<svg class="animation-eau" viewBox="0 0 1254 1254" preserveAspectRatio="xMidYMid slice" aria-hidden="true" focusable="false">
         <defs>
             <radialGradient id="brume-couleur-${numStade}">
-                <stop offset="0" stop-color="#f4e3d5" stop-opacity=".65"/>
-                <stop offset=".45" stop-color="#d6dce3" stop-opacity=".32"/>
+                <stop offset="0" stop-color="#f4eee5" stop-opacity=".9"/>
+                <stop offset=".45" stop-color="#dce4eb" stop-opacity=".6"/>
                 <stop offset="1" stop-color="#c3ccd9" stop-opacity="0"/>
             </radialGradient>
-            <filter id="brume-douce-${numStade}" x="-50%" y="-100%" width="200%" height="300%"><feGaussianBlur stdDeviation="4"/></filter>
+            <filter id="brume-douce-${numStade}" filterUnits="userSpaceOnUse" x="-190" y="-190" width="380" height="270" color-interpolation-filters="sRGB">
+                <feTurbulence type="fractalNoise" baseFrequency=".028 .037" numOctaves="2" seed="12" result="volutes">
+                    <animate attributeName="baseFrequency" values=".028 .037;.034 .028;.028 .037" dur="11s" repeatCount="indefinite"/>
+                </feTurbulence>
+                <feDisplacementMap in="SourceGraphic" in2="volutes" scale="26" xChannelSelector="R" yChannelSelector="G"/>
+                <feGaussianBlur stdDeviation="2.3"/>
+            </filter>
             <filter id="eau-bord-doux-${numStade}"><feGaussianBlur stdDeviation="3"/></filter>
             <mask id="masque-lac-${numStade}"><path fill="white" filter="url(#eau-bord-doux-${numStade})" d="${zone.lac}"/></mask>
             <mask id="masque-cascade-${numStade}"><path fill="white" filter="url(#eau-bord-doux-${numStade})" d="${zone.cascade}"/></mask>
@@ -763,13 +769,23 @@ function animationEauStade(numStade) {
         </defs>
         <g mask="url(#masque-lac-${numStade})"><image href="./arbre-stade-${numStade}.png" width="1254" height="1254" filter="url(#ondes-lac-${numStade})"/></g>
         <g mask="url(#masque-cascade-${numStade})"><image href="./arbre-stade-${numStade}.png" width="1254" height="1254" filter="url(#courant-cascade-${numStade})"/></g>
-        <g transform="translate(1090 ${piedCascade})" fill="url(#brume-couleur-${numStade})" filter="url(#brume-douce-${numStade})">
-            ${[0, 1, 2].map(i => `<g opacity="0">
-                <animateTransform attributeName="transform" type="translate" values="10 2;-10 -13;-38 -27" dur="7.5s" begin="${-i * 2.5}s" repeatCount="indefinite"/>
-                <animate attributeName="opacity" values="0;.65;.45;0" keyTimes="0;.25;.6;1" dur="7.5s" begin="${-i * 2.5}s" repeatCount="indefinite"/>
-                <ellipse rx="55" ry="17"><animate attributeName="rx" values="40;73" dur="7.5s" begin="${-i * 2.5}s" repeatCount="indefinite"/><animate attributeName="ry" values="12;24" dur="7.5s" begin="${-i * 2.5}s" repeatCount="indefinite"/></ellipse>
-                <ellipse cx="26" cy="-7" rx="31" ry="14"/>
-            </g>`).join('')}
+        <g transform="translate(1090 ${piedCascade})" fill="url(#brume-couleur-${numStade})">
+            <g filter="url(#brume-douce-${numStade})">
+                <!-- Embruns persistants à l’impact, puis voiles ascendants décalés. -->
+                <ellipse cx="8" cy="-4" rx="56" ry="19" opacity=".6">
+                    <animate attributeName="opacity" values=".48;.7;.48" dur="3.7s" repeatCount="indefinite"/>
+                </ellipse>
+                ${[0, 1, 2, 3, 4].map(i => `<g opacity="0">
+                    <animateTransform attributeName="transform" type="translate" values="${10 + i * 3} 0;${-8 + i * 2} -35;${-43 + i * 4} -92" dur="8s" begin="${-i * 1.6}s" repeatCount="indefinite"/>
+                    <animate attributeName="opacity" values="0;.8;.55;0" keyTimes="0;.18;.55;1" dur="8s" begin="${-i * 1.6}s" repeatCount="indefinite"/>
+                    <ellipse rx="30" ry="18">
+                        <animate attributeName="rx" values="25;62" dur="8s" begin="${-i * 1.6}s" repeatCount="indefinite"/>
+                        <animate attributeName="ry" values="14;38" dur="8s" begin="${-i * 1.6}s" repeatCount="indefinite"/>
+                    </ellipse>
+                    <ellipse cx="22" cy="-14" rx="24" ry="23" opacity=".65"/>
+                    <ellipse cx="-20" cy="8" rx="30" ry="13" opacity=".5"/>
+                </g>`).join('')}
+            </g>
         </g>
     </svg>`;
 }
