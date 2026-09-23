@@ -454,12 +454,12 @@ body {
 }
 
 .stat-titre {
-    font-size: 0.72rem;
-    color: var(--texte-secondaire);
-    font-weight: 500;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    font-size: 0.84rem;
+    color: #c8cbd2;
+    font-weight: 600;
+    line-height: 1.25;
+    min-width: 0;
+    white-space: normal;
 }
 
 /* Ligne 2 : Valeur Principale */
@@ -1030,3 +1030,12 @@ input:focus, select:focus {
 .choix-saveur-option.selectionnee { border-color: var(--rose-sakura); background: #30252e; }
 .selectionnee .selection-saveur { visibility: visible; }
 .champ-saveur:focus-visible, .choix-saveur-option:focus-visible, .entete-choix-saveur button:focus-visible { outline: 2px solid var(--rose-sakura); outline-offset: 3px; }
+
+/* Illustrations légères et statiques des indicateurs d’accueil. */
+.stat-icone-illustration {
+    width: 28px;
+    height: 28px;
+    flex: 0 0 28px;
+    object-fit: contain;
+    transform: rotate(-10deg);
+}
