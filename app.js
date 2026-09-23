@@ -692,7 +692,7 @@ function mettreAJourCerisierHD() {
     if (badge) badge.textContent = nomStade;
 
     if (conteneur) {
-        const urlImage = `./arbre-stade-${numStade}.png`;
+        const urlImage = `./arbre-stade-${numStade}-sans-nuage.png`;
         conteneur.innerHTML = `
             <img src="${urlImage}" 
                  alt="${nomStade}" 
@@ -727,9 +727,45 @@ function animationEauStade(numStade) {
     };
     const zone = zones[numStade];
     if (!zone) return '';
+    // Les petites extrémités près de la lune restent derrière le nuage.
+    const ramureNuage = numStade <= 2
+        ? 'M0 0 H625 L636 118 L599 158 L648 187 L650 220 L610 241 L583 249 L538 230 L496 222 L447 205 L406 201 L351 193 L326 230 L302 255 L270 258 L250 283 L252 327 L239 352 L253 378 L239 424 L209 465 L143 466 L109 427 L73 421 L44 390 L0 391 Z'
+        : numStade === 3
+            ? 'M0 0 H650 V165 L570 195 L500 220 L440 245 L540 245 L660 275 L690 325 L590 355 L600 400 L490 440 H0 Z'
+            : numStade === 4
+                ? 'M0 0 H775 V160 L690 179 L620 181 L606 230 L689 240 L701 278 L756 279 L783 265 L813 271 L830 295 L867 278 L900 280 L932 311 L925 343 L889 360 L840 376 L811 395 L857 405 L902 401 L965 408 L967 440 L935 490 L831 515 L670 560 H0 Z'
+                : 'M0 0 H1090 V105 L930 114 L886 159 L823 188 L788 218 L849 245 L899 255 L917 277 L947 294 L979 307 L1004 330 L983 357 L950 374 L926 392 L968 412 L1003 442 L1065 448 L1080 497 L1130 507 L1114 562 L930 590 H0 Z';
+    // Positions dans les trouées du ciel, hors de la lune et des branches.
+    const etoiles = numStade === 5
+        ? [[1128, 78], [1201, 129], [1190, 352], [1151, 398], [1176, 459], [1215, 315], [1228, 372], [1206, 406], [1108, 415], [1140, 443], [1107, 482], [1162, 514], [1180, 206], [1215, 242], [1177, 32]]
+        : numStade === 4
+            ? [[845, 35], [1148, 107], [1204, 354], [1135, 383], [1003, 460], [1068, 397], [1168, 321], [1187, 392], [1096, 437], [1030, 416], [981, 381], [984, 509], [1060, 484], [1141, 351], [1204, 240], [1170, 182], [1086, 36], [947, 28]]
+            : [[726, 66], [1148, 107], [1204, 354], [1135, 383], [1031, 456], [722, 371], [1181, 318], [1161, 352], [1081, 409], [1100, 457], [979, 437], [942, 467], [745, 407], [703, 341], [662, 389], [604, 357], [558, 304], [688, 225], [735, 275], [1201, 223], [1163, 166], [1042, 32]];
     const piedCascade = numStade === 5 ? 897 : numStade === 4 ? 788 : 740;
     return `<svg class="animation-eau" viewBox="0 0 1254 1254" preserveAspectRatio="xMidYMid slice" aria-hidden="true" focusable="false">
         <defs>
+            <!-- Le nuage reste derrière la ramure et les fleurs du coin gauche. -->
+            <mask id="nuage-arriere-plan-${numStade}" maskUnits="userSpaceOnUse" x="0" y="0" width="1254" height="1254">
+                <rect width="1254" height="1254" fill="white"/>
+                <path fill="black" d="${ramureNuage}"/>
+            </mask>
+            <radialGradient id="halo-etoile-${numStade}">
+                <stop stop-color="#fff0cd" stop-opacity=".65"/>
+                <stop offset=".3" stop-color="#ffe6ad" stop-opacity=".2"/>
+                <stop offset="1" stop-color="#ffe6ad" stop-opacity="0"/>
+            </radialGradient>
+            <radialGradient id="nuage-vapeur-${numStade}">
+                <stop offset="0" stop-color="#ddd9ce" stop-opacity=".45"/>
+                <stop offset=".45" stop-color="#bfcbd2" stop-opacity=".3"/>
+                <stop offset="1" stop-color="#94a7ba" stop-opacity="0"/>
+            </radialGradient>
+            <filter id="nuage-diffus-${numStade}" x="-15%" y="-60%" width="130%" height="220%" color-interpolation-filters="sRGB">
+                <feTurbulence type="fractalNoise" baseFrequency=".012 .028" numOctaves="3" seed="7" result="souffle">
+                    <animate attributeName="baseFrequency" values=".012 .028;.016 .022;.012 .028" dur="16s" repeatCount="indefinite"/>
+                </feTurbulence>
+                <feDisplacementMap in="SourceGraphic" in2="souffle" scale="36" xChannelSelector="R" yChannelSelector="G"/>
+                <feGaussianBlur stdDeviation="5"/>
+            </filter>
             <radialGradient id="brume-couleur-${numStade}">
                 <stop offset="0" stop-color="#f4eee5" stop-opacity=".9"/>
                 <stop offset=".45" stop-color="#dce4eb" stop-opacity=".6"/>
@@ -767,6 +803,23 @@ function animationEauStade(numStade) {
                 <feDisplacementMap in="SourceGraphic" in2="courant-mobile" scale="11" xChannelSelector="R" yChannelSelector="G"/>
             </filter>
         </defs>
+        <g mask="url(#nuage-arriere-plan-${numStade})">
+            ${etoiles.map(([x, y], i) => `<g transform="translate(${x} ${y})" opacity=".2">
+                <animate attributeName="opacity" values=".4;1;.5;.8;.4" keyTimes="0;.3;.55;.75;1" dur="${4.8 + i * .73}s" begin="-${i * 1.37}s" repeatCount="indefinite"/>
+                <circle r="${i % 2 ? 11 : 15}" fill="url(#halo-etoile-${numStade})"/>
+                <circle r="${i % 2 ? 2 : 2.8}" fill="#fff3dc"/>
+                ${i % 2 === 0 ? '<path d="M-6 0 H6 M0-6 V6" stroke="#ffebc6" stroke-width="1" stroke-linecap="round" opacity=".85"/>' : ''}
+            </g>`).join('')}
+        </g>
+        <g mask="url(#nuage-arriere-plan-${numStade})"><g>
+            <g fill="url(#nuage-vapeur-${numStade})" filter="url(#nuage-diffus-${numStade})">
+                <ellipse cx="260" cy="291" rx="240" ry="47"/>
+                <ellipse cx="182" cy="272" rx="148" ry="43" opacity=".75"/>
+                <ellipse cx="349" cy="309" rx="155" ry="37" opacity=".7"/>
+                <ellipse cx="283" cy="259" rx="105" ry="34" opacity=".6"/>
+            </g>
+            <animateTransform attributeName="transform" type="translate" values="-530 0;-40 0;1264 0" keyTimes="0;.02;1" dur="48s" begin="-33s" repeatCount="indefinite"/>
+        </g></g>
         <g mask="url(#masque-lac-${numStade})"><image href="./arbre-stade-${numStade}.png" width="1254" height="1254" filter="url(#ondes-lac-${numStade})"/></g>
         <g mask="url(#masque-cascade-${numStade})"><image href="./arbre-stade-${numStade}.png" width="1254" height="1254" filter="url(#courant-cascade-${numStade})"/></g>
         <g transform="translate(1090 ${piedCascade})" fill="url(#brume-couleur-${numStade})">
