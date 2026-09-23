@@ -38,7 +38,10 @@ const legacyColors = {
 }
 
 function bottleIcon(bottle) {
-    return flavorCategories[bottle?.categorieSaveur]?.icon || '✨';
+    const key = Object.prototype.hasOwnProperty.call(flavorCategories, bottle?.categorieSaveur)
+        ? bottle.categorieSaveur : 'autre';
+    return `<img class="icone-saveur" src="./assets/saveurs/${key}.png" alt="${flavorCategories[key].label}" width="32" height="32" decoding="async">`;
+
 }
     function decorateBottles() {
     const reserve = flacons.filter(f => !f.termine && !f.startedAt);
@@ -73,7 +76,8 @@ function bottleIcon(bottle) {
 
     if (title && active) {
         title.style.color = bottleColor(active);
-        title.textContent = `${bottleIcon(active)} ${active.nom}`;
+        title.innerHTML = bottleIcon(active);
+        title.append(document.createTextNode(` ${active.nom}`));
     } else if (title) {
         title.style.color = '';
     }
@@ -113,7 +117,82 @@ function bottleIcon(bottle) {
         }
         document.body.appendChild(shower);setTimeout(()=>shower.remove(),5200);
     }
+    function installerChoixSaveurs() {
+        // Les select restent la source de valeur utilisée par les deux formulaires.
+        if (typeof HTMLDialogElement === 'undefined') return;
+        const dialog = document.createElement('dialog');
+        dialog.id = 'choix-saveur';
+        dialog.className = 'dialog-saveurs';
+        dialog.setAttribute('aria-labelledby', 'titre-choix-saveur');
+        dialog.innerHTML = '<div class="entete-choix-saveur"><h2 id="titre-choix-saveur">Type de saveur</h2><button type="button" aria-label="Fermer">✕</button></div><div class="liste-choix-saveurs"></div>';
+        document.body.append(dialog);
+        let source = null, declencheur = null;
+        dialog.querySelector('.entete-choix-saveur button').addEventListener('click', () => dialog.close());
+        dialog.addEventListener('click', event => {
+            if (event.target === dialog) {
+                const r = dialog.getBoundingClientRect();
+                if (event.clientX < r.left || event.clientX > r.right || event.clientY < r.top || event.clientY > r.bottom) dialog.close();
+            }
+        });
+        dialog.addEventListener('close', () => {
+            if (declencheur) { declencheur.setAttribute('aria-expanded', 'false'); declencheur.focus(); }
+        });
+        const liste = dialog.querySelector('.liste-choix-saveurs');
+        for (const [key, flavor] of Object.entries(flavorCategories)) {
+            const option = document.createElement('button');
+            option.type = 'button';
+            option.className = 'choix-saveur-option';
+            option.dataset.saveur = key;
+            option.innerHTML = `${bottleIcon({categorieSaveur: key})}<span>${flavor.label}</span><span class="selection-saveur" aria-hidden="true">✓</span>`;
+            option.querySelector('img').alt = '';
+            option.addEventListener('click', () => {
+                if (!source) return;
+                source.value = key;
+                source.dispatchEvent(new Event('input', {bubbles: true}));
+                source.dispatchEvent(new Event('change', {bubbles: true}));
+                dialog.close();
+            });
+            liste.append(option);
+        }
+        for (const id of ['categorie-saveur', 'categorie-saveur-direct']) {
+            const select = document.getElementById(id);
+            if (!select) continue;
+            const bouton = document.createElement('button');
+            bouton.type = 'button';
+            bouton.id = `${id}-illustration`;
+            bouton.className = 'champ-saveur';
+            bouton.setAttribute('aria-haspopup', 'dialog');
+            bouton.setAttribute('aria-controls', dialog.id);
+            bouton.setAttribute('aria-expanded', 'false');
+            const actualiser = () => {
+                const flavor = flavorCategories[select.value] || flavorCategories.autre;
+                bouton.innerHTML = `${bottleIcon({categorieSaveur: select.value})}<span>${flavor.label}</span><span class="fleche-saveur" aria-hidden="true">⌄</span>`;
+                bouton.querySelector('img').alt = '';
+                bouton.setAttribute('aria-label', `Type de saveur : ${flavor.label}`);
+            };
+            actualiser();
+            select.after(bouton);
+            select.hidden = true;
+            const label = document.querySelector(`label[for="${id}"]`);
+            if (label) label.htmlFor = bouton.id;
+            select.addEventListener('change', actualiser);
+            select.form?.addEventListener('reset', () => setTimeout(actualiser, 0));
+            bouton.addEventListener('click', () => {
+                source = select;
+                declencheur = bouton;
+                for (const option of liste.children) {
+                    const selected = option.dataset.saveur === select.value;
+                    option.classList.toggle('selectionnee', selected);
+                    option.setAttribute('aria-pressed', String(selected));
+                }
+                bouton.setAttribute('aria-expanded', 'true');
+                dialog.showModal();
+                liste.querySelector('.selectionnee')?.focus();
+            });
+        }
+    }
     document.addEventListener('DOMContentLoaded',()=>{
+        installerChoixSaveurs();
         setInterval(()=>{if(document.visibilityState==='visible'){celebrate();afficherReserveEtMaturation();decorateBottles();}},60000);
         setTimeout(celebrate,3200);
     });
