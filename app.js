@@ -1045,6 +1045,12 @@ function sauvegarderFlacon() {
         return;
     }
 
+    const quantite = Number(document.getElementById('flacon-quantite').value);
+    if (!Number.isSafeInteger(quantite) || quantite < 1 || quantite > 100) {
+        alert('Indique un nombre entier de flacons entre 1 et 100.');
+        return;
+    }
+
     const dateFabriqueStr = document.getElementById('date-ouverture').value;
     const dateFabrique = dateFabriqueStr ? new Date(dateFabriqueStr) : new Date();
     const steepDays = Math.max(0, parseInt(document.getElementById('flacon-steep-days').value || 0, 10));
@@ -1055,7 +1061,8 @@ function sauvegarderFlacon() {
     }
 
     const nouveauFlacon = {
-        id: Date.now().toString(),
+        id: crypto.randomUUID(),
+        quantite,
         nom: nom,
         categorieSaveur: document.getElementById('categorie-saveur')?.value || 'autre',
         type: document.getElementById('type').value,
@@ -1077,9 +1084,10 @@ dateOuverture: null,
 
 
     document.getElementById('nom').value = '';
+    document.getElementById('flacon-quantite').value = '1';
     mettreAJourTout();
     afficherEcran('ecran-accueil');
-    if (typeof MyVapeUI !== 'undefined') MyVapeUI.toast('Flacon ajouté');
+    if (typeof MyVapeUI !== 'undefined') MyVapeUI.toast(quantite > 1 ? `${quantite} flacons ajoutés à la réserve` : 'Flacon ajouté');
 }
 
 function sauvegarderFlaconDirect() {
@@ -1332,8 +1340,8 @@ function afficherFlaconsEntames() {
         });
 
         return `
-            <div class="carte" style="margin-top:10px; padding:12px;">
-                <strong>${echapperHTML(f.nom)}</strong>
+            <div class="carte carte-flacon-coloree" style="margin-top:10px; padding:12px; --couleur-flacon:${typeof MyVapeUI !== 'undefined' ? MyVapeUI.bottleColor(f) : 'var(--border-carte)'};">
+                <strong style="color:${typeof MyVapeUI !== 'undefined' ? MyVapeUI.bottleColor(f) : 'inherit'}">${typeof MyVapeUI !== 'undefined' ? MyVapeUI.bottleIcon(f) : '✨'} ${echapperHTML(f.nom)}</strong>
                 <p class="texte-secondaire" style="margin-top:4px;">
                     ${f.nicotine} mg/ml • ${f.volume} ml • Entamé le ${dateFormatee}
                 </p>
@@ -1388,6 +1396,7 @@ function afficherReserveEtMaturation() {
     const maintenant = new Date().getTime();
 
     conteneur.innerHTML = reserve.map(f => {
+        const quantite = f.quantite ?? 1;
         const steepDays = parseFloat(f.steepDays) || 0;
         const dateFinSteep = f.steepReadyAt ? new Date(f.steepReadyAt).getTime() : 0;
         const estEnMaturation = steepDays > 0 && dateFinSteep > 0 && maintenant < dateFinSteep;
@@ -1424,7 +1433,7 @@ function afficherReserveEtMaturation() {
                 <div style="margin-top:8px; display:flex; justify-content:space-between; align-items:center;">
                     <span class="badge-steep pret">🌸 Prêt à savourer</span>
                     <button type="button" class="btn-primaire" style="width:auto; padding:6px 14px; font-size:0.8rem;" onclick="utiliserCeFlacon('${f.id}')">
-                        Utiliser ce flacon 💨
+                        ${quantite > 1 ? 'Entamer 1 flacon 💨' : 'Utiliser ce flacon 💨'}
                     </button>
                 </div>
             `;
@@ -1433,9 +1442,10 @@ function afficherReserveEtMaturation() {
         return `
             <div class="carte">
                 <div style="display:flex; justify-content:space-between; align-items:center;">
-                    <strong>${typeof MyVapeUI !== 'undefined' ? MyVapeUI.bottleIcon(f) + ' ' : ''}${f.nom} (${f.nicotine} mg)</strong>
-                    <button type="button" class="btn-suppr" onclick="supprimerFlacon('${f.id}')">🗑️</button>
+                    <strong style="color:${typeof MyVapeUI !== 'undefined' ? MyVapeUI.bottleColor(f) : 'inherit'}">${typeof MyVapeUI !== 'undefined' ? MyVapeUI.bottleIcon(f) : '✨'} ${echapperHTML(f.nom)} (${f.nicotine} mg)</strong>
+                    <button type="button" class="btn-suppr" aria-label="${quantite > 1 ? 'Retirer un flacon du stock' : 'Supprimer ce flacon'}" title="Retirer un flacon" onclick="retirerFlaconReserve('${f.id}')">🗑️</button>
                 </div>
+                <p class="texte-secondaire"><strong>${quantite} flacon${quantite > 1 ? 's' : ''} en réserve</strong> · ${f.volume} ml par flacon</p>
                 <p class="texte-secondaire">Préparé le ${new Date(f.preparedAt || f.dateOuverture).toLocaleDateString('fr-FR')} (${f.volume} ml)</p>
                 ${!f.categorieSaveur ? `
     <div style="margin-top:8px;">
@@ -1467,16 +1477,33 @@ function definirCategorieSaveurFlacon(id, categorie) {
 
 function utiliserCeFlacon(id) {
     const f = flacons.find(item => item.id === id);
+    if (!f || f.termine || f.startedAt) return;
+    const maintenantIso = new Date().toISOString();
+    const quantite = f.quantite ?? 1;
+    if (quantite > 1) {
+        const entame = {...f, id: crypto.randomUUID(), quantite: 1,
+            actif: false, startedAt: maintenantIso, dateOuverture: maintenantIso};
+        delete entame.dateResistance;
+        f.quantite = quantite - 1;
+        flacons.unshift(entame);
+    } else {
+        f.quantite = 1;
+        f.startedAt = maintenantIso;
+        f.dateOuverture = maintenantIso;
+    }
+    localStorage.setItem('vt_flacons', JSON.stringify(flacons));
+    mettreAJourTout();
+}
 
-    if (f) {
-        const maintenantIso = new Date().toISOString();
-
-        // Le flacon devient entamé sans modifier les autres flacons entamés.
-        f.startedAt = f.startedAt || maintenantIso;
-        f.dateOuverture = f.startedAt;
-
+function retirerFlaconReserve(id) {
+    const f = flacons.find(item => item.id === id);
+    if (!f || f.termine || f.startedAt) return;
+    if ((f.quantite ?? 1) > 1) {
+        f.quantite -= 1;
         localStorage.setItem('vt_flacons', JSON.stringify(flacons));
         mettreAJourTout();
+    } else {
+        supprimerFlacon(id);
     }
 }
 
@@ -1613,7 +1640,7 @@ function afficherHistoriqueFlacons() {
         return `
             <div class="carte">
                 <div style="display:flex; justify-content:space-between; align-items:center;">
-                    <strong>🏁 ${f.nom} (${f.nicotine} mg)</strong>
+                    <strong style="color:${typeof MyVapeUI !== 'undefined' ? MyVapeUI.bottleColor(f) : 'inherit'}">${typeof MyVapeUI !== 'undefined' ? MyVapeUI.bottleIcon(f) : '✨'} ${echapperHTML(f.nom)} (${f.nicotine} mg)</strong>
                     <button type="button" class="btn-suppr" onclick="supprimerFlacon('${f.id}')">🗑️</button>
                 </div>
                 ${detailsPeriode}

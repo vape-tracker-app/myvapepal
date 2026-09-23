@@ -14,6 +14,9 @@ export function validate(snapshot) {
             if(key==='vt_config') {
                 if(!parsed || typeof parsed!=='object' || Array.isArray(parsed) || typeof parsed.dateArret!=='string' || !Number.isFinite(Date.parse(parsed.dateArret)))throw Error('Profil invalide');
             } else if(!Array.isArray(parsed) || parsed.length>10000 || parsed.some(v=>!v || typeof v!=='object' || Array.isArray(v)))throw Error('Liste invalide');
+            if(key==='vt_flacons')for(const flacon of parsed) {
+                if(flacon.quantite!==undefined && (!Number.isSafeInteger(flacon.quantite) || flacon.quantite<1 || flacon.quantite>100))throw Error('Quantité invalide');
+            }
             const records=key==='vt_config'?[parsed]:parsed;
             const numeric=['cigsJour','prixPaquet','cigsPaquet','nicotineActuelle','volume','nicotine','arome','steepDays','montant','volumeTotal','volArome','volBooster','nbrFioles','volBase'];
             const text=['nom','prenom','type','categorie','titre','texte','couleur','categorieSaveur','dateArret','date','dateConstat','preparedAt','startedAt','finishedAt','dateOuverture','dateFermeture','steepReadyAt','dateResistance'];

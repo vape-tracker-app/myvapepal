@@ -41,7 +41,7 @@ function bottleIcon(bottle) {
     return flavorCategories[bottle?.categorieSaveur]?.icon || '✨';
 }
     function decorateBottles() {
-    const reserve = flacons.filter(f => !f.termine && !f.actif);
+    const reserve = flacons.filter(f => !f.termine && !f.startedAt);
     const history = flacons.filter(f => f.termine);
 
     for (const [id, list] of [
@@ -63,6 +63,13 @@ function bottleIcon(bottle) {
 
     const active = flacons.find(f => f.actif);
     const title = document.getElementById('nom-liquide');
+    const card = document.getElementById('carte-flacon-principal');
+    if (card) {
+        card.classList.toggle('carte-flacon-coloree', !!active);
+        if (active) card.style.setProperty('--couleur-flacon', bottleColor(active));
+        else card.style.removeProperty('--couleur-flacon');
+    }
+
 
     if (title && active) {
         title.style.color = bottleColor(active);

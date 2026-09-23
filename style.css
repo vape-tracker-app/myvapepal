@@ -953,17 +953,31 @@ input:focus, select:focus {
     font-size: 0.55rem;
     transform: rotate(-24deg);
 }
+.entete-all-day {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.entete-all-day .contenu-flacon {
+    align-self: flex-start;
+    padding-top: 4px;
+    flex: 1;
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+#carte-flacon-principal #nom-liquide {
+    font-size: 1.55rem;
+    font-weight: 700;
+    line-height: 1.25;
+    margin: 0 0 10px;
+}
 .sceau-all-day-image {
-    position: absolute;
-    top: 8px;
-right: 22px;
-
-    width: 110px;
+    order: 2;
+    flex: 0 0 auto;
+    width: 140px;
+    max-width: 34%;
     height: auto;
-
-    z-index: 2;
     pointer-events: none;
-
     object-fit: contain;
 }
 /* Eau animée des cinq stades, calée sur le recadrage de l’image fixe. */
