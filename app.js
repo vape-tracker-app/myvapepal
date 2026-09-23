@@ -1195,6 +1195,7 @@ function changerResistance(idFlacon = null) {
     }
 
     afficherDernierChangementResistance();
+    afficherFlaconsEntames();
 
     if (typeof MyVapeUI !== 'undefined') {
         MyVapeUI.toast(`Résistance de ${f.nom} enregistrée 🌸`);
@@ -1208,6 +1209,11 @@ function changerResistance(idFlacon = null) {
 function afficherFlaconActif() {
     const actif = flacons.find(f => f.actif);
     const btnTerminer = document.getElementById('btn-terminer');
+    const sceauAllDay = document.getElementById('sceau-all-day');
+
+if (sceauAllDay) {
+    sceauAllDay.style.display = actif ? 'block' : 'none';
+}
 
     if (actif) {
         if (document.getElementById('nom-liquide')) document.getElementById('nom-liquide').textContent = `💨 ${actif.nom}`;
@@ -1245,6 +1251,7 @@ if (zoneCategorie) {
         if (document.getElementById('nom-liquide')) document.getElementById('nom-liquide').textContent = 'Aucun flacon en cours';
         if (document.getElementById('details-nicotine')) document.getElementById('details-nicotine').textContent = 'Sélectionne ou entame un flacon prêt ci-dessous.';
         if (document.getElementById('details-flacon')) document.getElementById('details-flacon').textContent = '';
+        if (document.getElementById('categorie-saveur-actif')) document.getElementById('categorie-saveur-actif').replaceChildren();
         if (btnTerminer) btnTerminer.style.display = 'none';
     }
 }
@@ -1292,14 +1299,20 @@ function afficherFlaconsEntames() {
                          style="width:auto; padding:6px 12px; font-size:0.8rem; margin-top:8px;"
                          onclick="definirCommeAllDay('${f.id}')">
                          Définir comme All Day
-                       </button>`
-                }
+                       </button>
                 <button type="button"
     class="btn-secondaire"
     style="width:auto; padding:6px 12px; font-size:0.8rem; margin-top:8px;"
     onclick="changerResistance('${f.id}')">
     Changer ma résistance
 </button>
+<button type="button"
+    class="btn-secondaire"
+    style="width:auto; padding:6px 12px; font-size:0.8rem; margin-top:8px;"
+    onclick="terminerFlacon('${f.id}')">
+    Terminer ce flacon 🏁
+</button>`
+                }
             </div>
         `;
     }).join('');
@@ -1431,22 +1444,7 @@ function definirCommeAllDay(id) {
         MyVapeBackup.changed();
     }
 }
-function corrigerDateKami() {
-    const kami = flacons.find(f => f.nom.trim().toLowerCase() === 'kami');
 
-    if (!kami) {
-        alert('Flacon Kami introuvable');
-        return;
-    }
-
-    kami.startedAt = '2026-09-09T12:00:00';
-    kami.dateOuverture = '2026-09-09T12:00:00';
-
-    localStorage.setItem('vt_flacons', JSON.stringify(flacons));
-    mettreAJourTout();
-
-    alert('Date de Kami corrigée au 09/09/2026 🌸');
-}
 function terminerFlacon(id) {
     const f = flacons.find(item => item.id === id);
 
@@ -1852,7 +1850,7 @@ afficherEcran(ECRANS_SWIPE[nouvelIndex]);
 
 function configurerEcouteurs() {
     const btnResistance = document.getElementById('btn-changer-resistance');
-    if (btnResistance) btnResistance.onclick = changerResistance;
+    if (btnResistance) btnResistance.onclick = () => changerResistance();
 
     const navAccueil = document.getElementById('nav-accueil');
     if (navAccueil) navAccueil.onclick = () => afficherEcran('ecran-accueil');
@@ -2034,18 +2032,12 @@ if (navSante) navSante.onclick = () => afficherEcran('ecran-sante');
     }
 
     const btnTerminer = document.getElementById('btn-terminer');
-    if (btnTerminer) {
-        btnTerminer.onclick = () => {
-            const actif = flacons.find(f => f.actif);
-            if (actif) {
-                const maintenantIso = new Date().toISOString();
-                actif.actif = false;
-                actif.termine = true;
-                actif.finishedAt = maintenantIso;
-                actif.dateFermeture = maintenantIso;
-                localStorage.setItem('vt_flacons', JSON.stringify(flacons));
-                mettreAJourTout();
-            }
-        };
-    }
+if (btnTerminer) {
+    btnTerminer.onclick = () => {
+        const actif = flacons.find(f => f.actif);
+        if (actif) {
+            terminerFlacon(actif.id);
+        }
+    };
+}
 }

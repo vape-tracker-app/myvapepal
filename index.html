@@ -19,7 +19,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;800&display=swap" rel="stylesheet">
     
     <link rel="manifest" href="manifest.json">
-    <link rel="stylesheet" href="style.css?v=v155">
+    <link rel="stylesheet" href="style.css?v=v156">
     <meta name="theme-color" content="#0b0e14">
 </head>
 <body>
@@ -149,8 +149,20 @@
                 </div>
 
                 <div id="suivi-objectif" class="carte suivi-objectif" aria-live="polite" hidden></div>
+                <div style="display:flex; gap:8px; margin:10px 0 16px;">
+                    <button id="btn-ouvrir-utilisation-directe" class="btn-primaire" type="button" style="flex:1; font-size:0.82rem; padding:10px 6px;">Utiliser un flacon prêt 💨</button>
+                    <button id="btn-ouvrir-ajout" class="btn-secondaire" type="button" style="flex:1; font-size:0.82rem; padding:10px 6px; margin-top:0;">Préparer un flacon 🧪</button>
+                </div>
+
                 <!-- CARTE FLACON EN COURS DU MOMENT -->
                 <div class="carte carte-flacon-actif" id="carte-flacon-principal">
+                    <img
+    id="sceau-all-day"
+    class="sceau-all-day-image"
+    src="all-day-badge.png"
+    alt="All Day"
+    style="display:none;"
+>
                     <h2>Mon All Day 💨</h2>
                     <div class="contenu-flacon">
                         <h3 id="nom-liquide">Aucun All Day défini</h3>
@@ -164,18 +176,10 @@
                         <p id="date-resistance" class="texte-secondaire" role="status" aria-live="polite">Aucun changement de résistance enregistré</p>
                         <button id="btn-changer-resistance" class="btn-secondaire" type="button">Changer ma résistance</button>
                     </div>
-                    <button type="button"
-        class="btn-secondaire"
-        onclick="corrigerDateKami()">
-    Corriger date Kami
-</button>
 
                     <button id="btn-terminer" class="btn-secondaire" type="button" style="display:none; margin-bottom:8px;">Terminer ce flacon 🏁</button>
                     
-                    <div style="display:flex; gap:8px; margin-top:10px;">
-                        <button id="btn-ouvrir-utilisation-directe" class="btn-primaire" type="button" style="flex:1; font-size:0.82rem; padding:10px 6px;">Utiliser un flacon prêt 💨</button>
-                        <button id="btn-ouvrir-ajout" class="btn-secondaire" type="button" style="flex:1; font-size:0.82rem; padding:10px 6px; margin-top:0;">Préparer un flacon 🧪</button>
-                    </div>
+
                 </div>
 
                 <!-- FLACONS ENTAMÉS -->
@@ -774,7 +778,7 @@
     <script src="backup.js?v=v156"></script>
     <script src="enhancements.js?v=v155"></script>
     <script src="objectifs.js?v=v155"></script>
-    <script src="app.js?v=v156"></script>
+    <script src="app.js?v=v158"></script>
     <script src="push.js?v=v155"></script>
 </body>
 </html>

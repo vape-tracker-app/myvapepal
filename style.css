@@ -789,3 +789,188 @@ input:focus, select:focus {
 .suivi-objectif { border:1px solid #ffb7c544; }
 .suivi-objectif p { margin:12px 0; color:var(--texte-secondaire); }
 .celebration-objectif i:nth-child(4n) { background:#e8c878; width:6px; height:6px; border-radius:2px; }
+.carte-flacon-actif {
+    position: relative;
+}
+.sceau-all-day {
+    position: absolute;
+    top: 14px;
+    right: 48px;
+
+    width: 94px;
+    height: 94px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    box-sizing: border-box;
+    border: 3px solid #d5a844;
+    border-radius: 50%;
+    background: #101114;
+
+    box-shadow:
+        0 0 0 1px #6f4b18,
+        0 0 0 2px rgba(230, 190, 91, 0.28),
+        inset 0 0 0 1px rgba(255, 229, 153, 0.20),
+        inset 0 0 10px rgba(0, 0, 0, 0.85),
+        0 3px 7px rgba(0, 0, 0, 0.55);
+
+    transform: rotate(6deg);
+    z-index: 2;
+    pointer-events: none;
+}
+
+/* Cercle intérieur : uniquement un trait, aucun fond */
+.sceau-all-day::before {
+    content: "";
+    position: absolute;
+    inset: 5px;
+
+    border: 1px solid rgba(229, 190, 91, 0.78);
+    border-radius: 50%;
+
+    background: transparent;
+    box-shadow: none;
+
+    z-index: 1;
+}
+
+/* Petit éclat en haut à droite */
+.sceau-all-day::after {
+    content: "✦";
+    position: absolute;
+    top: -7px;
+    right: 2px;
+
+    color: #fff0a6;
+    font-size: 0.72rem;
+
+    text-shadow:
+        0 0 4px rgba(255, 255, 255, 0.9),
+        0 0 8px rgba(232, 200, 90, 0.75);
+
+    z-index: 4;
+}
+
+/* Contenu remis droit à l'intérieur du sceau incliné */
+.sceau-interieur {
+    position: relative;
+    z-index: 3;
+
+    width: 72px;
+    height: 72px;
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+
+    transform: rotate(-6deg);
+}
+
+.sceau-couronne {
+    display: block;
+
+    color: #e1b54e;
+    font-size: 1.28rem;
+    line-height: 0.9;
+
+    margin-bottom: 5px;
+
+    text-shadow:
+        0 1px 0 #6f4b18,
+        0 0 5px rgba(232, 200, 90, 0.35);
+}
+
+.sceau-texte {
+    display: block;
+
+    font-family: 'Cinzel', serif;
+    color: #e6bd59;
+
+    font-size: 0.82rem;
+    font-weight: 800;
+    letter-spacing: 0.025em;
+    line-height: 1;
+
+    white-space: nowrap;
+
+    text-shadow:
+        0 1px 0 #6f4b18,
+        0 0 4px rgba(232, 200, 90, 0.25);
+}
+
+.sceau-ligne {
+    display: block;
+
+    width: 51px;
+    height: 1px;
+
+    margin-top: 6px;
+
+    background: rgba(222, 180, 77, 0.72);
+}
+
+.sceau-fleur-centre {
+    display: block;
+
+    font-size: 0.72rem;
+    line-height: 1;
+
+    margin-top: 4px;
+}
+
+/* Fleurs autour du médaillon */
+.sceau-fleur {
+    position: absolute;
+    z-index: 4;
+
+    line-height: 1;
+    filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.65));
+}
+
+.sceau-fleur-gauche {
+    left: -9px;
+    bottom: 18px;
+
+    font-size: 1.15rem;
+    transform: rotate(-22deg);
+}
+
+.sceau-fleur-droite {
+    right: -8px;
+    bottom: 12px;
+
+    font-size: 1rem;
+    transform: rotate(20deg);
+}
+
+.sceau-petale {
+    position: absolute;
+    z-index: 4;
+
+    line-height: 1;
+    opacity: 0.88;
+}
+
+.sceau-petale-haut {
+    left: 1px;
+    top: 6px;
+
+    font-size: 0.55rem;
+    transform: rotate(-24deg);
+}
+.sceau-all-day-image {
+    position: absolute;
+    top: 8px;
+right: 22px;
+
+    width: 110px;
+    height: auto;
+
+    z-index: 2;
+    pointer-events: none;
+
+    object-fit: contain;
+}
