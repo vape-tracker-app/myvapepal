@@ -710,16 +710,19 @@ function genererParticules() {
     const conteneur = document.getElementById('particules');
     if (!conteneur) return;
     conteneur.innerHTML = '';
+    conteneur.setAttribute('aria-hidden', 'true');
 
     for (let i = 0; i < 12; i++) {
         const petale = document.createElement('div');
         petale.className = 'petale-lumineux';
-        const taille = Math.random() * 8 + 6;
+        const taille = Math.random() * 7 + 10;
         petale.style.width = `${taille}px`;
-        petale.style.height = `${taille}px`;
+        petale.style.height = `${taille * 1.32}px`;
         petale.style.left = `${Math.random() * 100}%`;
-        petale.style.animationDuration = `${Math.random() * 4 + 4}s`;
-        petale.style.animationDelay = `${Math.random() * 3}s`;
+        petale.style.animationDuration = `${Math.random() * 5 + 8}s`;
+        petale.style.animationDelay = `${-Math.random() * 13}s`;
+        petale.style.setProperty('--derive', `${Math.random() * 90 - 45}px`);
+        petale.style.setProperty('--angle', `${Math.random() * 180 - 90}deg`);
         conteneur.appendChild(petale);
     }
 }
