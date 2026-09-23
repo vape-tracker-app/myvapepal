@@ -12,3 +12,4 @@ _backup/.env*
 firebase-debug.log*
 firestore-debug.log*
 _backup/.firebase/
+.DS_Store
