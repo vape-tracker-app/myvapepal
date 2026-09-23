@@ -696,14 +696,67 @@ function mettreAJourCerisierHD() {
         conteneur.innerHTML = `
             <img src="${urlImage}" 
                  alt="${nomStade}" 
-                 class="arbre-brise"
+                 class="arbre-fixe"
                  style="width: 100%; height: 100%; object-fit: cover; border-radius: 16px; display: block;"
                  onerror="this.onerror=null; this.src='icon.png';">
         `;
     }
 
+    if (conteneur) conteneur.insertAdjacentHTML('beforeend', animationEauStade(numStade));
+
     genererParticules();
     if (typeof MyVapeUI !== 'undefined') MyVapeUI.observeStage(numStade);
+}
+
+// Masques tracés dans les coordonnées des PNG : les berges et le décor restent fixes.
+function animationEauStade(numStade) {
+    const lacInitial = 'M615 752 L910 752 L1020 758 L1254 760 L1254 1254 L920 1254 L829 1205 L717 1170 L612 1120 L523 1090 L507 1051 L699 1045 L820 1033 L804 991 L918 973 L975 961 L935 937 L879 935 L829 907 L754 897 L700 912 L663 875 L609 842 L580 835 L587 811 L552 798 L585 779 Z';
+    const cascadeInitiale = 'M1112 625 Q1150 611 1188 609 L1165 631 L1154 677 L1133 713 L1129 740 L1071 748 L1049 736 L1080 716 L1093 676 Z';
+    const zones = {
+        1: {lac: lacInitial, cascade: cascadeInitiale},
+        2: {lac: lacInitial, cascade: cascadeInitiale},
+        3: {lac: lacInitial, cascade: cascadeInitiale},
+        4: {
+            lac: 'M580 801 L925 801 L1020 803 L1254 806 L1254 1254 L611 1254 L594 1223 L511 1197 L483 1164 L459 1141 L412 1120 L404 1098 L661 1090 L812 1073 L801 1046 L770 1018 L916 1007 L949 999 L920 988 L892 968 L850 955 L802 960 L755 935 L718 932 L699 907 L659 879 L600 865 L565 846 L548 816 Z',
+            cascade: 'M1115 671 Q1151 659 1189 657 L1171 679 L1160 722 L1158 747 L1130 761 L1128 784 L1077 792 L1049 786 L1081 759 L1095 709 Z'
+        },
+        5: {
+            lac: 'M631 909 L972 909 L1032 915 L1254 916 L1254 1254 L232 1254 L250 1219 L305 1199 L315 1168 L347 1152 L333 1132 L344 1103 L331 1084 L333 1063 L635 1059 L808 1051 L897 1042 L868 1034 L841 1023 L824 1009 L780 1007 L751 986 L719 984 L698 971 L659 965 L632 973 L608 957 L606 935 Z',
+            cascade: 'M1113 771 Q1155 756 1195 755 L1174 779 L1164 824 L1153 858 L1128 879 L1125 897 L1070 904 L1044 898 L1077 876 L1093 842 Z'
+        }
+    };
+    const zone = zones[numStade];
+    if (!zone) return '';
+    return `<svg class="animation-eau" viewBox="0 0 1254 1254" preserveAspectRatio="xMidYMid slice" aria-hidden="true" focusable="false">
+        <defs>
+            <filter id="eau-bord-doux-${numStade}"><feGaussianBlur stdDeviation="3"/></filter>
+            <mask id="masque-lac-${numStade}"><path fill="white" filter="url(#eau-bord-doux-${numStade})" d="${zone.lac}"/></mask>
+            <mask id="masque-cascade-${numStade}"><path fill="white" filter="url(#eau-bord-doux-${numStade})" d="${zone.cascade}"/></mask>
+            <filter id="ondes-lac-${numStade}" x="-5%" y="-5%" width="110%" height="110%" color-interpolation-filters="sRGB">
+                <feTurbulence type="fractalNoise" baseFrequency=".008 .09" numOctaves="1" seed="8" result="vagues">
+                    <animate attributeName="baseFrequency" values=".008 .09;.012 .075;.008 .09" dur="9s" repeatCount="indefinite"/>
+                </feTurbulence>
+                <feDisplacementMap in="SourceGraphic" in2="vagues" scale="5" xChannelSelector="R" yChannelSelector="G"/>
+            </filter>
+            <filter id="courant-cascade-${numStade}" x="-10%" y="-10%" width="120%" height="120%" color-interpolation-filters="sRGB">
+                <feTurbulence type="fractalNoise" baseFrequency=".045 .018" numOctaves="1" seed="4" result="courant"/>
+                <!-- Deux courants décalés : chacun revient au départ pendant qu’il est invisible. -->
+                <feOffset in="courant" result="courant-a">
+                    <animate attributeName="dy" values="0;140" dur="3.2s" repeatCount="indefinite"/>
+                </feOffset>
+                <feOffset in="courant" result="courant-b">
+                    <animate attributeName="dy" values="0;140" dur="3.2s" begin="-1.6s" repeatCount="indefinite"/>
+                </feOffset>
+                <feComposite in="courant-a" in2="courant-b" operator="arithmetic" k1="0" k2="0" k3="1" k4="0" result="courant-mobile">
+                    <animate attributeName="k2" values="0;1;0" dur="3.2s" calcMode="spline" keyTimes="0;.5;1" keySplines=".42 0 .58 1;.42 0 .58 1" repeatCount="indefinite"/>
+                    <animate attributeName="k3" values="1;0;1" dur="3.2s" calcMode="spline" keyTimes="0;.5;1" keySplines=".42 0 .58 1;.42 0 .58 1" repeatCount="indefinite"/>
+                </feComposite>
+                <feDisplacementMap in="SourceGraphic" in2="courant-mobile" scale="11" xChannelSelector="R" yChannelSelector="G"/>
+            </filter>
+        </defs>
+        <g mask="url(#masque-lac-${numStade})"><image href="./arbre-stade-${numStade}.png" width="1254" height="1254" filter="url(#ondes-lac-${numStade})"/></g>
+        <g mask="url(#masque-cascade-${numStade})"><image href="./arbre-stade-${numStade}.png" width="1254" height="1254" filter="url(#courant-cascade-${numStade})"/></g>
+    </svg>`;
 }
 
 function genererParticules() {

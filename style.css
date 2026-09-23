@@ -363,19 +363,9 @@ body {
 }
 
 #conteneur-svg-arbre {
+    position: relative;
     width: 100%;
     height: 100%;
-}
-
-.arbre-brise {
-    animation: oscillationBrise 8s ease-in-out infinite alternate;
-    transform-origin: bottom center;
-}
-
-@keyframes oscillationBrise {
-    0% { transform: scale(1) rotate(0deg); }
-    50% { transform: scale(1.02) rotate(0.8deg); }
-    100% { transform: scale(1) rotate(-0.5deg); }
 }
 
 #particules {
@@ -976,3 +966,6 @@ right: 22px;
 
     object-fit: contain;
 }
+/* Eau animée des cinq stades, calée sur le recadrage de l’image fixe. */
+.animation-eau { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; border-radius: 16px; }
+@media (prefers-reduced-motion: reduce) { .animation-eau { display: none; } }
