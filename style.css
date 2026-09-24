@@ -206,19 +206,9 @@ body {
     border-radius: 24px;
     object-fit: cover;
     margin-bottom: 20px;
-    animation: splash-heartbeat 1.4s ease-in-out 1;
-}
-
-@keyframes splash-heartbeat {
-    0%, 100% { transform: scale(1); }
-    18% { transform: scale(1.08); }
-    32% { transform: scale(1); }
-    46% { transform: scale(1.05); }
-    65% { transform: scale(1); }
 }
 
 @media (prefers-reduced-motion: reduce) {
-    .splash-logo { animation: none; }
     #splash-screen.splash-depart { animation: splash-fade 150ms linear forwards; }
     #splash-screen.splash-depart > :not(.splash-vapor) {
         animation: none;

@@ -13,3 +13,13 @@ firebase-debug.log*
 firestore-debug.log*
 _backup/.firebase/
 .DS_Store
+
+# Capacitor: generated frontend, dependencies and local signing material
+/node_modules/
+/www/
+*.jks
+*.keystore
+
+# Android Studio local settings and generated release outputs
+/android/.idea/
+/android/app/release/

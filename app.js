@@ -84,7 +84,7 @@ try {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-    if ('serviceWorker' in navigator) {
+    if (!window.Capacitor?.isNativePlatform() && 'serviceWorker' in navigator) {
         navigator.serviceWorker.register('./sw.js').catch(err => console.log('SW error:', err));
     }
 
@@ -1016,6 +1016,35 @@ else if (N1 < N0) {
 }
     if (elArome) elArome.textContent = `${aromeAAjouter.toFixed(2)} ml`;
     if (elVolFinal) elVolFinal.textContent = `${formatNombre(Vf)} ml`;
+}
+
+function sauvegarderOnboarding() {
+    const valeur = id => document.getElementById(id).value;
+    const prenom = valeur('ob-prenom').trim();
+    const dateArret = valeur('ob-date-arret');
+    const cigsJour = Number(valeur('ob-cigs-jour'));
+    const prixPaquet = Number(valeur('ob-prix-paquet'));
+    const vapote = valeur('ob-vapote') === 'oui';
+    const nicotineActuelle = vapote ? Number(valeur('ob-nicotine-actuelle')) : 0;
+    if (!prenom || !/^\d{4}-\d{2}-\d{2}$/.test(dateArret) || !Number.isFinite(new Date(dateArret).getTime())) {
+        alert('Indique ton prénom et la date de ta dernière cigarette.');
+        return;
+    }
+    if (!valeur('ob-cigs-jour') || !Number.isFinite(cigsJour) || cigsJour <= 0 ||
+        !valeur('ob-prix-paquet') || !Number.isFinite(prixPaquet) || prixPaquet < 0 ||
+        (vapote && !valeur('ob-nicotine-actuelle')) || !Number.isFinite(nicotineActuelle) || nicotineActuelle < 0) {
+        alert('Vérifie le nombre de cigarettes, le prix du paquet et le dosage de nicotine.');
+        return;
+    }
+    const profil = {prenom, dateArret, cigsJour, cigsPaquet: 20, prixPaquet, vapote, nicotineActuelle};
+    try {
+        localStorage.setItem('vt_config', JSON.stringify(profil));
+    } catch (erreur) {
+        alert('Impossible d’enregistrer ton profil sur cet appareil. Réessaie.');
+        return;
+    }
+    configUser = profil;
+    initialiserInterface();
 }
 
 function sauvegarderConfig() {

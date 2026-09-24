@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Confidentialité et suppression du compte — MyVapePal</title>
+<meta name="description" content="Données personnelles, sauvegarde facultative, notifications et demande de suppression du compte MyVapePal.">
+<style>
+:root{color-scheme:dark}*{box-sizing:border-box}body{margin:0;background:#0b0e14;color:#edf0f5;font:17px/1.7 system-ui,sans-serif}main{max-width:820px;margin:auto;padding:36px 22px 70px}a{color:#ffbbd3;text-underline-offset:4px}h1{font-size:clamp(1.8rem,6vw,2.7rem);line-height:1.2}h2{font-size:1.35rem;margin-top:2rem;color:#ffcadc}p,li{overflow-wrap:anywhere}.date{color:#b7c1d0}.box{padding:20px;background:#192330;border:1px solid #916078;border-radius:16px;scroll-margin-top:20px}.action{display:inline-block;padding:10px 16px;border:1px solid #ffbbd3;border-radius:10px;margin:8px 0}a:focus-visible{outline:3px solid white;outline-offset:4px}
+</style>
+</head>
+<body><main>
+<a href="index.html">← Retour à MyVapePal</a>
+<h1>Politique de confidentialité</h1>
+<p class="date">MyVapePal · Dernière mise à jour : 24 septembre 2026</p>
+<p>MyVapePal est développée par Karine Lopez, en France. Cette politique concerne l’application Android et sa version web (PWA). Pour toute question ou demande concernant vos données : <a href="mailto:contact.myvapepal@gmail.com">contact.myvapepal@gmail.com</a>.</p>
+<p><a href="#suppression">Demander la suppression de mon compte et de mes données →</a></p>
+<h2>1. Les informations utilisées</h2>
+<p>MyVapePal permet de suivre votre arrêt du tabac et de gérer vos flacons de e-liquide. Selon ce que vous renseignez, elle enregistre votre prénom, la date d’arrêt, votre consommation antérieure de cigarettes et leur prix, votre usage de la vape, les dosages et objectifs de nicotine, vos flacons et recettes, quantités, saveurs et dates de maturation, d’ouverture, de fin et de changement de résistance, vos dépenses ainsi que vos observations et victoires personnelles. Les jours sans cigarette et économies sont calculés à partir de ces informations.</p>
+<p>Les informations sur le tabac, la nicotine et les observations personnelles peuvent révéler des informations relatives à votre santé. Ne renseignez pas de données concernant d’autres personnes ni d’informations sensibles inutiles au suivi.</p>
+<h2>2. Stockage sur votre appareil</h2>
+<p>Le suivi fonctionne sans compte. Les données sont enregistrées dans le stockage local de l’application ou du navigateur. Des préférences, états de session et informations techniques nécessaires au fonctionnement y sont également conservés. Une copie locale de sécurité peut être conservée avant une restauration.</p>
+<p>Effacer les données de l’application dans les paramètres Android ou les données du site dans le navigateur supprime ces copies locales. Une désinstallation ou les mécanismes de sauvegarde et de restauration du système peuvent affecter ces données selon vos réglages Android. L’effacement local ne supprime pas une sauvegarde en ligne existante.</p>
+<h2>3. Compte et sauvegarde en ligne facultatifs</h2>
+<p>Si vous créez un compte, votre adresse e-mail et vos informations d’authentification sont traitées par Firebase Authentication (Google) pour la connexion, la vérification de l’adresse et la réinitialisation du mot de passe.</p>
+<p>Après votre choix d’activer la sauvegarde, votre profil et les données de suivi décrites ci-dessus sont transmis à Cloud Firestore (Google), avec votre identifiant de compte, une révision et une date de sauvegarde. Ils servent à sauvegarder et retrouver votre parcours. Les modifications peuvent ensuite être sauvegardées automatiquement. Les autorisations de notification restent propres à chaque appareil.</p>
+<p>La déconnexion arrête la sauvegarde automatique sur l’appareil, mais n’efface ni le compte, ni la sauvegarde en ligne, ni les données locales. Les mots de passe ne sont pas inclus dans le contenu des sauvegardes de votre parcours.</p>
+<h2>4. Notifications : Android et PWA</h2>
+<p><strong>Application Android :</strong> si vous les autorisez, les rappels quotidiens, de maturation, de croissance du cerisier et d’objectifs sont programmés localement. Cette programmation ne transmet pas votre parcours au serveur Web Push. Vous pouvez les désactiver dans le profil ou les paramètres Android. Le contenu des notifications peut être visible sur l’écran verrouillé selon vos réglages.</p>
+<p><strong>Version web/PWA :</strong> l’activation des notifications transmet au service Cloudflare Workers/D1 un identifiant technique d’appareil, l’abonnement Web Push, le fuseau horaire, la date d’arrêt, les objectifs de nicotine et leurs dates, ainsi que les échéances, noms, dosages et volumes des flacons concernés. Les dépenses ne sont pas envoyées à ce service. Le fournisseur de notifications du navigateur intervient pour acheminer les messages. Un historique technique des envois sert à éviter les doublons et gérer les erreurs.</p>
+<p>Le service PWA prévoit la suppression des appareils inactifs depuis 180 jours et des enregistrements d’envoi de plus de 30 jours lors de son traitement périodique. Désactivez les notifications depuis le profil de chaque PWA utilisée pour arrêter son abonnement.</p>
+<h2>5. Services techniques et destinataires</h2>
+<p>Les prestataires nécessaires sont Google/Firebase pour les comptes et sauvegardes, GitHub Pages pour l’hébergement du site, Cloudflare pour les notifications PWA, et les services de notification des navigateurs. L’interface charge aussi une police depuis Google Fonts. Les connexions à ces services peuvent leur communiquer des données techniques, notamment l’adresse IP et des informations de requête ou de navigateur.</p>
+<p>Les connexions aux services en ligne utilisent HTTPS. Les règles d’accès de la sauvegarde sont conçues pour limiter l’accès au compte authentifié concerné ; l’administration technique reste nécessaire au fonctionnement et au traitement des demandes. Aucun système ne garantit une sécurité absolue.</p>
+<p>Ces fournisseurs peuvent traiter des données dans différents pays, y compris hors de l’Union européenne, selon leurs infrastructures et garanties. Consultez les informations de <a href="https://firebase.google.com/support/privacy">Firebase</a>, <a href="https://policies.google.com/privacy">Google</a>, <a href="https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement">GitHub</a> et <a href="https://www.cloudflare.com/privacypolicy/">Cloudflare</a>.</p>
+<p>MyVapePal n’intègre pas de publicité, de suivi publicitaire ni d’outil d’analyse d’audience dans la version décrite ici. Vos données de parcours ne sont pas vendues.</p>
+<h2>6. Finalités et conservation</h2>
+<p>Les données servent à fournir le suivi demandé, la sauvegarde et la restauration facultatives, les rappels activés et l’assistance. Le compte et les sauvegardes sont conservés tant que vous les utilisez ou jusqu’à votre demande de suppression ; aucune expiration automatique du compte n’est actuellement prévue. Les données locales restent présentes jusqu’à leur suppression. Les durées des journaux techniques des fournisseurs dépendent de leurs propres règles.</p>
+<p>Le fonctionnement du service demandé repose sur son exécution ; les fonctions facultatives sont activées à votre initiative. La sécurité et la gestion des demandes reposent sur l’intérêt légitime de protéger le service et ses utilisateurs. Vous pouvez arrêter les fonctions facultatives et demander l’effacement des données associées.</p>
+<section id="suppression" class="box">
+<h2 style="margin-top:0">7. Supprimer votre compte et vos données MyVapePal</h2>
+<p>Vous pouvez demander la suppression sans réinstaller l’application, en écrivant à <a href="mailto:contact.myvapepal@gmail.com?subject=Suppression%20de%20mon%20compte%20MyVapePal">contact.myvapepal@gmail.com</a>, avec l’objet « Suppression de mon compte MyVapePal ».</p>
+<p>Envoyez de préférence votre demande depuis l’adresse du compte concerné. Indiquez que vous souhaitez supprimer le compte et sa sauvegarde. Ne transmettez jamais votre mot de passe. Une confirmation de votre maîtrise du compte pourra être demandée avant tout effacement.</p>
+<a class="action" href="mailto:contact.myvapepal@gmail.com?subject=Suppression%20de%20mon%20compte%20MyVapePal">Demander la suppression par e-mail</a>
+<p>Les demandes sont traitées manuellement. La suppression porte sur le compte d’authentification et la sauvegarde de parcours associée. Une réponse vous précisera le traitement de votre demande ; aucune suppression instantanée n’est déclenchée par ce lien. Si une conservation limitée est nécessaire pour une obligation légale ou la sécurité, son motif et sa durée vous seront précisés.</p>
+<p>Les copies locales sur vos autres appareils ne peuvent pas être effacées à distance par cette demande : déconnectez-vous, désactivez les notifications et effacez les données de l’application ou du site sur chaque appareil. Les abonnements PWA sont distincts du compte de sauvegarde ; signalez toute difficulté à les désactiver dans votre demande.</p>
+</section>
+<h2>8. Vos droits et contact</h2>
+<p>Vous pouvez demander l’accès, la rectification, une copie ou l’effacement de vos données, ainsi que la limitation du traitement ou exercer votre droit d’opposition lorsque celui-ci s’applique. Contactez <a href="mailto:contact.myvapepal@gmail.com">contact.myvapepal@gmail.com</a>. Vous pouvez également adresser une réclamation à la <a href="https://www.cnil.fr/fr/adresser-une-plainte">CNIL</a>.</p>
+<h2>9. Public et modifications</h2>
+<p>MyVapePal s’adresse aux adultes ; elle n’est pas destinée aux enfants. Elle fournit un suivi personnel et ne remplace pas un professionnel de santé. Cette politique pourra évoluer avec les fonctionnalités ; la date de mise à jour figure en haut de page.</p>
+</main></body></html>
