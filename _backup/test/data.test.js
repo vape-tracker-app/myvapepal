@@ -28,3 +28,11 @@ test('legacy decimal strings survive backup and restore without conversion',()=>
  const target=storage();restore(target,snapshot);assert.equal(target.getItem('vt_flacons'),raw);
  for(const montant of ['', ' ', 'NaN', '-1', true])assert.throws(()=>validate({version:1,data:{vt_depenses:JSON.stringify([{montant}])}}));
 });
+
+test('gazette favorites survive backup; malformed favorites rejected; old backups remain readable',()=>{
+ const original=storage({...fixture,vt_gazette_favoris:JSON.stringify([{id:'eau'},{id:'mtl'}])});
+ const saved=capture(original),target=storage();restore(target,saved);
+ assert.equal(target.getItem('vt_gazette_favoris'),original.getItem('vt_gazette_favoris'));
+ for(const bad of [[{id:'<script>'}],[{id:'eau',extra:true}],[{id:42}]])assert.throws(()=>validate({version:1,data:{vt_gazette_favoris:JSON.stringify(bad)}}));
+ assert.equal(validate({version:1,data:fixture}).data.vt_gazette_favoris,null);
+});

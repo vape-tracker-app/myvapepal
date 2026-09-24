@@ -19,7 +19,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;800&display=swap" rel="stylesheet">
     
     <link rel="manifest" href="manifest.json">
-    <link rel="stylesheet" href="style.css?v=v189">
+    <link rel="stylesheet" href="style.css?v=gazette-v196">
     <meta name="theme-color" content="#0b0e14">
 </head>
 <body>
@@ -90,7 +90,7 @@
         <!-- EN-TÊTE PRINCIPAL -->
         <header id="entete-app">
             <h1>MyVapePal <img class="icone-inline" src="./assets/menu/accueil.png" alt="" width="24" height="24"></h1>
-            <button id="btn-ouvrir-profil" type="button" class="btn-icone-profil">👤 Profil</button>
+            <div class="entete-actions"><button id="btn-gazette" type="button" class="btn-icone-profil" aria-label="Ouvrir la Gazette"><svg aria-hidden="true" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M5 4h15v15a2 2 0 0 1-2 2H5a3 3 0 0 1-3-3V8h3zM5 8v10a1 1 0 0 1-2 0M8 8h8M8 12h3v4H8zM14 12h3M14 16h3"/></svg><span>Gazette</span></button><button id="btn-ouvrir-profil" type="button" class="btn-icone-profil">👤 Profil</button></div>
         </header>
 
         <!-- CONTENU PRINCIPAL -->
@@ -171,6 +171,7 @@
                         <div id="couleur-flacon-actif"></div>
                     <p id="details-flacon" class="texte-secondaire"></p>
                     <div id="categorie-saveur-actif"></div>
+                    <div id="materiel-all-day"></div>
                     </div>
                     </div>
 
@@ -210,6 +211,21 @@
             </section>
 
             <!-- ÉCRAN PROFIL -->
+
+            <section id="ecran-gazette" class="ecran masque">
+                <button type="button" id="gazette-retour" class="btn-secondaire">← Retour</button>
+                <div class="gazette-masthead"><p class="gazette-kicker">La pause découverte</p><h2>La Gazette <img src="./assets/menu/accueil.png" width="36" height="36" alt=""></h2><p>Comprendre, découvrir, prendre soin de son matériel.</p></div>
+                <nav class="gazette-tabs" aria-label="Rubriques de la Gazette">
+                    <button type="button" data-gazette-mode="discover" aria-pressed="true">Le saviez-vous ?</button>
+                    <button type="button" data-gazette-mode="library" aria-pressed="false">Tout explorer</button>
+                    <button type="button" data-gazette-mode="favorites" aria-pressed="false">Mes favoris</button>
+                    <button type="button" data-gazette-mode="news" aria-pressed="false">Actus & rendez-vous</button>
+                </nav>
+                <div id="gazette-tools"><label>Thème<select id="gazette-category"></select></label><label>Rechercher<input id="gazette-search" type="search" placeholder="PG, résistance, entretien…"></label></div>
+                <p id="gazette-status" role="status"></p>
+                <div id="gazette-content"></div>
+                <p class="gazette-note">Des repères pour adultes déjà vapoteurs. Pour ton appareil, la notice du fabricant reste la référence. Ces lectures ne remplacent pas un conseil de santé personnalisé.</p>
+            </section>
             <section id="ecran-profil" class="ecran masque">
                 <h2>Mon Profil 👤</h2>
 
@@ -344,6 +360,7 @@
             <section id="ecran-recettes" class="ecran masque">
                 <h2>Laboratoire DIY <img class="icone-flacon" src="./assets/menu/diy.png" alt="" width="24" height="24"></h2>
                 
+                <button type="button" id="btn-mes-ingredients" class="btn-secondaire">Mes ingrédients · stock et achats</button>
                 <div class="onglets-diy">
                     <button id="tab-mode-creer" class="btn-tab-diy actif" type="button">Créer une recette ➕</button>
                     <button id="tab-mode-ajuster" class="btn-tab-diy" type="button">Ajuster un mélange ⚖️</button>
@@ -651,6 +668,19 @@
                 <div id="liste-objectifs"></div>
             </section>
 
+            <section id="ecran-ingredients" class="ecran masque">
+                <h2>Mes ingrédients <img class="icone-flacon" src="./assets/menu/diy.png" alt="" width="24" height="24"></h2>
+                <p class="texte-secondaire">Un stock commun pour toutes tes recettes. Chaque achat garde son prix ; les préparations retirent uniquement les millilitres utilisés.</p>
+                <button type="button" class="btn-primaire" id="btn-ajouter-ingredient">Ajouter un achat ou du stock déjà présent</button>
+                <button type="button" class="btn-secondaire" onclick="afficherEcran('ecran-recettes')">← Retour au laboratoire DIY</button>
+                <div id="liste-ingredients"></div>
+            </section>
+            <section id="ecran-materiel" class="ecran masque">
+                <h2><img class="icone-materiel" src="./assets/menu/materiel.png" alt="" width="36" height="36"> Mon matériel</h2>
+                <p class="texte-secondaire">Ce que j’ai testé, ce que j’aime et ce que j’utilise avec mes liquides.</p>
+                <div id="contenu-materiel"></div>
+            </section>
+
             <!-- ÉCRAN FORMULAIRE AJOUT FLACON EN MATURATION -->
             <section id="ecran-ajout" class="ecran masque">
                 <h2>Préparer un flacon (avec maturation) <img class="icone-flacon" src="./assets/menu/diy.png" alt="" width="24" height="24"></h2>
@@ -669,7 +699,8 @@
     <option value="fruite">🍓 Fruité</option>
     <option value="gourmand">🍰 Gourmand</option>
     <option value="classic">🍂 Classic</option>
-    <option value="menthe">🌿 Menthe / Frais</option>
+    <option value="menthe">🌿 Menthe</option>
+    <option value="frais">🧊 Frais</option>
     <option value="boisson">🥤 Boisson</option>
     <option value="autre">✨ Autre</option>
 </select>
@@ -731,7 +762,8 @@
     <option value="fruite">🍓 Fruité</option>
     <option value="gourmand">🍰 Gourmand</option>
     <option value="classic">🍂 Classic</option>
-    <option value="menthe">🌿 Menthe / Frais</option>
+    <option value="menthe">🌿 Menthe</option>
+    <option value="frais">🧊 Frais</option>
     <option value="boisson">🥤 Boisson</option>
     <option value="autre">✨ Autre</option>
 </select>
@@ -754,6 +786,11 @@
                         <label>Date & Heure de début d'utilisation</label>
                         <input type="datetime-local" id="date-debut-direct">
                     </div>
+                    <div class="groupe-champ" id="groupe-cout-direct">
+                        <label for="cout-direct">Coût du flacon (€)</label>
+                        <input type="number" id="cout-direct" min="0" step="0.01" inputmode="decimal" placeholder="Facultatif">
+                        <p class="texte-secondaire">Après validation, tu pourras ajouter ce coût aux dépenses du mois de la date d’utilisation choisie.</p>
+                    </div>
                     <button type="button" class="btn-primaire" onclick="sauvegarderFlaconDirect()">Entamer ce flacon maintenant 💨</button>
                     <button type="button" id="btn-annuler-direct" class="btn-secondaire">Annuler</button>
                 </div>
@@ -770,6 +807,10 @@
             <button class="nav-item" id="nav-recettes" type="button">
                 <img class="icone-menu" src="./assets/menu/diy.png" alt="" width="27" height="27">
                 <span>DIY</span>
+            </button>
+            <button class="nav-item" id="nav-materiel" type="button">
+                <img class="icone-menu" src="./assets/menu/materiel.png" alt="" width="27" height="27">
+                <span>Matériel</span>
             </button>
             <button class="nav-item" id="nav-sante" type="button">
                 <img class="icone-menu" src="./assets/saveurs/autre.png" alt="" width="27" height="27">
@@ -789,10 +830,15 @@
     <script src="push-storage.js?v=v138"></script>
     <div id="confirmation-action" role="status" aria-live="polite" aria-atomic="true"></div>
     <script src="backup-config.js?v=v153"></script>
-    <script src="backup.js?v=v157"></script>
-    <script src="enhancements.js?v=v184"></script>
+    <script src="backup.js?v=v164"></script>
+    <script src="enhancements.js?v=v191"></script>
     <script src="objectifs.js?v=v184"></script>
-    <script src="app.js?v=v188"></script>
+    <script src="stock-diy.js?v=v195"></script>
+    <script src="app.js?v=v195"></script>
+    <script src="materiel.js?v=v193"></script>
+    <script src="flacons-edition.js?v=v194"></script>
+    <script src="diy-costs.js?v=v195"></script>
+    <script src="gazette.js?v=v196"></script>
     <script src="push.js?v=v156"></script>
 </body>
 </html>

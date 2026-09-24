@@ -1,4 +1,4 @@
-export const KEYS=['vt_config','vt_flacons','vt_recettes','vt_depenses','vt_objectifs','vt_observations','vt_date_resistance','vt_victoire_quotidienne_date'];
+export const KEYS=['vt_config','vt_flacons','vt_recettes','vt_depenses','vt_objectifs','vt_observations','vt_materiel','vt_stock_diy','vt_stock_mouvements','vt_gazette_favoris','vt_date_resistance','vt_victoire_quotidienne_date'];
 export function validate(snapshot) {
     if(!snapshot || snapshot.version!==1 || !snapshot.data || typeof snapshot.data!=='object' || Array.isArray(snapshot.data))throw Error('Sauvegarde incompatible');
     if(new TextEncoder().encode(JSON.stringify(snapshot)).length>750000)throw Error('Sauvegarde trop volumineuse');
@@ -17,13 +17,70 @@ export function validate(snapshot) {
             if(key==='vt_flacons')for(const flacon of parsed) {
                 if(flacon.quantite!==undefined && (!Number.isSafeInteger(flacon.quantite) || flacon.quantite<1 || flacon.quantite>100))throw Error('Quantité invalide');
             }
+            if(key==='vt_flacons')for(const flacon of parsed) {
+                if(flacon.categoriesSaveurs!==undefined && (!Array.isArray(flacon.categoriesSaveurs) || flacon.categoriesSaveurs.length<1 || flacon.categoriesSaveurs.length>7 || flacon.categoriesSaveurs.some(k=>!['fruite','gourmand','classic','menthe','frais','boisson','autre'].includes(k))))throw Error('Saveurs invalides');
+            }
+            if(key==='vt_gazette_favoris' && (parsed.length>500 || parsed.some(v=>typeof v.id!=='string'||!/^[a-z0-9_-]{1,100}$/.test(v.id)||Object.keys(v).some(k=>k!=='id'))))throw Error('Favoris invalides');
+            if(key==='vt_stock_diy'){
+                const ids=new Set();
+                for(const lot of parsed){
+                    if(typeof lot.id!=='string'||!/^[a-zA-Z0-9_-]{1,100}$/.test(lot.id)||ids.has(lot.id))throw Error('Lot invalide');ids.add(lot.id);
+                    if(!['arome','base','booster'].includes(lot.type)||typeof lot.nom!=='string'||!lot.nom.trim()||lot.nom.length>120)throw Error('Ingrédient invalide');
+                    if(typeof lot.volumeInitial!=='number'||!Number.isFinite(lot.volumeInitial)||lot.volumeInitial<=0||lot.volumeInitial>1e9||typeof lot.volumeRestant!=='number'||!Number.isFinite(lot.volumeRestant)||lot.volumeRestant<0||lot.volumeRestant>lot.volumeInitial+1e-7)throw Error('Quantité de stock invalide');
+                    if(lot.prixTotal!==null&&(typeof lot.prixTotal!=='number'||!Number.isFinite(lot.prixTotal)||lot.prixTotal<0||lot.prixTotal>1e9))throw Error('Prix de stock invalide');
+                    if(typeof lot.dateAchat!=='string'||!/^\d{4}-\d{2}-\d{2}$/.test(lot.dateAchat)||!Number.isFinite(Date.parse(lot.dateAchat))||new Date(lot.dateAchat).toISOString().slice(0,10)!==lot.dateAchat)throw Error('Date d’achat invalide');
+                    if(lot.type==='booster'&&(typeof lot.tauxBooster!=='number'||!Number.isFinite(lot.tauxBooster)||lot.tauxBooster<=0||lot.tauxBooster>1e9))throw Error('Taux de booster invalide');
+                }
+            }
+            if(key==='vt_stock_mouvements')for(const m of parsed){
+                if(typeof m.id!=='string'||!/^[a-zA-Z0-9_-]{1,100}$/.test(m.id)||!['correction','preparation','ajustement'].includes(m.type)||typeof m.nom!=='string'||m.nom.length>5000||typeof m.date!=='string'||!Number.isFinite(Date.parse(m.date)))throw Error('Mouvement de stock invalide');
+                if(m.type==='correction'){
+                    if(typeof m.lotId!=='string'||!['avant','apres'].every(k=>typeof m[k]==='number'&&Number.isFinite(m[k])&&m[k]>=0)||typeof m.motif!=='string'||m.motif.length>300)throw Error('Correction de stock invalide');
+                }else{
+                    if(typeof m.annule!=='boolean'||!Number.isInteger(m.quantite)||m.quantite<1||m.quantite>100||typeof m.flaconId!=='string'||!Array.isArray(m.usages)||m.usages.length>3||!m.apresFlacon||typeof m.apresFlacon!=='object'||Array.isArray(m.apresFlacon)||m.apresFlacon.id!==m.flaconId)throw Error('Préparation de stock invalide');
+                    if(m.avantFlacon!==null&&(!m.avantFlacon||typeof m.avantFlacon!=='object'||Array.isArray(m.avantFlacon)||m.avantFlacon.id!==m.flaconId))throw Error('Historique de stock invalide');
+                    for(const u of m.usages)if(!u||typeof u.lotId!=='string'||typeof u.volume!=='number'||!Number.isFinite(u.volume)||u.volume<=0)throw Error('Consommation de stock invalide');
+                }
+            }
+            if(key==='vt_materiel') {
+                const ids=new Set();
+                const validId=id=>{if(typeof id!=='string'||!/^[a-zA-Z0-9_-]{1,100}$/.test(id)||ids.has(id))throw Error('Identifiant matériel invalide');ids.add(id);};
+                const short=v=>typeof v==='string'&&v.length<=2000;
+                if(parsed.length>1000)throw Error('Trop de matériels');
+                for(const device of parsed){
+                    validId(device.id);
+                    if(device.motifArchivage!==undefined&&!short(device.motifArchivage))throw Error('Motif d’archivage invalide');
+                    if(!short(device.nom)||!device.nom.trim()||!['Pod','Box / clearomiseur','Autre'].includes(device.type)||!['J’utilise','À tester','Je n’utilise plus'].includes(device.statut)||!short(device.notes)||!Array.isArray(device.configurations)||device.configurations.length>1000)throw Error('Matériel invalide');
+                    for(const c of device.configurations){
+                        if(!c||typeof c!=='object'||Array.isArray(c))throw Error('Configuration invalide');validId(c.id);
+                        if(c.archivee!==undefined&&typeof c.archivee!=='boolean')throw Error('Archivage invalide');
+                        if(c.motifArchivage!==undefined&&!short(c.motifArchivage))throw Error('Motif d’archivage invalide');
+                        if(!short(c.nom)||!c.nom.trim()||!short(c.resistance)||!short(c.notes)||!['Non renseigné','Serré (comme une cigarette)','Intermédiaire','Aérien','Indirect (MTL)','Direct restrictif (RDL)','Direct (DTL)'].includes(c.tirage)||!['Non renseigné','Discrète','Modérée','Abondante'].includes(c.vapeur)||!['Pas encore testé','J’adore','J’aime bien','Mitigé','Je n’aime pas'].includes(c.avis))throw Error('Configuration invalide');
+                        for(const field of ['ohms','watts'])if(c[field]!=null&&(typeof c[field]!=='number'||!Number.isFinite(c[field])||c[field]<=0||c[field]>10000))throw Error('Valeur de matériel invalide');
+                        if(c.dateResistance!=null&&(typeof c.dateResistance!=='string'||!/^\d{4}-\d{2}-\d{2}$/.test(c.dateResistance)||!Number.isFinite(Date.parse(c.dateResistance))||new Date(c.dateResistance).toISOString().slice(0,10)!==c.dateResistance))throw Error('Date de résistance invalide');
+                    }
+                }
+            }
+            if(key==='vt_config'&&parsed.preferencesMateriel!==undefined){
+                const pref=parsed.preferencesMateriel;
+                if(!pref||typeof pref!=='object'||!['Non renseigné','Serré (comme une cigarette)','Intermédiaire','Aérien','Indirect (MTL)','Direct restrictif (RDL)','Direct (DTL)'].includes(pref.tirage)||!['Non renseigné','Discrète','Modérée','Abondante'].includes(pref.vapeur)||typeof pref.notes!=='string'||pref.notes.length>2000)throw Error('Préférences matériel invalides');
+            }
             const records=key==='vt_config'?[parsed]:parsed;
-            const numeric=['cigsJour','prixPaquet','cigsPaquet','nicotineActuelle','volume','nicotine','arome','steepDays','montant','volumeTotal','volArome','volBooster','nbrFioles','volBase'];
-            const text=['nom','prenom','type','categorie','titre','texte','couleur','categorieSaveur','dateArret','date','dateConstat','preparedAt','startedAt','finishedAt','dateOuverture','dateFermeture','steepReadyAt','dateResistance'];
+            const numeric=['coutFlacon','cigsJour','prixPaquet','cigsPaquet','nicotineActuelle','volume','nicotine','arome','steepDays','montant','volumeTotal','volArome','volBooster','nbrFioles','volBase'];
+            const text=['nom','prenom','type','categorie','titre','texte','couleur','categorieSaveur','dateArret','date','dateConstat','preparedAt','startedAt','finishedAt','dateOuverture','dateFermeture','steepReadyAt','dateResistance','materielConfigurationId','materielResume','materielDateResistance'];
             for(const record of records) {
+                if(record.coutDIY!==undefined){
+                    const c=record.coutDIY;
+                    if(!c||typeof c!=='object'||Array.isArray(c)||!c.prix||typeof c.prix!=='object'||Array.isArray(c.prix)||typeof c.tauxBooster!=='number'||!Number.isFinite(c.tauxBooster)||c.tauxBooster<=0)throw Error('Coût DIY invalide');
+                    if(c.stockSelection!==undefined){if(!c.stockSelection||typeof c.stockSelection!=='object'||Array.isArray(c.stockSelection)||Object.entries(c.stockSelection).some(([k,v])=>!['arome','base','booster'].includes(k)||typeof v!=='string'||(v!==''&&!/^[a-zA-Z0-9_-]{1,100}$/.test(v))))throw Error('Sélection de stock invalide');}
+                    for(const [key,p] of Object.entries(c.prix)){
+                        if(!['arome','base','booster'].includes(key)||!p||typeof p!=='object'||typeof p.volume!=='number'||!Number.isFinite(p.volume)||p.volume<=0||typeof p.prix!=='number'||!Number.isFinite(p.prix)||p.prix<0||(p.nom!==undefined&&(typeof p.nom!=='string'||p.nom.length>120)))throw Error('Prix DIY invalide');
+                    }
+                }
+
                 for(const field of numeric)if(record[field]!=null && (!((typeof record[field]==='number' || (typeof record[field]==='string' && /^\d+(?:\.\d+)?$/.test(record[field]))) && Number.isFinite(Number(record[field])) && Number(record[field])>=0)))throw Error('Nombre invalide');
                 for(const field of text)if(record[field]!=null && (typeof record[field]!=='string'||record[field].length>5000))throw Error('Texte invalide');
-                for(const field of ['actif','termine','vapote','personnalise'])if(record[field]!=null && typeof record[field]!=='boolean')throw Error('État invalide');
+                for(const field of ['actif','termine','vapote','personnalise','coutPartiel','origineDIY'])if(record[field]!=null && typeof record[field]!=='boolean')throw Error('État invalide');
             }
             // Les écrans historiques utilisent du HTML : refuser le balisage entrant.
             const check=v=>{

@@ -147,9 +147,13 @@ function mettreAJourTout() {
     afficherFinances();
     afficherObjectifs();
     if (typeof MyVapeGoals !== 'undefined') MyVapeGoals.render();
+    MyVapeGear.render();
+    if(typeof DIYCosts!=='undefined')DIYCosts.refreshStock();
     remplirSelectRecettes();
     afficherProfil();
-    if (typeof MyVapeUI !== 'undefined') MyVapeUI.decorateBottles();
+    if (typeof MyVapeUI !== 'undefined') {
+        MyVapeUI.decorateBottles();
+    }
     if (typeof MyVapeBackup !== 'undefined') MyVapeBackup.changed();
     if (typeof MyVapePush !== 'undefined') MyVapePush.sync();
 }
@@ -1016,6 +1020,7 @@ else if (N1 < N0) {
 }
     if (elArome) elArome.textContent = `${aromeAAjouter.toFixed(2)} ml`;
     if (elVolFinal) elVolFinal.textContent = `${formatNombre(Vf)} ml`;
+    return {volTotal:Vf,volArome:aromeAAjouter,volBooster:boosterAAjouter,volBase:baseAAjouter};
 }
 
 function sauvegarderOnboarding() {
@@ -1062,7 +1067,9 @@ function sauvegarderConfig() {
     MyVapeUI.toast('Paramètres enregistrés');
 }
 
-function sauvegarderRecette() {
+let sauvegardeRecetteEnCours=false;
+async function sauvegarderRecette() {
+    if(sauvegardeRecetteEnCours)return;
     const nomEl = document.getElementById('recette-nom');
     const nom = nomEl ? nomEl.value.trim() : '';
 
@@ -1088,8 +1095,11 @@ function sauvegarderRecette() {
         volBase: calcs ? calcs.volBase : 0
     };
 
-    recettes.unshift(nouvelleRecette);
-    localStorage.setItem('vt_recettes', JSON.stringify(recettes));
+    sauvegardeRecetteEnCours=true;
+    try {
+        const cout=DIYCosts.snapshot('recette');DIYCosts.attach(nouvelleRecette,cout);
+        DIYCosts.persist('vt_recettes',[nouvelleRecette,...recettes]);
+    }catch(e){alert(e.message);return;}finally{sauvegardeRecetteEnCours=false;}
 
     document.getElementById('recette-nom').value = '';
     document.getElementById('form-recette').classList.add('masque');
@@ -1097,7 +1107,9 @@ function sauvegarderRecette() {
     if (typeof MyVapeUI !== 'undefined') MyVapeUI.toast('Recette enregistrée');
 }
 
-function sauvegarderFlacon() {
+let sauvegardePreparationEnCours=false;
+async function sauvegarderFlacon() {
+    if(sauvegardePreparationEnCours)return;
     const nomEl = document.getElementById('nom');
     const nom = nomEl ? nomEl.value.trim() : '';
     if (!nom) {
@@ -1124,7 +1136,8 @@ function sauvegarderFlacon() {
         id: crypto.randomUUID(),
         quantite,
         nom: nom,
-        categorieSaveur: document.getElementById('categorie-saveur')?.value || 'autre',
+        categorieSaveur: MyVapeUI.readFlavorSelect(document.getElementById('categorie-saveur'))[0],
+        categoriesSaveurs: MyVapeUI.readFlavorSelect(document.getElementById('categorie-saveur')),
         type: document.getElementById('type').value,
         volume: parseFloat(document.getElementById('volume').value) || 0,
         nicotine: parseFloat(document.getElementById('nicotine').value) || 0,
@@ -1139,8 +1152,11 @@ dateOuverture: null,
         termine: false
     };
 
-    flacons.unshift(nouveauFlacon);
-    localStorage.setItem('vt_flacons', JSON.stringify(flacons));
+    sauvegardePreparationEnCours=true;
+    try {
+        if(nouveauFlacon.type==='DIY'){const cout=DIYCosts.snapshot('prep');DIYCosts.attach(nouveauFlacon,cout);DIYStock.consume(nouveauFlacon,cout);}
+        else DIYCosts.persist('vt_flacons',[nouveauFlacon,...flacons]);
+    }catch(e){alert(e.message);return;}finally{sauvegardePreparationEnCours=false;}
 
 
     document.getElementById('nom').value = '';
@@ -1150,7 +1166,9 @@ dateOuverture: null,
     if (typeof MyVapeUI !== 'undefined') MyVapeUI.toast(quantite > 1 ? `${quantite} flacons ajoutés à la réserve` : 'Flacon ajouté');
 }
 
-function sauvegarderFlaconDirect() {
+let enregistrementFlaconDirect = false;
+async function sauvegarderFlaconDirect() {
+    if (enregistrementFlaconDirect) return;
     const nomEl = document.getElementById('nom-direct');
     const nom = nomEl ? nomEl.value.trim() : '';
     if (!nom) {
@@ -1161,10 +1179,18 @@ function sauvegarderFlaconDirect() {
     const dateDebutStr = document.getElementById('date-debut-direct').value;
     const dateDebut = dateDebutStr ? new Date(dateDebutStr) : new Date();
 
+    if (!Number.isFinite(+dateDebut)) {alert('Renseigne une date valide.');return;}
+    const coutInput = document.getElementById('cout-direct');
+    const pav = document.getElementById('type-direct').value === 'Prêt à vaper';
+    if (pav && !coutInput.reportValidity()) return;
+    const cout = pav && coutInput.value !== '' ? Number(coutInput.value) : null;
+    if (cout !== null && (!Number.isFinite(cout) || cout < 0)) {alert('Indique un coût valide.');return;}
+
     const nouveauFlaconActif = {
         id: Date.now().toString(),
         nom: nom,
-        categorieSaveur: document.getElementById('categorie-saveur-direct')?.value || 'autre',
+        categorieSaveur: MyVapeUI.readFlavorSelect(document.getElementById('categorie-saveur-direct'))[0],
+        categoriesSaveurs: MyVapeUI.readFlavorSelect(document.getElementById('categorie-saveur-direct')),
         type: document.getElementById('type-direct').value,
         volume: parseFloat(document.getElementById('volume-direct').value) || 0,
         nicotine: parseFloat(document.getElementById('nicotine-direct').value) || 0,
@@ -1179,13 +1205,22 @@ function sauvegarderFlaconDirect() {
         termine: false
     };
 
-    flacons.unshift(nouveauFlaconActif);
-    localStorage.setItem('vt_flacons', JSON.stringify(flacons));
-
-    document.getElementById('nom-direct').value = '';
-    mettreAJourTout();
-    afficherEcran('ecran-accueil');
-    if (typeof MyVapeUI !== 'undefined') MyVapeUI.toast('Flacon ajouté');
+    if (cout !== null) nouveauFlaconActif.coutFlacon = Math.round(cout * 100) / 100;
+    enregistrementFlaconDirect = true;
+    try {
+        const ajouter = cout > 0 ? await proposerDepenseFlacon(nouveauFlaconActif) : false;
+        if(!pav){
+            const coutDIY=DIYCosts.snapshot('direct');DIYCosts.attach(nouveauFlaconActif,coutDIY);
+            nouveauFlaconActif.arome=Number(document.getElementById('direct-arome').value);
+            DIYStock.consume(nouveauFlaconActif,coutDIY);
+        }else enregistrerFlaconEtDepense(nouveauFlaconActif, ajouter);
+        document.getElementById('nom-direct').value = '';
+        coutInput.value = '';
+        mettreAJourTout();
+        afficherEcran('ecran-accueil');
+        if (typeof MyVapeUI !== 'undefined') MyVapeUI.toast(ajouter ? 'Flacon et dépense ajoutés' : 'Flacon ajouté');
+    } catch (e) {alert('Enregistrement impossible. Réessaie : ' + e.message);}
+    finally {enregistrementFlaconDirect = false;}
 }
 
 function sauvegarderDepense() {
@@ -1257,11 +1292,11 @@ function afficherDernierChangementResistance() {
         return;
     }
 
-    let valeur = actif.dateResistance || null;
+    let valeur = MyVapeGear.resistanceDate(actif);
 
     // Compatibilité avec l'ancien système :
     // l'ancienne date globale est attribuée au All Day actuel.
-    if (!valeur) {
+    if (!valeur && !MyVapeGear.find(actif.materielConfigurationId) && actif.dateResistance === undefined) {
         try {
             const ancienneDate = localStorage.getItem('vt_date_resistance');
 
@@ -1304,6 +1339,7 @@ function changerResistance(idFlacon = null) {
         return;
     }
 
+    if (MyVapeGear.changeResistance(f.id)) return;
     const maintenant = new Date();
 
     // Conserver le jour local du changement.
@@ -1334,6 +1370,7 @@ function afficherFlaconActif() {
     const actif = flacons.find(f => f.actif);
     const btnTerminer = document.getElementById('btn-terminer');
     const sceauAllDay = document.getElementById('sceau-all-day');
+    document.getElementById('materiel-all-day').innerHTML = actif ? MyVapeGear.bottleLine(actif) : '';
 
 if (sceauAllDay) {
     sceauAllDay.style.display = actif ? 'block' : 'none';
@@ -1348,7 +1385,7 @@ if (sceauAllDay) {
         const dateFormatee = dateOuv.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' });
         
         if (document.getElementById('details-flacon')) {
-            document.getElementById('details-flacon').textContent = `Entamé le ${dateFormatee} (${actif.volume} ml)`;
+            document.getElementById('details-flacon').textContent = `Entamé le ${dateFormatee} (${actif.volume} ml)${texteCoutFlacon(actif)}`;
         }
         const zoneCategorie = document.getElementById('categorie-saveur-actif');
 
@@ -1356,12 +1393,12 @@ if (zoneCategorie) {
     if (!actif.categorieSaveur) {
         zoneCategorie.innerHTML = `
             <label class="texte-secondaire" for="categorie-actif">Type de saveur</label>
-            <select id="categorie-actif" onchange="definirCategorieSaveurFlacon('${actif.id}', this.value)">
+            <select id="categorie-actif" onchange="definirCategorieSaveurFlacon('${actif.id}', MyVapeUI.readFlavorSelect(this))">
                 <option value="" selected disabled>Choisir...</option>
                 <option value="fruite">🍓 Fruité</option>
                 <option value="gourmand">🍰 Gourmand</option>
                 <option value="classic">🍂 Classic</option>
-                <option value="menthe">🌿 Menthe / Frais</option>
+                <option value="menthe">🌿 Menthe</option>
                 <option value="boisson">🥤 Boisson</option>
                 <option value="autre">✨ Autre</option>
             </select>
@@ -1403,11 +1440,11 @@ function afficherFlaconsEntames() {
             <div class="carte carte-flacon-coloree" style="margin-top:10px; padding:12px; --couleur-flacon:${typeof MyVapeUI !== 'undefined' ? MyVapeUI.bottleColor(f) : 'var(--border-carte)'};">
                 <strong style="color:${typeof MyVapeUI !== 'undefined' ? MyVapeUI.bottleColor(f) : 'inherit'}">${typeof MyVapeUI !== 'undefined' ? MyVapeUI.bottleIcon(f) : '✨'} ${echapperHTML(f.nom)}</strong>
                 <p class="texte-secondaire" style="margin-top:4px;">
-                    ${f.nicotine} mg/ml • ${f.volume} ml • Entamé le ${dateFormatee}
+                    ${f.nicotine} mg/ml • ${f.volume} ml • Entamé le ${dateFormatee}${texteCoutFlacon(f)}
                 </p>
                 <p class="texte-secondaire" style="margin-top:4px;">
-    ${f.dateResistance
-        ? `🔧 Résistance changée le ${new Date(`${f.dateResistance}T12:00:00`).toLocaleDateString('fr-FR', {
+    ${MyVapeGear.resistanceDate(f)
+        ? `🔧 Résistance changée le ${new Date(`${MyVapeGear.resistanceDate(f)}T12:00:00`).toLocaleDateString('fr-FR', {
             day: '2-digit',
             month: '2-digit',
             year: 'numeric'
@@ -1416,6 +1453,8 @@ function afficherFlaconsEntames() {
     }
 </p>
 
+                ${MyVapeGear.bottleLine(f)}
+                <button type="button" class="btn-secondaire" onclick="modifierFlacon('${f.id}')">Modifier la fiche</button>
                 ${f.actif
                     ? `<span style="color:#e8c85a; font-weight:700;">✦ ALL DAY</span>`
                     : `<button type="button"
@@ -1505,22 +1544,24 @@ function afficherReserveEtMaturation() {
                     <strong style="color:${typeof MyVapeUI !== 'undefined' ? MyVapeUI.bottleColor(f) : 'inherit'}">${typeof MyVapeUI !== 'undefined' ? MyVapeUI.bottleIcon(f) : '✨'} ${echapperHTML(f.nom)} (${f.nicotine} mg)</strong>
                     <button type="button" class="btn-suppr" aria-label="${quantite > 1 ? 'Retirer un flacon du stock' : 'Supprimer ce flacon'}" title="Retirer un flacon" onclick="retirerFlaconReserve('${f.id}')">🗑️</button>
                 </div>
-                <p class="texte-secondaire"><strong>${quantite} flacon${quantite > 1 ? 's' : ''} en réserve</strong> · ${f.volume} ml par flacon</p>
+                <p class="texte-secondaire"><strong>${quantite} flacon${quantite > 1 ? 's' : ''} en réserve</strong> · ${f.volume} ml par flacon${texteCoutFlacon(f)}</p>
                 <p class="texte-secondaire">Préparé le ${new Date(f.preparedAt || f.dateOuverture).toLocaleDateString('fr-FR')} (${f.volume} ml)</p>
                 ${!f.categorieSaveur ? `
     <div style="margin-top:8px;">
         <label class="texte-secondaire" for="categorie-${f.id}">Type de saveur</label>
-        <select id="categorie-${f.id}" onchange="definirCategorieSaveurFlacon('${f.id}', this.value)">
+        <select id="categorie-${f.id}" onchange="definirCategorieSaveurFlacon('${f.id}', MyVapeUI.readFlavorSelect(this))">
             <option value="" selected disabled>Choisir...</option>
             <option value="fruite">🍓 Fruité</option>
             <option value="gourmand">🍰 Gourmand</option>
             <option value="classic">🍂 Classic</option>
-            <option value="menthe">🌿 Menthe / Frais</option>
+            <option value="menthe">🌿 Menthe</option>
             <option value="boisson">🥤 Boisson</option>
             <option value="autre">✨ Autre</option>
         </select>
     </div>
 ` : ''}
+                ${MyVapeGear.bottleLine(f)}
+                <button type="button" class="btn-secondaire" onclick="modifierFlacon('${f.id}')">Modifier la fiche</button>
                 ${moduleVisuel}
             </div>
         `;
@@ -1530,7 +1571,8 @@ function definirCategorieSaveurFlacon(id, categorie) {
     const flacon = flacons.find(f => f.id === id);
     if (!flacon) return;
 
-    flacon.categorieSaveur = categorie;
+    flacon.categoriesSaveurs = Array.isArray(categorie) ? categorie : [categorie];
+    flacon.categorieSaveur = flacon.categoriesSaveurs[0];
     localStorage.setItem('vt_flacons', JSON.stringify(flacons));
     mettreAJourTout();
 }
@@ -1595,6 +1637,7 @@ function terminerFlacon(id) {
 
     const maintenantIso = new Date().toISOString();
 
+    MyVapeGear.freeze(f);
     f.actif = false;
     f.termine = true;
     f.finishedAt = maintenantIso;
@@ -1628,7 +1671,7 @@ function afficherRecettes() {
             </div>
             <p class="texte-secondaire" style="margin-top:4px;">
                 <strong>Volume Total : ${r.volumeTotal || 50} ml</strong> | Nicotine : ${r.nicotine} mg/ml
-                ${r.steepDays ? ' | Steep : ' + r.steepDays + 'j' : ''}
+                ${r.steepDays ? ' | Steep : ' + r.steepDays + 'j' : ''}${texteCoutFlacon(r)}
             </p>
             <div style="background: rgba(255,255,255,0.03); border-radius: 8px; padding: 8px; margin-top: 8px; font-size: 0.8rem;">
                 <div style="display:flex; justify-content:space-between;"><span><img class="icone-flacon" src="./assets/menu/diy.png" alt="" width="24" height="24"> Concentré (${r.arome}%) :</span> <strong>${(r.volArome || 0).toFixed(1)} ml</strong></div>
@@ -1704,6 +1747,8 @@ function afficherHistoriqueFlacons() {
                     <button type="button" class="btn-suppr" onclick="supprimerFlacon('${f.id}')">🗑️</button>
                 </div>
                 ${detailsPeriode}
+                ${MyVapeGear.bottleLine(f)}
+                ${texteCoutFlacon(f) ? `<p class="texte-secondaire">${texteCoutFlacon(f).slice(3)}</p>` : ''}
             </div>
         `;
     }).join('');
@@ -1921,14 +1966,17 @@ function afficherEcran(idEcran) {
     const ecranCible = document.getElementById(idEcran);
     if (ecranCible) ecranCible.classList.remove('masque');
     if (idEcran === 'ecran-sante') afficherParcours();
+    if (idEcran === 'ecran-materiel') MyVapeGear.render();
 
     document.querySelectorAll('.nav-item').forEach(btn => btn.classList.remove('actif'));
-    const navAssociee = document.getElementById(`nav-${idEcran.replace('ecran-', '')}`);
+    const navEcran = idEcran === 'ecran-ingredients' ? 'ecran-recettes' : idEcran;
+    const navAssociee = document.getElementById(`nav-${navEcran.replace('ecran-', '')}`);
     if (navAssociee) navAssociee.classList.add('actif');
 }
 const ECRANS_SWIPE = [
     'ecran-accueil',
     'ecran-recettes',
+    'ecran-materiel',
     'ecran-sante',
     'ecran-finances',
     'ecran-objectifs'
@@ -1958,7 +2006,7 @@ function configurerSwipeNavigation() {
     }, { passive: true });
 
     zone.addEventListener('touchend', (e) => {
-        if (!e.changedTouches.length) return;
+        if (!e.changedTouches.length || document.querySelector('dialog[open]')) return;
 
         const deltaX = e.changedTouches[0].clientX - swipeStartX;
         const deltaY = e.changedTouches[0].clientY - swipeStartY;
@@ -2003,6 +2051,9 @@ function configurerEcouteurs() {
 
 const navSante = document.getElementById('nav-sante');
 if (navSante) navSante.onclick = () => afficherEcran('ecran-sante');
+
+    const navMateriel = document.getElementById('nav-materiel');
+    if (navMateriel) navMateriel.onclick = () => afficherEcran('ecran-materiel');
 
     const navFinances = document.getElementById('nav-finances');
     if (navFinances) navFinances.onclick = () => afficherEcran('ecran-finances');
@@ -2167,6 +2218,7 @@ if (navSante) navSante.onclick = () => afficherEcran('ecran-sante');
                 if (r) {
                     if (document.getElementById('nom-direct')) document.getElementById('nom-direct').value = r.nom;
                     if (document.getElementById('type-direct')) document.getElementById('type-direct').value = r.type || 'DIY';
+                    actualiserCoutFlaconDirect();
                     if (document.getElementById('nicotine-direct')) document.getElementById('nicotine-direct').value = r.nicotine;
                     if (document.getElementById('volume-direct')) document.getElementById('volume-direct').value = r.volumeTotal || 50;
                 }
