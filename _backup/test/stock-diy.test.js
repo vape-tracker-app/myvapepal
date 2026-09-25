@@ -47,3 +47,14 @@ test('stock and movements backup round-trip, invalid stock rejected, legacy snap
  const t=setup();t.s.consume(bottle,t.snapshot);const other=boot();restore(other.ctx.localStorage,capture(t.ctx.localStorage));assert.equal(other.s.readLots().find(l=>l.type==='arome').volumeRestant,22.5);assert.equal(JSON.parse(other.data.get('vt_stock_mouvements')).length,1);
  const snap=capture(t.ctx.localStorage),lots=JSON.parse(snap.data.vt_stock_diy);lots[0].volumeRestant=-1;snap.data.vt_stock_diy=JSON.stringify(lots);assert.throws(()=>validate(snap));assert.equal(validate({version:1,data:{vt_flacons:'[]'}}).data.vt_stock_diy,null);
 });
+test('five ingredients consume per bottle, round-trip backup, cancel once, and purchase is optional',()=>{
+ const t=setup();
+ for(const type of ['frais','sucre'])t.sel[type]=t.s.addLot({type,nom:type,volumeInitial:10,volumeRestant:10,prixTotal:5,gouttesParMl:25,dateAchat:'2026-09-25'},type==='frais');
+ const s={...t.snapshot,stockSelection:t.sel,amounts:{...t.snapshot.amounts,volBase:26,volFrais:1,volSucre:.5}};
+ const f=t.s.consume({...bottle,quantite:2,additifs:{frais:{gouttes:25,gouttesParMl:25},sucre:{gouttes:12.5,gouttesParMl:25}}},s);
+ assert.equal(t.s.readLots().find(l=>l.type==='frais').volumeRestant,8);assert.equal(t.s.readLots().find(l=>l.type==='sucre').volumeRestant,9);
+ assert.equal(t.ctx.depenses.length,1);assert.equal(t.ctx.depenses[0].montant,5);
+ const other=boot();restore(other.ctx.localStorage,capture(t.ctx.localStorage));assert.equal(other.s.readLots().find(l=>l.type==='frais').gouttesParMl,25);
+ const before=t.data.get('vt_stock_diy');assert.throws(()=>t.s.consume({...bottle,id:'oversized',quantite:10},s));assert.equal(t.data.get('vt_stock_diy'),before);
+ t.s.cancel(f.stockMouvementId);assert.equal(t.s.readLots().find(l=>l.type==='frais').volumeRestant,10);assert.equal(t.ctx.depenses.length,1);
+});

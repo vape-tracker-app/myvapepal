@@ -55,6 +55,12 @@ const legacyColors = {
         if (!select) return ['autre'];
         return bottleFlavors({categoriesSaveurs: select._saveurs || Array.from(select.selectedOptions, option=>option.value),categorieSaveur:select.value});
     }
+    function setFlavorSelect(select, record) {
+        if(!select)return;
+        attachFlavorSelect(select);
+        select._saveurs=bottleFlavors(record);
+        select.dispatchEvent(new Event('change',{bubbles:true}));
+    }
     function decorateBottles() {
     const reserve = flacons.filter(f => !f.termine && !f.startedAt);
     const history = flacons.filter(f => f.termine);
@@ -151,6 +157,7 @@ const legacyColors = {
             button.setAttribute('aria-label','Saveurs : '+label.textContent);
         };
         select.after(button);render();
+        select.addEventListener('change',render);
         if(select.id){const label=document.querySelector(`label[for="${select.id}"]`);if(label)label.htmlFor=button.id;}
         button.onclick=()=>{
             // Une copie de travail : fermer ou annuler ne change aucune sélection.
@@ -179,7 +186,7 @@ const legacyColors = {
         };
     }
     function installerChoixSaveurs() {
-        for(const id of ['categorie-saveur','categorie-saveur-direct'])attachFlavorSelect(document.getElementById(id));
+        for(const id of ['categorie-saveur','categorie-saveur-direct','recette-saveurs'])attachFlavorSelect(document.getElementById(id));
     }
     document.addEventListener('DOMContentLoaded',()=>{
         installerChoixSaveurs();
@@ -187,5 +194,5 @@ const legacyColors = {
         setTimeout(celebrate,3200);
     });
     document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'){mettreAJourCerisierHD();celebrate();}});
-    return {bottleFlavors,readFlavorSelect,attachFlavorSelect,illustrerTexte,toast,bottleColor,bottleIcon,decorateBottles,observeStage,celebrate};
+    return {bottleFlavors,setFlavorSelect,readFlavorSelect,attachFlavorSelect,illustrerTexte,toast,bottleColor,bottleIcon,decorateBottles,observeStage,celebrate};
 })();

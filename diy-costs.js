@@ -1,9 +1,12 @@
 // Prix des conditionnements et coût des seules quantités consommées.
 const DIYCosts=(()=>{
-    const names={arome:'Arôme',base:'Base',booster:'Booster'};
+    const names={arome:'Arôme',base:'Base',booster:'Booster',frais:'Additif frais',sucre:'Additif sucré'};
+    const volumes={arome:'volArome',base:'volBase',booster:'volBooster',frais:'volFrais',sucre:'volSucre'};
+    const additives=['frais','sucre'];
+    const keysFor=prefix=>Object.keys(names).filter(k=>prefix!=='ajust'||!additives.includes(k));
     const states={};
     const value=id=>document.getElementById(id)?.value??'';
-    const num=(v,label,positive=false)=>{const n=Number(v);if(v===''||!Number.isFinite(n)||n<0||(positive&&n<=0))throw Error('Vérifie '+label+'.');return n;};
+    const num=(v,label,positive=false)=>{const n=Number(v);if(v===''||!Number.isFinite(n)||n<0||n>1e9||(positive&&n<=0))throw Error('Vérifie '+label+'.');return n;};
     const euros=n=>n.toLocaleString('fr-FR',{minimumFractionDigits:2,maximumFractionDigits:2})+' €';
     function dosages(volume,nicotine,arome,taux){
         volume=num(volume,'le volume',true);nicotine=num(nicotine,'la nicotine');arome=num(arome,'l’arôme');taux=num(taux,'le taux du booster',true);
@@ -11,9 +14,27 @@ const DIYCosts=(()=>{
         if(arome>=100||volBase< -1e-8)throw Error('Dosages impossibles : vérifie les proportions.');
         return {volTotal:volume,volArome,volBooster,volBase:Math.max(0,volBase)};
     }
+    function withAdditives(amounts,additifs={}){
+        const result={...amounts};let volume=0;
+        for(const key of additives){
+            const a=additifs[key];const drops=a?num(a.gouttes,'le nombre de gouttes'):0;
+            const used=drops?drops/num(a.gouttesParMl,'le nombre de gouttes pour 1 ml',true):0;
+            if(!Number.isFinite(used))throw Error('Conversion des gouttes invalide.');
+            result[volumes[key]]=used;volume+=used;
+        }
+        if(volume>amounts.volBase+1e-8)throw Error('Les additifs dépassent la place disponible : réduis leur quantité ou les autres dosages.');
+        result.volBase=Math.max(0,amounts.volBase-volume);return result;
+    }
+    function readAdditives(prefix){
+        if(prefix==='ajust')return {};
+        const result={};for(const key of additives){
+            const gouttes=num(value(`${prefix}-gouttes-${key}`)||0,'le nombre de gouttes');
+            if(gouttes>0)result[key]={gouttes,gouttesParMl:num(value(`${prefix}-conversion-${key}`),'les gouttes pour 1 ml de '+names[key],true)};
+        }return result;
+    }
     function cost(amounts,prices){
         let total=0,known=false;const missing=[];
-        for(const [key,vol] of Object.entries({arome:amounts.volArome,base:amounts.volBase,booster:amounts.volBooster})){
+        for(const [key,vol] of Object.entries(volumes).map(([k,f])=>[k,amounts[f]??(additives.includes(k)?0:NaN)])){
             if(!Number.isFinite(vol)||vol<0)throw Error('Quantités invalides.');
             if(vol<=1e-8)continue;
             const p=prices[key];if(!p){missing.push(names[key]);continue;}
@@ -24,7 +45,8 @@ const DIYCosts=(()=>{
         return {total,known:known||!missing.length,missing,partial:missing.length>0};
     }
     function pricing(prefix){
-        const prices={};for(const key of Object.keys(names)){
+        const prices={};for(const key of keysFor(prefix)){
+            if(additives.includes(key)&&!(Number(value(`${prefix}-gouttes-${key}`))>0))continue;
             const stockId=value(`${prefix}-stock-${key}`);if(stockId){Object.assign(prices,DIYStock.prices({[key]:stockId}));continue;}
             const prix=value(`${prefix}-prix-${key}`);if(prix==='')continue;
             let volume=num(value(`${prefix}-pack-${key}`),'la contenance de '+names[key],true);
@@ -40,16 +62,18 @@ const DIYCosts=(()=>{
             const a=calculerAjustementDIY();if(!a)throw Error('Vérifie les valeurs de l’ajustement.');return a;
         }
         const ids=prefix==='recette'?['recette-volume','recette-nicotine','recette-arome','recette-taux-booster']:prefix==='prep'?['volume','nicotine','arome','prep-taux-booster']:['volume-direct','nicotine-direct','direct-arome','direct-taux-booster'];
-        return dosages(...ids.map((id,index)=>index===2?(value(id)||'0'):value(id)));
+        return withAdditives(dosages(...ids.map((id,index)=>index===2?(value(id)||'0'):value(id))),readAdditives(prefix));
     }
     function snapshot(prefix){
         const prices=pricing(prefix),a=amounts(prefix),c=cost(a,prices);
         const rate=Number(value(prefix==='recette'?'recette-taux-booster':prefix==='ajust'?'ajust-taux-booster':prefix+'-taux-booster'));
-        const stockSelection=Object.fromEntries(Object.keys(names).map(k=>[k,value(`${prefix}-stock-${k}`)]));
-        return {prices,amounts:a,...c,tauxBooster:rate,stockSelection};
+        const stockSelection=Object.fromEntries(keysFor(prefix).map(k=>[k,value(`${prefix}-stock-${k}`)]));
+        return {prices,amounts:a,...c,tauxBooster:rate,stockSelection,additifs:readAdditives(prefix)};
     }
     function attach(record,s){
         record.coutDIY={prix:s.prices,tauxBooster:s.tauxBooster,stockSelection:s.stockSelection||{}};
+        record.additifs=s.additifs||{};
+        delete record.coutFlacon;delete record.coutPartiel;
         if(s.known){record.coutFlacon=s.total;record.coutPartiel=s.partial;}
         return record;
     }
@@ -66,7 +90,7 @@ const DIYCosts=(()=>{
         if(prefix==='prep'||prefix==='direct')state.root.hidden=value(prefix==='prep'?'type':'type-direct')!=='DIY';
         try{
             const s=snapshot(prefix);
-            for(const key of Object.keys(names)){const p=s.prices[key];const vol=s.amounts[{arome:'volArome',base:'volBase',booster:'volBooster'}[key]];state.units[key].textContent=p?`${(p.prix/p.volume).toLocaleString('fr-FR',{maximumFractionDigits:5})} €/ml · ${vol.toLocaleString('fr-FR',{maximumFractionDigits:2})} ml utilisés : ${euros(vol*p.prix/p.volume)}`:'';}
+            for(const key of keysFor(prefix)){const p=s.prices[key];const vol=(s.amounts[volumes[key]]??0);state.units[key].textContent=p?`${(p.prix/p.volume).toLocaleString('fr-FR',{maximumFractionDigits:5})} €/ml · ${vol.toLocaleString('fr-FR',{maximumFractionDigits:2})} ml utilisés : ${euros(vol*p.prix/p.volume)}`:'';}
             const target=prefix==='ajust'?flacons.find(f=>f.id===value('ajust-flacon-cible')):null;
             const q=prefix==='prep'?num(value('flacon-quantite'),'le nombre de flacons',true):target&&!target.startedAt?(target.quantite??1):1;
             let text=s.known?`${s.partial?'Coût théorique partiel':'Coût théorique des ingrédients'} : ${euros(s.total)} par flacon`:'Renseigne les prix pour calculer le coût.';
@@ -79,29 +103,43 @@ const DIYCosts=(()=>{
                 else text+=' · Le coût initial du mélange est nécessaire pour connaître son coût total.';
                 if(s.missing.length)text+=' Prix manquants : '+s.missing.join(', ')+'.';
             }
+            if(prefix!=='ajust'){
+                const parts=Object.entries(s.additifs).map(([k,a])=>`${names[k]} : ${a.gouttes.toLocaleString('fr-FR',{maximumFractionDigits:4})} gouttes (${s.amounts[volumes[k]].toLocaleString('fr-FR',{maximumFractionDigits:4})} ml)`);
+                state.additiveSummary.textContent=parts.join(' · ')+(parts.length?' par flacon. Leur volume est déduit de la base neutre. Pour une fraction de goutte, mesure le volume en ml.':'');
+                if(prefix==='recette'){const base=document.getElementById('calc-base');base.textContent=s.amounts.volBase.toLocaleString('fr-FR',{maximumFractionDigits:4})+' ml';base.style.color='#e6edf3';}
+            }
             state.output.textContent=text;
             const lots=DIYStock.readLots();const lines=[];
-            for(const [key,field] of Object.entries({arome:'volArome',base:'volBase',booster:'volBooster'})){
-                const needed=s.amounts[field]*q;if(needed<=1e-8)continue;const id=s.stockSelection[key],lot=lots.find(l=>l.id===id);
+            for(const [key,field] of Object.entries(volumes)){
+                const needed=(s.amounts[field]??0)*q;if(needed<=1e-8)continue;const id=s.stockSelection[key],lot=lots.find(l=>l.id===id);
                 lines.push(`${names[key]} : ${needed.toLocaleString('fr-FR',{maximumFractionDigits:2})} ml nécessaires${lot?' / '+lot.volumeRestant.toLocaleString('fr-FR',{maximumFractionDigits:2})+' ml disponibles':' · aucun stock sélectionné'}`);
             }
             try{DIYStock.plan(s.stockSelection,s.amounts,q,s.tauxBooster);state.stockStatus.classList.remove('stock-insuffisant');}
             catch(e){lines.push('Stock insuffisant ou incompatible : '+e.message);state.stockStatus.classList.add('stock-insuffisant');}
             state.stockStatus.textContent=lines.join('\n');
 
-        }catch(e){state.output.textContent=e.message;state.stockStatus.textContent='';}
+        }catch(e){state.output.textContent=e.message;state.stockStatus.textContent='';if(state.additiveSummary)state.additiveSummary.textContent='';if(prefix==='recette')document.getElementById('calc-base').textContent='À vérifier';}
     }
     function load(prefix,recipe){
         const s=recipe?.coutDIY;
+        if(prefix!=='ajust')MyVapeUI.setFlavorSelect(document.getElementById(prefix==='recette'?'recette-saveurs':prefix==='prep'?'categorie-saveur':'categorie-saveur-direct'),recipe);
         refreshStock();
-        for(const key of Object.keys(names)){
+        for(const key of keysFor(prefix)){
             const p=s?.prix?.[key];const select=document.getElementById(`${prefix}-stock-${key}`);const id=s?.stockSelection?.[key]||'';if(id&&!Array.from(select.options).some(o=>o.value===id))select.add(new Option('Lot introuvable — choisir un autre ingrédient',id));select.value=id;
             document.getElementById(`${prefix}-nom-${key}`).value=p?.nom??'';document.getElementById(`${prefix}-prix-${key}`).value=p?.prix??'';
-            document.getElementById(`${prefix}-pack-${key}`).value=p?(key==='booster'?p.volume/10:p.volume):(key==='arome'?30:key==='base'?1000:1);
+            document.getElementById(`${prefix}-pack-${key}`).value=p?(key==='booster'?p.volume/10:p.volume):(key==='arome'?30:key==='base'?1000:key==='booster'?1:10);
         }
         document.getElementById(`${prefix}-unite-base`).value='ml';
         if(prefix==='prep'||prefix==='direct')document.getElementById(prefix+'-taux-booster').value=s?.tauxBooster??20;
         if(prefix==='direct')document.getElementById('direct-arome').value=recipe?.arome??0;
+        if(prefix!=='ajust'){
+            for(const key of additives){
+                document.getElementById(`${prefix}-gouttes-${key}`).value=recipe?.additifs?.[key]?.gouttes??'';
+                document.getElementById(`${prefix}-conversion-${key}`).value=recipe?.additifs?.[key]?.gouttesParMl??'';
+            }
+            states[prefix].additiveBox.open=Object.keys(recipe?.additifs||{}).length>0;
+            states[prefix].lastVolume=Number(value(volumeId(prefix)));
+        }
         applyStock(prefix);preview(prefix);
     }
     function purchases(prices,date,selection){
@@ -147,21 +185,41 @@ const DIYCosts=(()=>{
         const note=document.createElement('p');note.className='texte-secondaire';note.textContent='Choisis tes ingrédients en stock pour retrouver leur prix. Le coût théorique est calculé sans dépense. Enregistrer une recette ne consomme rien ; seule une préparation réelle décompte les quantités.';root.append(note);
         const manage=document.createElement('button');manage.type='button';manage.className='btn-secondaire';manage.textContent='Ajouter un ingrédient au stock';manage.onclick=()=>DIYStock.addDialog();root.append(manage);
         const units={},manuals={};
-        for(const [key,label] of Object.entries(names)){
-            const select=field(root,`${prefix}-stock-${key}`,label+' — mon stock',null,'',[['','Sans suivi du stock / prix manuel']]);select.addEventListener('change',()=>{applyStock(prefix);preview(prefix);});
+        const additiveBox=document.createElement('details');additiveBox.className='diy-additifs';
+        const heading=document.createElement('summary');heading.textContent='Additifs frais / sucré (facultatif)';additiveBox.append(heading);
+        const help=document.createElement('p');help.className='texte-secondaire';help.textContent='Indique les gouttes par flacon et la conversion indiquée pour ton produit (gouttes pour 1 ml). Il n’existe pas de conversion universelle. Tu peux utiliser les deux additifs.';additiveBox.append(help);
+        const additiveSummary=document.createElement('p');additiveSummary.className='texte-secondaire';
+        for(const key of keysFor(prefix)){
+            const label=names[key],container=additives.includes(key)?additiveBox:root;
+            if(additives.includes(key)){
+                field(container,`${prefix}-gouttes-${key}`,label+' — gouttes par flacon (facultatif)','number','');
+                field(container,`${prefix}-conversion-${key}`,'Gouttes pour 1 ml de cet additif','number','');
+                const buy=document.createElement('button');buy.type='button';buy.className='btn-secondaire';buy.textContent='Ajouter un achat / stock — '+label;buy.onclick=()=>DIYStock.addDialog(key);container.append(buy);
+            }
+            const select=field(container,`${prefix}-stock-${key}`,label+' — mon stock',null,'',[['','Sans suivi du stock / prix manuel']]);select.addEventListener('change',()=>{applyStock(prefix);preview(prefix);});
             const details=document.createElement('details');manuals[key]=details;const summary=document.createElement('summary');summary.textContent=label+' — prix manuel (facultatif)';details.append(summary);
             field(details,`${prefix}-nom-${key}`,'Nom du produit (facultatif)','text','').maxLength=120;
-            field(details,`${prefix}-pack-${key}`,key==='booster'?'Nombre de boosters de 10 ml dans le conditionnement':'Contenance du flacon acheté', 'number',key==='arome'?30:key==='base'?1000:1);
+            field(details,`${prefix}-pack-${key}`,key==='booster'?'Nombre de boosters de 10 ml dans le conditionnement':'Contenance du flacon acheté', 'number',key==='arome'?30:key==='base'?1000:key==='booster'?1:10);
             if(key==='base')field(details,`${prefix}-unite-base`,'Unité',null,'ml',[['ml','ml'],['l','L']]);
             field(details,`${prefix}-prix-${key}`,key==='booster'?'Prix du booster ou de la boîte entière (€)':'Prix du flacon entier (€)','number','');
-            units[key]=document.createElement('p');units[key].className='texte-secondaire';details.append(units[key]);root.append(details);
+            units[key]=document.createElement('p');units[key].className='texte-secondaire';details.append(units[key]);container.append(details);
         }
+        if(prefix!=='ajust'){root.append(additiveBox,additiveSummary);}
         if(prefix==='ajust')field(root,'ajust-cout-initial','Coût du mélange existant, par flacon (€, facultatif)','number','');
         const output=document.createElement('p');output.className='cout-diy-total';output.setAttribute('aria-live','polite');root.append(output);
         const stockStatus=document.createElement('p');stockStatus.className='stock-disponibilite';stockStatus.setAttribute('role','status');root.append(stockStatus);
-        const anchor=parent.querySelector(beforeSelector);if(anchor)anchor.before(root);else parent.append(root);states[prefix]={root,output,units,manuals,stockStatus};
+        const anchor=parent.querySelector(beforeSelector);if(anchor)anchor.before(root);else parent.append(root);states[prefix]={root,output,units,manuals,stockStatus,additiveBox,additiveSummary};
+        if(prefix!=='ajust'){
+            const input=document.getElementById(volumeId(prefix));states[prefix].lastVolume=Number(input.value);
+            input.addEventListener('input',()=>{
+                const next=Number(input.value),previous=states[prefix].lastVolume;
+                if(next>0&&previous>0){for(const key of additives){const drops=document.getElementById(`${prefix}-gouttes-${key}`);if(drops.value!=='')drops.value=Number((Number(drops.value)*next/previous).toFixed(8));}}
+                if(next>0)states[prefix].lastVolume=next;
+            });
+        }
         parent.addEventListener('input',()=>preview(prefix));parent.addEventListener('change',()=>preview(prefix));preview(prefix);
     }
+    function volumeId(prefix){return prefix==='recette'?'recette-volume':prefix==='prep'?'volume':'volume-direct';}
     function refreshTargets(){
         const select=document.getElementById('ajust-flacon-cible');if(!select)return;const previous=select.value;
         select.replaceChildren(new Option('Calcul seul — aucun flacon modifié',''));
@@ -192,14 +250,18 @@ const DIYCosts=(()=>{
     }
     function applyStock(prefix){
         const lots=DIYStock.readLots(),state=states[prefix];
-        for(const key of Object.keys(names)){const id=value(`${prefix}-stock-${key}`);state.manuals[key].hidden=!!id;}
+        for(const key of keysFor(prefix)){const id=value(`${prefix}-stock-${key}`);state.manuals[key].hidden=!!id;}
+        if(prefix!=='ajust')for(const key of additives){
+            const input=document.getElementById(`${prefix}-conversion-${key}`),lot=lots.find(l=>l.id===value(`${prefix}-stock-${key}`));
+            input.readOnly=!!lot?.gouttesParMl;if(lot?.gouttesParMl)input.value=lot.gouttesParMl;
+        }
         const rateInput=document.getElementById(prefix==='recette'?'recette-taux-booster':prefix==='ajust'?'ajust-taux-booster':prefix+'-taux-booster');
         const lot=lots.find(l=>l.id===value(`${prefix}-stock-booster`));rateInput.readOnly=!!lot;if(lot)rateInput.value=lot.tauxBooster;
     }
     function refreshStock(){
         const lots=DIYStock.readLots();
         for(const prefix of Object.keys(states)){
-            for(const key of Object.keys(names)){
+            for(const key of keysFor(prefix)){
                 const select=document.getElementById(`${prefix}-stock-${key}`),previous=select.value;
                 select.replaceChildren(new Option('Sans suivi du stock / prix manuel',''));
                 for(const lot of lots.filter(l=>l.type===key))select.add(new Option(`${lot.nom} · ${lot.volumeRestant.toLocaleString('fr-FR',{maximumFractionDigits:2})} ml${lot.type==='booster'?' · '+lot.tauxBooster+' mg/ml':''} · lot du ${new Date(lot.dateAchat+'T12:00:00').toLocaleDateString('fr-FR')}${lot.volumeRestant===0?' (épuisé)':''}`,lot.id));
@@ -224,5 +286,5 @@ const DIYCosts=(()=>{
         refreshStock();
     }
     document.addEventListener('DOMContentLoaded',init);
-    return {dosages,cost,attach,snapshot,preview,confirmPurchases,purchases,persist,load,refreshStock};
+    return {dosages,withAdditives,amounts,cost,attach,snapshot,preview,confirmPurchases,purchases,persist,load,refreshStock};
 })();

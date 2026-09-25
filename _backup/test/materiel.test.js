@@ -75,3 +75,25 @@ test('failed archive save leaves previous state intact',()=>{
  const t=setup();t.ctx.localStorage.setItem=()=>{throw Error('quota');};
  assert.throws(()=>t.gear.setArchived(t.device,t.config,true));assert.equal(t.gear.find(t.config).config.archivee,undefined);
 });
+const expertValues={...config,systeme:'Reconstructible',ohms:'0.357',dateCoton:'2026-09-12',expert:{atomiseur:'Mon RTA',famille:'RTA',source:'Coil fabriqué soi-même',montage:'Double coil',matiere:'SS316L',construction:'Fused Clapton',diametreFil:0.32,diametreInterieur:3,spires:5.5,coton:'Coton test',airflow:'Mi-ouvert',personnalisation:'Référence personnelle'}};
+test('expert measurements and cotton date survive backup without changing legacy configurations',()=>{
+ const t=setup(),id=t.gear.upsertConfiguration(t.device,expertValues);t.gear.associate('f1',id);
+ const other=boot();restore(other.ctx.localStorage,capture(t.ctx.localStorage));const c=other.gear.find(id).config;
+ assert.equal(c.ohms,.357);assert.equal(c.expert.spires,5.5);assert.equal(c.expert.montage,'Double coil');assert.equal(c.dateCoton,'2026-09-12');
+ assert.equal(other.gear.find(t.config).config.ohms,1.2);
+ const snap=capture(t.ctx.localStorage),devices=JSON.parse(snap.data.vt_materiel);devices[0].configurations[1].expert.diametreInterieur=-3;snap.data.vt_materiel=JSON.stringify(devices);assert.throws(()=>validate(snap));
+});
+test('cotton and coil dates remain independent, shared across bottles, frozen in history',()=>{
+ const t=setup(),id=t.gear.upsertConfiguration(t.device,expertValues);t.gear.associate('f1',id);t.gear.associate('f2',id);
+ t.gear.setCotton(id,'2026-09-22');assert.equal(t.gear.resistanceDate(t.ctx.flacons[0]),'2026-09-10');assert.equal(t.gear.find(t.ctx.flacons[1].materielConfigurationId).config.dateCoton,'2026-09-22');
+ t.gear.freeze(t.ctx.flacons[0]);t.ctx.flacons[0].termine=true;t.gear.setResistance(id,'2026-09-24');t.gear.setCotton(id,'2026-09-25');
+ assert.equal(t.ctx.flacons[0].materielDateCoton,'2026-09-22');assert.equal(t.gear.resistanceDate(t.ctx.flacons[0]),'2026-09-10');assert.match(t.ctx.flacons[0].materielResume,/Mon RTA · Double coil/);
+ assert.equal(t.gear.resistanceDate(t.ctx.flacons[1]),'2026-09-24');
+});
+test('invalid expert data and archived maintenance never modify storage',()=>{
+ const t=setup(),id=t.gear.upsertConfiguration(t.device,expertValues),before=t.data.get('vt_materiel');
+ assert.throws(()=>t.gear.upsertConfiguration(t.device,{...expertValues,dateCoton:'2026-02-30'},id));
+ assert.throws(()=>t.gear.upsertConfiguration(t.device,{...expertValues,expert:{...expertValues.expert,matiere:'unknown'}},id));assert.equal(t.data.get('vt_materiel'),before);
+ assert.throws(()=>t.gear.setCotton(t.config,'2026-09-25'));
+ t.gear.setArchived(t.device,id,true);assert.throws(()=>t.gear.setCotton(id,'2026-09-25'));assert.equal(t.gear.find(id).config.dateCoton,'2026-09-12');
+});

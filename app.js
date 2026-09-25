@@ -1068,43 +1068,43 @@ function sauvegarderConfig() {
 }
 
 let sauvegardeRecetteEnCours=false;
+let recetteEditionId=null;
+function reinitialiserRecette(){
+    recetteEditionId=null;
+    for(const [id,v] of Object.entries({'recette-nom':'','recette-volume':50,'recette-nicotine':6,'recette-arome':15,'recette-taux-booster':20,'recette-steep-days':''}))document.getElementById(id).value=v;
+    document.querySelector('#form-recette h3').textContent='Nouvelle recette DIY';
+    document.querySelector('#form-recette button.btn-primaire').textContent='Sauvegarder la recette';
+    DIYCosts.load('recette',null);calculerDosagesDIY();DIYCosts.preview('recette');
+}
+function modifierRecette(id){
+    const r=recettes.find(r=>r.id===id);if(!r)return;
+    document.getElementById('tab-mode-creer').click();
+    recetteEditionId=id;
+    for(const [field,v] of Object.entries({'recette-nom':r.nom,'recette-volume':r.volumeTotal??50,'recette-nicotine':r.nicotine??0,'recette-arome':r.arome??0,'recette-taux-booster':r.coutDIY?.tauxBooster??20,'recette-steep-days':r.steepDays??0}))document.getElementById(field).value=v;
+    document.querySelector('#form-recette h3').textContent='Modifier la recette DIY';
+    document.querySelector('#form-recette button.btn-primaire').textContent='Enregistrer les modifications';
+    DIYCosts.load('recette',r);calculerDosagesDIY();DIYCosts.preview('recette');
+    document.getElementById('form-recette').scrollIntoView({behavior:'smooth',block:'start'});
+}
 async function sauvegarderRecette() {
     if(sauvegardeRecetteEnCours)return;
-    const nomEl = document.getElementById('recette-nom');
-    const nom = nomEl ? nomEl.value.trim() : '';
-
-    if (!nom) {
-        alert('Veuillez donner un nom à votre recette.');
-        return;
-    }
-
-    const calcs = calculerDosagesDIY();
-    const steepDaysInput = parseInt(document.getElementById('recette-steep-days')?.value || 0, 10);
-
-    const nouvelleRecette = {
-        id: Date.now().toString(),
-        nom: nom,
-        type: document.getElementById('recette-type')?.value || 'DIY',
-        nicotine: parseFloat(document.getElementById('recette-nicotine')?.value) || 0,
-        arome: parseFloat(document.getElementById('recette-arome')?.value) || 0,
-        steepDays: Math.max(0, isNaN(steepDaysInput) ? 0 : steepDaysInput),
-        volumeTotal: calcs ? calcs.volTotal : 50,
-        volArome: calcs ? calcs.volArome : 0,
-        volBooster: calcs ? calcs.volBooster : 0,
-        nbrFioles: calcs ? calcs.nbrFiolesBooster : 0,
-        volBase: calcs ? calcs.volBase : 0
-    };
-
     sauvegardeRecetteEnCours=true;
     try {
-        const cout=DIYCosts.snapshot('recette');DIYCosts.attach(nouvelleRecette,cout);
-        DIYCosts.persist('vt_recettes',[nouvelleRecette,...recettes]);
-    }catch(e){alert(e.message);return;}finally{sauvegardeRecetteEnCours=false;}
-
-    document.getElementById('recette-nom').value = '';
-    document.getElementById('form-recette').classList.add('masque');
-    mettreAJourTout();
-    if (typeof MyVapeUI !== 'undefined') MyVapeUI.toast('Recette enregistrée');
+        const nom=document.getElementById('recette-nom').value.trim();
+        if(!nom||nom.length>120||/[<>]/.test(nom))throw Error('Indique un nom de recette valide (120 caractères maximum).');
+        const steepDays=Number(document.getElementById('recette-steep-days').value||0);
+        if(!Number.isSafeInteger(steepDays)||steepDays<0)throw Error('Indique un nombre entier de jours de maturation.');
+        const previous=recetteEditionId?recettes.find(r=>r.id===recetteEditionId):null;
+        if(recetteEditionId&&!previous)throw Error('Cette recette n’existe plus.');
+        const cout=DIYCosts.snapshot('recette'),a=cout.amounts;
+        const categoriesSaveurs=MyVapeUI.readFlavorSelect(document.getElementById('recette-saveurs'));
+        const recette=DIYCosts.attach({...previous,id:previous?.id??crypto.randomUUID(),nom,type:'DIY',categoriesSaveurs,categorieSaveur:categoriesSaveurs[0],
+            nicotine:Number(document.getElementById('recette-nicotine').value),arome:Number(document.getElementById('recette-arome').value),steepDays,
+            volumeTotal:a.volTotal,volArome:a.volArome,volBooster:a.volBooster,nbrFioles:a.volBooster/10,volBase:a.volBase},cout);
+        DIYCosts.persist('vt_recettes',previous?recettes.map(r=>r.id===previous.id?recette:r):[recette,...recettes]);
+        reinitialiserRecette();document.getElementById('form-recette').classList.add('masque');
+        mettreAJourTout();MyVapeUI.toast(previous?'Recette modifiée':'Recette enregistrée');
+    }catch(e){alert(e.message);}finally{sauvegardeRecetteEnCours=false;}
 }
 
 let sauvegardePreparationEnCours=false;
@@ -1161,6 +1161,7 @@ dateOuverture: null,
 
     document.getElementById('nom').value = '';
     document.getElementById('flacon-quantite').value = '1';
+    MyVapeSections.openReserve();
     mettreAJourTout();
     afficherEcran('ecran-accueil');
     if (typeof MyVapeUI !== 'undefined') MyVapeUI.toast(quantite > 1 ? `${quantite} flacons ajoutés à la réserve` : 'Flacon ajouté');
@@ -1482,6 +1483,7 @@ function afficherFlaconsEntames() {
 }
 
 function afficherReserveEtMaturation() {
+    if(typeof MyVapeSections!=='undefined')MyVapeSections.update(flacons);
     const conteneur = document.getElementById('liste-flacons-reserve');
     if (!conteneur) return;
 
@@ -1680,6 +1682,14 @@ function afficherRecettes() {
             </div>
         </div>
     `).join('');
+    Array.from(conteneur.children).forEach((card,index)=>{
+        const r=recettes[index];
+        for(const [key,a] of Object.entries(r.additifs||{})){
+            const info=document.createElement('p');info.className='texte-secondaire';
+            info.textContent=`${key==='frais'?'Additif frais':'Additif sucré'} : ${Number(a.gouttes).toLocaleString('fr-FR',{maximumFractionDigits:4})} gouttes (${(a.gouttes/a.gouttesParMl).toLocaleString('fr-FR',{maximumFractionDigits:4})} ml)`;card.append(info);
+        }
+        const edit=document.createElement('button');edit.type='button';edit.className='btn-secondaire';edit.textContent='Modifier';edit.onclick=()=>modifierRecette(r.id);card.append(edit);
+    });
 }
 
 function remplirSelectRecettes() {
@@ -1701,6 +1711,7 @@ function supprimerRecette(id) {
 }
 
 function afficherHistoriqueFlacons() {
+    if(typeof MyVapeSections!=='undefined')MyVapeSections.update(flacons);
     const conteneur = document.getElementById('liste-historique');
     if (!conteneur) return;
     const termines = flacons.filter(f => f.termine);
@@ -1975,8 +1986,8 @@ function afficherEcran(idEcran) {
 }
 const ECRANS_SWIPE = [
     'ecran-accueil',
-    'ecran-recettes',
     'ecran-materiel',
+    'ecran-recettes',
     'ecran-sante',
     'ecran-finances',
     'ecran-objectifs'
@@ -2093,6 +2104,7 @@ if (navSante) navSante.onclick = () => afficherEcran('ecran-sante');
         tabCreer.onclick = () => {
             tabCreer.classList.add('actif');
             tabAjuster.classList.remove('actif');
+            reinitialiserRecette();
             formRecette.classList.remove('masque');
             formAjustement.classList.add('masque');
             calculerDosagesDIY();
@@ -2187,6 +2199,7 @@ if (navSante) navSante.onclick = () => afficherEcran('ecran-sante');
     const btnAnnulerRec = document.getElementById('btn-annuler-recette');
     if (btnAnnulerRec && formRecette) {
         btnAnnulerRec.onclick = () => {
+            reinitialiserRecette();
             formRecette.classList.add('masque');
         };
     }

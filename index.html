@@ -19,7 +19,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;800&display=swap" rel="stylesheet">
     
     <link rel="manifest" href="manifest.json">
-    <link rel="stylesheet" href="style.css?v=gazette-v196">
+    <link rel="stylesheet" href="style.css?v=v204">
     <meta name="theme-color" content="#0b0e14">
 </head>
 <body>
@@ -90,7 +90,16 @@
         <!-- EN-TÊTE PRINCIPAL -->
         <header id="entete-app">
             <h1>MyVapePal <img class="icone-inline" src="./assets/menu/accueil.png" alt="" width="24" height="24"></h1>
-            <div class="entete-actions"><button id="btn-gazette" type="button" class="btn-icone-profil" aria-label="Ouvrir la Gazette"><svg aria-hidden="true" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M5 4h15v15a2 2 0 0 1-2 2H5a3 3 0 0 1-3-3V8h3zM5 8v10a1 1 0 0 1-2 0M8 8h8M8 12h3v4H8zM14 12h3M14 16h3"/></svg><span>Gazette</span></button><button id="btn-ouvrir-profil" type="button" class="btn-icone-profil">👤 Profil</button></div>
+            <div class="entete-actions">
+                <button id="btn-guide-vape" type="button" class="btn-icone-profil" aria-label="Ouvrir Comprendre la vape">
+                    <svg aria-hidden="true" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"><path d="M12 7v14M3 18h6a3 3 0 0 1 3 3 3 3 0 0 1 3-3h6V3h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3H3z"/></svg>
+                    <span>Guide vape</span>
+                </button>
+                <button id="btn-ouvrir-profil" type="button" class="btn-icone-profil">
+                    <svg aria-hidden="true" viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="5"/><path d="M20 21a8 8 0 0 0-16 0"/></svg>
+                    <span id="libelle-profil">Profil</span>
+                </button>
+            </div>
         </header>
 
         <!-- CONTENU PRINCIPAL -->
@@ -197,34 +206,41 @@
     </div>
 </div>
 
-                <!-- RÉSERVE ET MATURATION -->
-                <div id="section-flacons-reserve" style="margin-top: 20px;">
-                    <h2>Réserve & Maturation <img class="icone-flacon" src="./assets/menu/diy.png" alt="" width="24" height="24"></h2>
-                    <div id="liste-flacons-reserve"></div>
-                </div>
-
-                <!-- HISTORIQUE -->
-                <div style="margin-top: 20px;">
-                    <h2>Historique des flacons <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 36 28" width="32" height="25" aria-hidden="true" focusable="false" style="vertical-align:middle; margin-left:3px; color:var(--rose-sakura);"><path d="M3 23 C8 23 8 13 14 14 S21 21 25 12 S29 5 33 4 M27 2 L33 4 L31 10" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></h2>
-                    <div id="liste-historique"></div>
-                </div>
+                <!-- Sections secondaires repliables -->
+                <details id="section-flacons-reserve" class="accueil-repliable">
+                    <summary>
+                        <img class="repliable-icone" src="./assets/menu/diy.png" alt="" width="28" height="28">
+                        <span class="repliable-textes"><span class="repliable-titre">Réserve & maturation</span><span id="resume-reserve" class="repliable-resume">Aucun flacon en réserve</span></span>
+                        <span id="compteur-reserve" class="repliable-compteur">0</span>
+                        <span class="repliable-chevron" aria-hidden="true"></span>
+                    </summary>
+                    <div id="liste-flacons-reserve" class="repliable-contenu"></div>
+                </details>
+                <details id="section-historique-flacons" class="accueil-repliable">
+                    <summary>
+                        <svg class="repliable-icone" viewBox="0 0 36 28" width="28" height="28" aria-hidden="true"><path d="M3 23 C8 23 8 13 14 14 S21 21 25 12 S29 5 33 4 M27 2 L33 4 L31 10" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                        <span class="repliable-textes"><span class="repliable-titre">Historique des flacons</span><span id="resume-historique" class="repliable-resume">Aucun flacon terminé</span></span>
+                        <span id="compteur-historique" class="repliable-compteur">0</span>
+                        <span class="repliable-chevron" aria-hidden="true"></span>
+                    </summary>
+                    <div id="liste-historique" class="repliable-contenu"></div>
+                </details>
             </section>
 
             <!-- ÉCRAN PROFIL -->
 
-            <section id="ecran-gazette" class="ecran masque">
-                <button type="button" id="gazette-retour" class="btn-secondaire">← Retour</button>
-                <div class="gazette-masthead"><p class="gazette-kicker">La pause découverte</p><h2>La Gazette <img src="./assets/menu/accueil.png" width="36" height="36" alt=""></h2><p>Comprendre, découvrir, prendre soin de son matériel.</p></div>
-                <nav class="gazette-tabs" aria-label="Rubriques de la Gazette">
-                    <button type="button" data-gazette-mode="discover" aria-pressed="true">Le saviez-vous ?</button>
-                    <button type="button" data-gazette-mode="library" aria-pressed="false">Tout explorer</button>
-                    <button type="button" data-gazette-mode="favorites" aria-pressed="false">Mes favoris</button>
-                    <button type="button" data-gazette-mode="news" aria-pressed="false">Actus & rendez-vous</button>
+            <section id="ecran-guide-vape" class="ecran masque">
+                <button type="button" id="guide-retour" class="btn-secondaire">← Retour</button>
+                <div class="guide-masthead"><p class="guide-kicker">Des explications, à ton rythme</p><h2>Comprendre la vape</h2><p>Les liquides, le matériel et les gestes du quotidien, expliqués pas à pas.</p></div>
+                <nav id="guide-nav" class="guide-tabs" aria-label="Parcourir le guide">
+                    <button type="button" data-guide-mode="start" aria-pressed="true">Par où commencer ?</button>
+                    <button type="button" data-guide-mode="all" aria-pressed="false">Tous les articles</button>
+                    <button type="button" data-guide-mode="favorites" aria-pressed="false">Mes favoris</button>
                 </nav>
-                <div id="gazette-tools"><label>Thème<select id="gazette-category"></select></label><label>Rechercher<input id="gazette-search" type="search" placeholder="PG, résistance, entretien…"></label></div>
-                <p id="gazette-status" role="status"></p>
-                <div id="gazette-content"></div>
-                <p class="gazette-note">Des repères pour adultes déjà vapoteurs. Pour ton appareil, la notice du fabricant reste la référence. Ces lectures ne remplacent pas un conseil de santé personnalisé.</p>
+                <div id="guide-tools"><label>Thème<select id="guide-category"></select></label><label>Rechercher<input id="guide-search" type="search" placeholder="PG, nicotine, cartouche…"></label></div>
+                <p id="guide-status" role="status"></p>
+                <div id="guide-content"></div>
+                <p class="guide-note">Pour les adultes qui fument ou vapotent déjà. Si tu ne fumes pas, ne commence pas à vapoter. Pour l’arrêt du tabac ou une question de santé, un professionnel peut t’accompagner.</p>
             </section>
             <section id="ecran-profil" class="ecran masque">
                 <h2>Mon Profil 👤</h2>
@@ -372,6 +388,8 @@
                     <div class="groupe-champ" style="margin-top:10px;">
                         <label>Nom du liquide / de la recette</label>
                         <input type="text" id="recette-nom" placeholder="Ex: Alucard" required>
+                        <label for="recette-saveurs">Saveurs de la recette</label>
+                        <select id="recette-saveurs"><option value="autre">Autre</option></select>
                     </div>
 
                     <div class="grille-champs-2col">
@@ -676,7 +694,7 @@
                 <div id="liste-ingredients"></div>
             </section>
             <section id="ecran-materiel" class="ecran masque">
-                <h2><img class="icone-materiel" src="./assets/menu/materiel.png" alt="" width="36" height="36"> Mon matériel</h2>
+                <h2><img class="icone-materiel" src="./assets/menu/materiel.png?v=198" alt="" width="36" height="36"> Mon matériel</h2>
                 <p class="texte-secondaire">Ce que j’ai testé, ce que j’aime et ce que j’utilise avec mes liquides.</p>
                 <div id="contenu-materiel"></div>
             </section>
@@ -804,13 +822,13 @@
                 <img class="icone-menu" src="./assets/menu/accueil.png" alt="" width="27" height="27">
                 <span>Accueil</span>
             </button>
+            <button class="nav-item" id="nav-materiel" type="button">
+                <img class="icone-menu" src="./assets/menu/materiel.png?v=198" alt="" width="27" height="27">
+                <span>Matériel</span>
+            </button>
             <button class="nav-item" id="nav-recettes" type="button">
                 <img class="icone-menu" src="./assets/menu/diy.png" alt="" width="27" height="27">
                 <span>DIY</span>
-            </button>
-            <button class="nav-item" id="nav-materiel" type="button">
-                <img class="icone-menu" src="./assets/menu/materiel.png" alt="" width="27" height="27">
-                <span>Matériel</span>
             </button>
             <button class="nav-item" id="nav-sante" type="button">
                 <img class="icone-menu" src="./assets/saveurs/autre.png" alt="" width="27" height="27">
@@ -830,15 +848,17 @@
     <script src="push-storage.js?v=v138"></script>
     <div id="confirmation-action" role="status" aria-live="polite" aria-atomic="true"></div>
     <script src="backup-config.js?v=v153"></script>
-    <script src="backup.js?v=v164"></script>
-    <script src="enhancements.js?v=v191"></script>
+    <script src="backup.js?v=v203"></script>
+    <script src="enhancements.js?v=v200"></script>
     <script src="objectifs.js?v=v184"></script>
-    <script src="stock-diy.js?v=v195"></script>
-    <script src="app.js?v=v195"></script>
-    <script src="materiel.js?v=v193"></script>
+    <script src="stock-diy.js?v=v199"></script>
+    <script src="accueil-sections.js?v=v202"></script>
+    <script src="app.js?v=v202"></script>
+    <script src="materiel.js?v=v204"></script>
     <script src="flacons-edition.js?v=v194"></script>
-    <script src="diy-costs.js?v=v195"></script>
-    <script src="gazette.js?v=v196"></script>
+    <script src="diy-costs.js?v=v200"></script>
+    <script src="guide-articles.js?v=v197"></script>
+    <script src="guide-vape.js?v=v197"></script>
     <script src="push.js?v=v156"></script>
 </body>
 </html>

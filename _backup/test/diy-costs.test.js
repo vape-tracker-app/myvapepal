@@ -51,3 +51,39 @@ test('standalone adjustment purchases update finance state and invalid backup pr
  const t=boot(),buys=t.cost.purchases(prices,'2026-09-24',{booster:2});t.cost.persist('vt_depenses',buys);assert.equal(t.ctx.depenses[0].montant,20);
  const bad={version:1,data:{vt_flacons:JSON.stringify([{coutDIY:{tauxBooster:20,prix:{base:{volume:0,prix:10}}}}])}};assert.throws(()=>validate(bad));
 });
+test('fresh and sweet drops preserve total volume and price only consumed millilitres',()=>{
+ const {cost:c}=boot();const additifs={frais:{gouttes:20,gouttesParMl:20},sucre:{gouttes:10,gouttesParMl:25}};
+ const a=c.withAdditives(c.dosages(50,6,15,20),additifs);
+ assert.equal(a.volFrais,1);assert.equal(a.volSucre,.4);assert.equal(a.volBase,26.1);
+ assert.equal(a.volBase+a.volArome+a.volBooster+a.volFrais+a.volSucre,50);
+ const result=c.cost(a,{...prices,frais:{volume:10,prix:5},sucre:{volume:10,prix:3}});
+ assert.ok(Math.abs(result.total-5.756)<1e-10);assert.equal(result.partial,false);
+ assert.equal(c.cost(a,prices).partial,true);
+ assert.throws(()=>c.withAdditives(c.dosages(50,6,15,20),{frais:{gouttes:20,gouttesParMl:0}}));
+ assert.throws(()=>c.withAdditives(c.dosages(50,6,15,20),{frais:{gouttes:1000,gouttesParMl:20}}));
+});
+test('optional additive metadata and prices survive backup; invalid conversion is refused',()=>{
+ const t=boot(),additifs={frais:{gouttes:20,gouttesParMl:20}},a=t.cost.withAdditives(t.cost.dosages(50,6,15,20),additifs);
+ const r=t.cost.attach({id:'r',nom:'Frais'},{prices:{...prices,frais:{volume:10,prix:5}},amounts:a,...t.cost.cost(a,prices),tauxBooster:20,additifs});
+ t.cost.persist('vt_recettes',[r]);const other=boot();restore(other.ctx.localStorage,capture(t.ctx.localStorage));
+ assert.equal(JSON.parse(other.data.get('vt_recettes'))[0].additifs.frais.gouttes,20);
+ const snap=capture(t.ctx.localStorage);r.additifs.frais.gouttesParMl=0;snap.data.vt_recettes=JSON.stringify([r]);assert.throws(()=>validate(snap));
+});
+test('editing replaces same recipe, recalculates base, and never mutates bottles or finances',async()=>{
+ const t=boot();const inputs={'recette-nom':'Recette corrigée','recette-steep-days':'7','recette-nicotine':'6','recette-arome':'15'};
+ t.ctx.document.getElementById=id=>({value:inputs[id],classList:{add(){}}});
+ t.ctx.recettes=[{id:'original',nom:'Ancienne',coutFlacon:99}];t.ctx.flacons=[{id:'b',nom:'Ancienne',coutFlacon:99}];
+ t.ctx.mettreAJourTout=()=>{};t.ctx.MyVapeUI={toast(){},readFlavorSelect:()=>['fruite','frais']};t.ctx.alert=message=>{throw Error(message)};
+ const additifs={frais:{gouttes:20,gouttesParMl:20}},a=t.cost.withAdditives(t.cost.dosages(50,6,15,20),additifs);
+ t.cost.snapshot=()=>({prices:{},amounts:a,...t.cost.cost(a,{}),tauxBooster:20,additifs});
+ const code=readFileSync(new URL('../../app.js',import.meta.url),'utf8');vm.runInContext(code.slice(code.indexOf('let sauvegardeRecetteEnCours='),code.indexOf('let sauvegardePreparationEnCours=')),t.ctx);
+ vm.runInContext('reinitialiserRecette=()=>{};recetteEditionId="original";',t.ctx);
+ await t.ctx.sauvegarderRecette();assert.equal(t.ctx.recettes.length,1);assert.equal(t.ctx.recettes[0].id,'original');assert.deepEqual(Array.from(t.ctx.recettes[0].categoriesSaveurs),['fruite','frais']);assert.equal(t.ctx.recettes[0].volBase,26.5);assert.equal(t.ctx.recettes[0].coutFlacon,undefined);
+ assert.equal(t.ctx.flacons[0].coutFlacon,99);assert.equal(t.ctx.depenses.length,0);assert.equal(t.data.has('vt_stock_diy'),false);
+});
+test('recipe flavors round-trip with legacy recipes and reject unknown categories',()=>{
+ const t=boot();t.cost.persist('vt_recettes',[{id:'old',nom:'Ancienne'},{id:'new',nom:'Fruit frais',categoriesSaveurs:['fruite','frais'],categorieSaveur:'fruite'}]);
+ const other=boot();restore(other.ctx.localStorage,capture(t.ctx.localStorage));
+ assert.deepEqual(JSON.parse(other.data.get('vt_recettes'))[1].categoriesSaveurs,['fruite','frais']);
+ const bad=capture(t.ctx.localStorage);bad.data.vt_recettes=JSON.stringify([{id:'bad',categoriesSaveurs:['inconnue']}]);assert.throws(()=>validate(bad));
+});

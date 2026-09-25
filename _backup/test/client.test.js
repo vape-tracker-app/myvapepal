@@ -36,3 +36,10 @@ test('unverified email never reads or uploads backups',async()=>{
  assert.match(s.elements['backup-status'].textContent,/Vérifie ton adresse/);assert.equal(s.puts,0);assert.equal(s.elements['backup-verification'].hidden,false);
  await s.run('save()');assert.equal(s.puts,0);
 });
+
+test('profile label follows account state without replacing its icon',async()=>{
+ const s=setup({stored});await s.run('init()');await s.run('reconcile()');
+ assert.equal(s.elements['libelle-profil'].textContent,'Test');
+ assert.equal(s.elements['btn-ouvrir-profil'],undefined);
+ await s.run('signout()');assert.equal(s.elements['libelle-profil'].textContent,'Profil');
+});

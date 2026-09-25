@@ -308,36 +308,64 @@ body {
     }
 }
 
-/* En-tête */
+/* En-tête : signature centrée et deux accès équilibrés. */
 #entete-app {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-top: 4px;
-    margin-bottom: 12px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    padding:26px 20px 18px;
+    margin:4px 0 12px;
+    border-radius:24px 24px 0 0;
+    background:radial-gradient(ellipse at 50% 0%,#29202d 0%,#131824 48%,var(--bg-principal) 100%);
 }
-
+#entete-app::after {
+    content:"";
+    width:100%;
+    height:1px;
+    margin-top:22px;
+    background:linear-gradient(90deg,transparent,#f6b5ca65,transparent);
+}
 #entete-app h1 {
-    font-family: 'Cinzel', serif;
-    font-size: 1.4rem;
-    color: var(--rose-sakura);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:10px;
+    margin:0 0 24px;
+    font-family:'Cinzel',serif;
+    font-weight:600;
+    font-size:clamp(1.65rem,7vw,2.125rem);
+    line-height:1.2;
+    letter-spacing:-.6px;
+    color:var(--rose-sakura);
+    white-space:nowrap;
 }
-
+#entete-app h1 .icone-inline { width:32px; height:32px; flex:none; }
+.entete-actions { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:12px; width:100%; }
 .btn-icone-profil {
-    background: rgba(255, 255, 255, 0.08);
-    border: 1px solid rgba(255, 255, 255, 0.15);
-    color: #e6edf3;
-    padding: 6px 14px;
-    border-radius: 20px;
-    font-size: 0.82rem;
-    font-weight: 600;
-    cursor: pointer;
-    backdrop-filter: blur(8px);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:10px;
+    min-width:0;
+    min-height:52px;
+    padding:11px 12px;
+    background:#1b202c;
+    border:1px solid #f6b5ca26;
+    border-radius:18px;
+    color:var(--texte-principal);
+    font-size:15px;
+    font-weight:500;
+    line-height:1.2;
+    cursor:pointer;
 }
-
-.btn-icone-profil:active {
-    background: rgba(255, 183, 197, 0.2);
-    border-color: #ffb7c5;
+.btn-icone-profil svg { width:22px; height:22px; flex:none; }
+.btn-icone-profil span { min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+#btn-guide-vape { color:var(--rose-sakura); background:#251f2c; }
+.btn-icone-profil:hover,.btn-icone-profil:focus-visible,.btn-icone-profil:active { border-color:#f6b5ca80; background:#302738; }
+@media(max-width:350px) {
+    #entete-app { padding-left:12px; padding-right:12px; }
+    .entete-actions { gap:8px; }
+    .btn-icone-profil { gap:7px; padding:10px 8px; font-size:14px; }
 }
 
 /* Cadre Arbre & Animations Sakura */
@@ -776,7 +804,7 @@ input:focus, select:focus {
 #backup-status { font-size:.85rem; color:var(--rose-sakura); }
 #backup-choice { border-top:1px solid var(--border-carte); margin-top:14px; padding-top:8px; }
 
-#btn-ouvrir-profil { max-width:48%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+
 
 /* Maturation : jauge fine assortie à la couleur du flacon. */
 .box-steep-live { margin-top:16px; }
@@ -1117,31 +1145,96 @@ input:focus, select:focus {
 .stock-insuffisant { color: #ffb38a; border-left: 3px solid #ffb38a; padding-left: 10px; }
 .cout-diy [hidden] { display: none !important; }
 
-/* Gazette : une lecture calme, sans animation supplémentaire. */
-#entete-app { flex-wrap:wrap; gap:8px; }
-.entete-actions { display:flex; align-items:center; gap:8px; margin-left:auto; max-width:100%; }
-#btn-gazette { display:inline-flex; align-items:center; gap:6px; color:var(--rose-sakura); }
-#btn-ouvrir-profil { overflow-wrap:anywhere; }
-#ecran-gazette { padding-bottom:110px; }
-.gazette-masthead { padding:24px 0 20px; margin-bottom:16px; border-bottom:1px solid #ffb7c540; }
-.gazette-masthead h2 { font-family:'Cinzel',serif; color:var(--rose-sakura); display:flex; align-items:center; gap:10px; }
-.gazette-masthead p { color:#c4c9d1; }
-.gazette-kicker { color:var(--rose-sakura)!important; font-size:.78rem; letter-spacing:.06em; margin-bottom:10px; }
-.gazette-tabs { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:20px; }
-.gazette-tabs button { border:1px solid #ffffff20; background:#171e29; color:#dce0e6; padding:10px 13px; border-radius:20px; font:inherit; font-size:.85rem; cursor:pointer; }
-.gazette-tabs button[aria-pressed="true"] { color:#ffbed2; background:#ffb7c51c; border-color:#ffb7c580; }
-#gazette-tools { display:grid; grid-template-columns:1fr 1.5fr; gap:12px; margin-bottom:20px; }
-#gazette-tools[hidden] { display:none; }
-#gazette-tools label { min-width:0; color:#b5bec9; font-size:.85rem; }
-#gazette-tools input,#gazette-tools select { width:100%; margin-top:8px; box-sizing:border-box; }
-.gazette-card { padding:24px; margin:16px 0; }
-.gazette-featured { background:linear-gradient(145deg,#2c202c,#141b24 75%); border:1px solid #ffb7c555; }
-.gazette-card h3 { font-size:1.25rem; line-height:1.4; margin:0 0 16px; }
-.gazette-body { color:#d9dee5; line-height:1.8; font-size:1rem; margin:0 0 18px; }
-.gazette-source { font-size:.76rem; line-height:1.6; color:#aab4c3; margin-bottom:18px; }
-.gazette-card a { color:#ecadc0; text-underline-offset:3px; }
-.gazette-card button { font-size:.85rem; }
-.gazette-card button[aria-pressed="true"] { color:#ffb7c5; border-color:#ffb7c580; }
-#gazette-content > button { margin:6px 6px 6px 0; }
-.gazette-note { color:#99a4b3; font-size:.75rem; line-height:1.7; margin-top:28px; }
-@media(max-width:380px) { #gazette-tools { grid-template-columns:1fr; } .gazette-card { padding:18px; } }
+/* Guide : une lecture calme, sans animation supplémentaire. */
+#ecran-guide-vape { padding-bottom:110px; }
+.guide-masthead { padding:24px 0 20px; margin-bottom:16px; border-bottom:1px solid #ffb7c540; }
+.guide-masthead h2 { font-family:'Cinzel',serif; color:var(--rose-sakura); display:flex; align-items:center; gap:10px; }
+.guide-masthead p { color:#c4c9d1; }
+.guide-kicker { color:var(--rose-sakura)!important; font-size:.78rem; letter-spacing:.06em; margin-bottom:10px; }
+.guide-tabs { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:20px; }
+.guide-tabs button { border:1px solid #ffffff20; background:#171e29; color:#dce0e6; padding:10px 13px; border-radius:20px; font:inherit; font-size:.85rem; cursor:pointer; }
+.guide-tabs button[aria-pressed="true"] { color:#ffbed2; background:#ffb7c51c; border-color:#ffb7c580; }
+#guide-tools { display:grid; grid-template-columns:1fr 1.5fr; gap:12px; margin-bottom:20px; }
+#guide-tools[hidden] { display:none; }
+#guide-tools label { min-width:0; color:#b5bec9; font-size:.85rem; }
+#guide-tools input,#guide-tools select { width:100%; margin-top:8px; box-sizing:border-box; }
+.guide-card { padding:24px; margin:16px 0; }
+.guide-featured { background:linear-gradient(145deg,#2c202c,#141b24 75%); border:1px solid #ffb7c555; }
+.guide-card h3 { font-size:1.25rem; line-height:1.4; margin:0 0 16px; }
+.guide-body { color:#d9dee5; line-height:1.8; font-size:1rem; margin:0 0 18px; }
+.guide-source { font-size:.76rem; line-height:1.6; color:#aab4c3; margin-bottom:18px; }
+.guide-card a { color:#ecadc0; text-underline-offset:3px; }
+.guide-card button { font-size:.85rem; }
+.guide-card button[aria-pressed="true"] { color:#ffb7c5; border-color:#ffb7c580; }
+#guide-content > button { margin:6px 6px 6px 0; }
+.guide-note { color:#99a4b3; font-size:.75rem; line-height:1.7; margin-top:28px; }
+@media(max-width:380px) { #guide-tools { grid-template-columns:1fr; } .guide-card { padding:18px; } }
+/* Articles longs : sommaire interne, chapitres et lecture aérée. */
+.guide-tabs[hidden] { display:none; }
+.guide-masthead h2 { font-size:1.65rem; }
+.guide-card h4 { margin:0 0 12px; }
+.guide-article-title { font:inherit; font-size:1.18rem; font-weight:700; text-align:left; line-height:1.45; color:#edf1f6; background:none; border:0; padding:0; cursor:pointer; }
+.guide-summary { line-height:1.65; color:#bbc4d1; margin-bottom:16px; }
+.guide-favorite-badge { color:#ffb7c5; margin-left:12px; font-size:.8rem; }
+.guide-reader { max-width:680px; margin:0 auto; overflow-wrap:anywhere; }
+.guide-reader > h3 { font-size:1.65rem; line-height:1.35; margin-bottom:18px; }
+.guide-deck { color:#c2cbd7; font-size:1.05rem; line-height:1.7; margin-bottom:18px; }
+.guide-sommaire { margin:26px 0; padding:20px; background:#ffb7c50b; border:1px solid #ffb7c530; border-radius:18px; }
+.guide-sommaire p { color:#ffb7c5; font-weight:600; margin-bottom:10px; }
+.guide-chapter-link { display:block; width:100%; padding:9px 0; border:0; background:none; text-align:left; color:#d7dfe9; font:inherit; font-size:.92rem; cursor:pointer; }
+.guide-reader section { margin:28px 0; }
+.guide-reader h4 { color:#f5c5d2; font-size:1.15rem; line-height:1.5; margin:24px 0 14px; scroll-margin-top:20px; }
+.guide-reader section p { color:#dce2e9; font-size:1rem; line-height:1.85; margin:0 0 18px; }
+.guide-reader h3:focus,.guide-reader h4:focus { outline:2px solid #ffb7c580; outline-offset:5px; border-radius:3px; }
+.guide-takeaway { padding:20px; border-left:3px solid #ffb7c5; border-radius:0 14px 14px 0; background:#ffb7c50e; margin:26px 0; }
+.guide-takeaway strong { color:#ffb7c5; }
+.guide-takeaway p { margin-top:10px; line-height:1.7; }
+.guide-references { margin:24px 0; color:#aab6c6; font-size:.8rem; line-height:1.7; }
+.guide-references summary { cursor:pointer; }
+.guide-references ul { padding-left:20px; }
+.guide-related { display:block; width:100%; text-align:left; margin:12px 0; }
+.guide-list-title { margin:18px 0 10px; }
+@media(max-width:380px) { .guide-reader > h3 {font-size:1.4rem;} .guide-masthead h2 {font-size:1.45rem;} }
+
+/* Dosages facultatifs, regroupés pour conserver un formulaire lisible. */
+.diy-additifs { margin: 16px 0; padding: 12px; border: 1px solid rgba(255,174,203,.22); border-radius: 12px; }
+.diy-additifs > summary { color: var(--rose, #f4b4ca); font-weight: 600; cursor: pointer; }
+.diy-additifs .groupe-champ { margin-top: 10px; }
+
+/* Accueil : réserve et historique accessibles sans encombrer les flacons ouverts. */
+.accueil-repliable { margin-top:16px; border:1px solid #f6b5ca25; border-radius:20px; background:linear-gradient(115deg,#181e2b,#171a24); overflow:hidden; }
+.accueil-repliable > summary { display:flex; align-items:center; gap:10px; padding:17px 14px; list-style:none; cursor:pointer; min-height:76px; }
+.accueil-repliable > summary::-webkit-details-marker { display:none; }
+.accueil-repliable > summary:focus-visible { outline:2px solid var(--rose-sakura); outline-offset:-4px; border-radius:20px; }
+.repliable-icone { width:28px; height:28px; flex:none; object-fit:contain; color:var(--rose-sakura); }
+.repliable-textes { flex:1; min-width:0; }
+.repliable-titre { display:block; font-size:1rem; font-weight:600; line-height:1.3; color:var(--texte-principal); }
+.repliable-resume { display:block; font-size:.78rem; line-height:1.45; color:#b4bbc6; margin-top:4px; }
+.repliable-compteur { flex:none; min-width:26px; padding:4px 7px; text-align:center; border-radius:20px; background:#f6b5ca14; color:var(--rose-sakura); font-size:.8rem; font-variant-numeric:tabular-nums; }
+.repliable-chevron { flex:none; width:8px; height:8px; border-right:1.5px solid var(--rose-sakura); border-bottom:1.5px solid var(--rose-sakura); transform:rotate(45deg); margin:0 2px 4px 1px; }
+.accueil-repliable[open] > summary .repliable-chevron { transform:rotate(225deg); margin-top:5px; }
+.accueil-repliable[open] > summary { border-bottom:1px solid #f6b5ca18; }
+.repliable-contenu { padding:12px; }
+.repliable-contenu > .carte:last-child { margin-bottom:0; }
+.repliable-contenu > .texte-vide { margin:4px 0; }
+
+/* Le carnet expert reste facultatif et compact. */
+.materiel-expert { margin:14px 0; padding:12px; border:1px solid #f6b5ca25; border-radius:14px; background:#1b202c; }
+.materiel-expert > summary { color:var(--rose-sakura); cursor:pointer; font-weight:600; }
+.materiel-expert > p { margin-top:10px; }
+.dialog-flacon-edition [hidden] { display:none !important; }
+
+/* Choix illustré et fiches compactes du carnet matériel. */
+.icone-appareil { width:52px; height:52px; flex:0 0 52px; object-fit:contain; display:inline-flex; align-items:center; justify-content:center; font-size:32px; }
+.champ-appareil { margin-top:8px; width:100%; }
+.actions-choix-appareil { display:grid; gap:10px; margin-top:18px; }
+.materiel-repliable { border:1px solid #f6b5ca25; border-radius:20px; background:linear-gradient(115deg,#181e2b,#171a24); overflow:hidden; }
+.materiel-repliable > summary { display:flex; align-items:center; gap:12px; padding:16px; min-height:80px; cursor:pointer; list-style:none; }
+.materiel-repliable > summary::-webkit-details-marker { display:none; }
+.materiel-repliable > summary:focus-visible { outline:2px solid var(--rose-sakura); outline-offset:-4px; border-radius:20px; }
+.materiel-entete-texte { flex:1; min-width:0; display:grid; gap:5px; overflow-wrap:anywhere; }
+.materiel-entete-texte strong { font-size:1.2rem; color:var(--rose-sakura); }
+.materiel-entete-texte .texte-secondaire { font-size:.85rem; }
+.materiel-repliable[open] > summary { border-bottom:1px solid #f6b5ca18; }
+.materiel-repliable[open] > summary .repliable-chevron { transform:rotate(225deg); }
+.materiel-contenu { padding:16px; background:var(--fond-carte,#13191f); }

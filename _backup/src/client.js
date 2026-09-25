@@ -13,7 +13,7 @@ function panel(){
     const name=typeof configUser!=='undefined'?configUser?.prenom:'';
     $('backup-greeting').hidden=!user;
     $('backup-greeting').textContent=user?`Bonjour ${name||'à toi'} 🌸`:'';
-    $('btn-ouvrir-profil').textContent=user?`Bonjour ${name||'à toi'} ✓`:'👤 Profil';
+    $('libelle-profil').textContent=user?(name||'Mon compte'):'Profil';
     $('backup-signout').hidden=!user;
     $('backup-verification').hidden=!user||user.verified;
     $('backup-signout').disabled=busy;

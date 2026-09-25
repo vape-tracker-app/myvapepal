@@ -5,7 +5,7 @@ import {readFileSync} from 'node:fs';
 function boot(){
  const el=()=>({children:[],style:{setProperty(){}},classList:{remove(){}},append(...c){this.children.push(...c)},replaceChildren(...c){this.children=c},setAttribute(){},focus(){},remove(){}});
  const nodes=new Map(['suivi-objectif','card-nicotine-objectif','liste-objectifs'].map(k=>[k,el()]));const saved=new Map();let celebrations=0;
- const ctx=vm.createContext({Date,objectifs:[{id:'old',titre:'0 mg/ml',date:'2020-01-01'}],configUser:{nicotineActuelle:6},localStorage:{setItem:(k,v)=>saved.set(k,v)},document:{createElement:el,getElementById:id=>nodes.get(id),addEventListener(){},body:el()},matchMedia:()=>({matches:true}),setInterval(){},setTimeout(){},MyVapeUI:{toast(){celebrations++}},alert(){},mettreAJourTout(){vm.runInContext('MyVapeGoals.render()',ctx)}});
+ const ctx=vm.createContext({Date,objectifs:[{id:'old',titre:'0 mg/ml',date:'2020-01-01'}],configUser:{nicotineActuelle:6},localStorage:{setItem:(k,v)=>saved.set(k,v)},document:{createElement:el,getElementById:id=>nodes.get(id),addEventListener(){},body:el()},matchMedia:()=>({matches:true}),setInterval(){},setTimeout(){},MyVapeUI:{illustrerTexte(el,text){el.textContent=text;},toast(){celebrations++}},alert(){},mettreAJourTout(){vm.runInContext('MyVapeGoals.render()',ctx)}});
  vm.runInContext(readFileSync(new URL('../../objectifs.js',import.meta.url),'utf8'),ctx);vm.runInContext('MyVapeGoals.render()',ctx);
  return {ctx,nodes,saved,get celebrations(){return celebrations}};
 }
