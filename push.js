@@ -28,6 +28,7 @@ const MyVapePush = (() => {
         if(!configUser?.dateArret)throw Error('Profil incomplet');
         return {
             dateArret:configUser.dateArret.slice(0,10),
+            smokingDays:MyVapeTabac.entries(configUser).map(item=>item.date).sort(),
             timezone:Intl.DateTimeFormat().resolvedOptions().timeZone,
             goals:(typeof objectifs==='undefined'?[]:objectifs).filter(o=>o.statut!=='atteint').map(o=>({id:String(o.id),date:o.date,nicotine:parseFloat(o.titre)})),
             steeps:flacons.filter(f=>!f.termine && !f.actif && !f.startedAt && f.steepReadyAt && Number.isFinite(Date.parse(f.steepReadyAt)))

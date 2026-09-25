@@ -1,5 +1,6 @@
 import webpush from 'web-push';
-import {plan,validateConfig,steepBody} from './planner.js';
+import {plan,validateConfig,steepBody,dailyBody,localDay,stage} from './planner.js';
+import MyVapeTabac from '../../suivi-tabac.js';
 const DAY=86400000;
 const encoder=new TextEncoder();
 const digest=async text=>Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',encoder.encode(text)))).map(b=>b.toString(16).padStart(2,'0')).join('');
@@ -18,7 +19,7 @@ async function body(request) {
     if (!request.headers.get('content-type')?.includes('application/json')) throw Error('JSON requis');
     const reader=request.body?.getReader(); if(!reader) throw Error('Corps requis');
     let size=0; const chunks=[];
-    for(;;){const {value,done}=await reader.read(); if(done) break;size+=value.length;if(size>96000){await reader.cancel();throw Error('Corps trop volumineux');}chunks.push(value);}
+    for(;;){const {value,done}=await reader.read(); if(done) break;size+=value.length;if(size>256000){await reader.cancel();throw Error('Corps trop volumineux');}chunks.push(value);}
     const bytes=new Uint8Array(size);let offset=0;for(const c of chunks){bytes.set(c,offset);offset+=c.length;}
     return JSON.parse(new TextDecoder().decode(bytes));
 }
@@ -56,9 +57,25 @@ export async function handle(request,env) {
     // Une synchronisation annule les envois non partis : ils seront recalculés avec les nouvelles données.
     const state=existing ? JSON.parse(existing.state) : {};
     const previousConfig=existing ? JSON.parse(existing.config) : null;
-    if(previousConfig && previousConfig.dateArret!==config.dateArret){delete state.dateArret; delete state.stage;}
+    const changedStart = !!previousConfig && previousConfig.dateArret!==config.dateArret;
+    const changedDays = JSON.stringify(previousConfig?.smokingDays||[])!==JSON.stringify(config.smokingDays||[]);
+    const pendingUpdates = [];
+    if(changedStart){delete state.dateArret; delete state.stage;}
+    else if(changedDays){
+        const currentStage = stage(MyVapeTabac.smokeFreeDays(config.dateArret,config.smokingDays||[],localDay(now,config.timezone).date));
+        // Corriger les rappels en attente, sans renvoyer ceux déjà livrés.
+        const {results:pending} = await env.DB.prepare("SELECT event_id FROM deliveries WHERE device_id=? AND sent_at IS NULL AND (event_id LIKE 'jour-%' OR event_id LIKE 'arbre-%')").bind(id).all();
+        for(const event of pending){
+            const date = event.event_id.match(/^jour-(\d{4}-\d{2}-\d{2})-/)?.[1];
+            const days = date ? MyVapeTabac.smokeFreeDays(config.dateArret,config.smokingDays||[],date) : 0;
+            if(date && days>0) pendingUpdates.push(env.DB.prepare("UPDATE deliveries SET payload=json_set(payload,'$.body',?) WHERE device_id=? AND event_id=? AND sent_at IS NULL").bind(dailyBody(days),id,event.event_id));
+            else if(date || Number(event.event_id.split('-').at(-1))>currentStage) pendingUpdates.push(env.DB.prepare('DELETE FROM deliveries WHERE device_id=? AND event_id=? AND sent_at IS NULL').bind(id,event.event_id));
+        }
+        if(state.stage)state.stage=Math.min(state.stage,currentStage);
+    }
     try {
         await env.DB.batch([
+            ...pendingUpdates,
             env.DB.prepare(`INSERT INTO devices(id,token_hash,endpoint,subscription,config,state,updated_at) VALUES(?,?,?,?,?,?,?)
                 ON CONFLICT(id) DO UPDATE SET endpoint=excluded.endpoint,subscription=excluded.subscription,config=excluded.config,state=excluded.state,updated_at=excluded.updated_at,revision=devices.revision+1
                 WHERE devices.token_hash=excluded.token_hash`).bind(id,hash,subscription.endpoint,JSON.stringify(subscription),JSON.stringify(config),JSON.stringify(state),now),
@@ -69,7 +86,7 @@ export async function handle(request,env) {
             ).bind(steepBody(steep),id,`steep-${steep.id}:${steep.readyAt}`)),
             env.DB.prepare(`DELETE FROM deliveries WHERE device_id=? AND sent_at IS NULL AND event_id LIKE 'steep-%' AND
                 NOT EXISTS(SELECT 1 FROM json_each(?) s WHERE deliveries.event_id='steep-'||json_extract(s.value,'$.id')||':'||json_extract(s.value,'$.readyAt'))`).bind(id,JSON.stringify(config.steeps)),
-            env.DB.prepare("DELETE FROM deliveries WHERE device_id=? AND sent_at IS NULL AND (event_id LIKE 'jour-%' OR event_id LIKE 'arbre-%') AND ?").bind(id,Number(!!previousConfig && previousConfig.dateArret!==config.dateArret))
+            env.DB.prepare("DELETE FROM deliveries WHERE device_id=? AND sent_at IS NULL AND (event_id LIKE 'jour-%' OR event_id LIKE 'arbre-%') AND ?").bind(id,Number(changedStart))
         ]);
     } catch {return reply({error:'Synchronisation impossible'},409);}
     return reply({ok:true});

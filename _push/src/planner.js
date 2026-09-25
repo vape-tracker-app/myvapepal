@@ -1,3 +1,4 @@
+import MyVapeTabac from '../../suivi-tabac.js';
 const DAY = 86400000;
 export function localDay(now, timezone) {
     const parts = new Intl.DateTimeFormat('en-CA', {timeZone: timezone, year:'numeric', month:'2-digit', day:'2-digit', hour:'2-digit', hourCycle:'h23'}).formatToParts(new Date(now));
@@ -19,6 +20,8 @@ export function validateConfig(value, now = Date.now()) {
     if (typeof timezone !== 'string' || timezone.length > 80) throw Error('Fuseau invalide');
     const today = localDay(now, timezone).date;
     if (dateArret > today) throw Error('Date future');
+    const smokingDays = value.smokingDays === undefined ? [] : value.smokingDays;
+    if (!Array.isArray(smokingDays) || smokingDays.length > 10000 || new Set(smokingDays).size !== smokingDays.length || smokingDays.some(day=>!MyVapeTabac.validDate(day)||day<dateArret||day>today)) throw Error('Jours avec tabac invalides');
     if (!Array.isArray(steeps) || steeps.length > 100) throw Error('Liste invalide');
     const ids = new Set();
     const goals=value.goals || [];
@@ -28,7 +31,7 @@ export function validateConfig(value, now = Date.now()) {
         if(!g || typeof g.id!=='string' || !/^[\w-]{1,80}$/.test(g.id) || goalIds.has(g.id) || typeof g.date!=='string' || !/^\d{4}-\d{2}-\d{2}$/.test(g.date) || !Number.isFinite(Date.parse(g.date+'T00:00:00Z')) || new Date(g.date+'T00:00:00Z').toISOString().slice(0,10)!==g.date || typeof g.nicotine!=='number' || !Number.isFinite(g.nicotine) || g.nicotine<0)throw Error('Objectif invalide');
         goalIds.add(g.id);
     }
-    return {dateArret, timezone, ...(goals.length?{goals:goals.map(({id,date,nicotine})=>({id,date,nicotine}))}:{}), steeps: steeps.map(s => {
+    return {dateArret, timezone, ...(smokingDays.length?{smokingDays:[...smokingDays].sort()}:{}), ...(goals.length?{goals:goals.map(({id,date,nicotine})=>({id,date,nicotine}))}:{}), steeps: steeps.map(s => {
         if (!s || typeof s.id !== 'string' || !/^[\w-]{1,80}$/.test(s.id) || ids.has(s.id)) throw Error('Flacon invalide');
         ids.add(s.id);
         if (typeof s.readyAt !== 'string' || !Number.isFinite(Date.parse(s.readyAt)) || Date.parse(s.readyAt)>now+366*DAY) throw Error('Échéance invalide');
@@ -48,9 +51,10 @@ export function steepBody(steep) {
     if (typeof steep.volume === 'number' && Number.isFinite(steep.volume) && steep.volume > 0) parts.push(`flacon : ${number(steep.volume)} ml`);
     return `${parts.join(' — ')}. Sa maturation est terminée. Retrouve-le dans ta réserve !`;
 }
+export const dailyBody = days => `${days} jour${days>1?'s':''} sans cigarette. Chaque journée compte !`;
 export function plan(config, previous, now = Date.now()) {
     const local = localDay(now,config.timezone);
-    const days = daysSince(config.dateArret,local.date);
+    const days = MyVapeTabac.smokeFreeDays(config.dateArret,config.smokingDays||[],local.date);
     const currentStage = stage(days);
     const state = {...previous, steepSent: {...previous.steepSent}};
     const events = [];
@@ -59,7 +63,7 @@ export function plan(config, previous, now = Date.now()) {
         state.stage = currentStage; // Ne pas annoncer des stades atteints avant l'activation ou après une correction de date.
     }
     if (days > 0 && local.hour >= 9 && state.daily !== local.date) {
-        events.push({id:`jour-${local.date}-${config.dateArret}`, title:'Bravo pour ton parcours ! 🌸',body:`${days} jour${days>1?'s':''} sans cigarette. Chaque journée compte !`,url:'./index.html',tag:`jour-${local.date}`});
+        events.push({id:`jour-${local.date}-${config.dateArret}`, title:'Bravo pour ton parcours ! 🌸',body:dailyBody(days),url:'./index.html',tag:`jour-${local.date}`});
         state.daily=local.date;
     }
     if (currentStage > (state.stage || currentStage)) {

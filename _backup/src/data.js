@@ -1,3 +1,4 @@
+import MyVapeTabac from '../../suivi-tabac.js';
 export const KEYS=['vt_config','vt_flacons','vt_recettes','vt_depenses','vt_objectifs','vt_observations','vt_materiel','vt_stock_diy','vt_stock_mouvements','vt_gazette_favoris','vt_date_resistance','vt_victoire_quotidienne_date'];
 export function validate(snapshot) {
     if(!snapshot || snapshot.version!==1 || !snapshot.data || typeof snapshot.data!=='object' || Array.isArray(snapshot.data))throw Error('Sauvegarde incompatible');
@@ -72,6 +73,7 @@ export function validate(snapshot) {
                     }
                 }
             }
+            if(key==='vt_config')MyVapeTabac.validate(parsed.suiviTabac);
             if(key==='vt_config'&&parsed.preferencesMateriel!==undefined){
                 const pref=parsed.preferencesMateriel;
                 if(!pref||typeof pref!=='object'||!['Non renseigné','Serré (comme une cigarette)','Intermédiaire','Aérien','Indirect (MTL)','Direct restrictif (RDL)','Direct (DTL)'].includes(pref.tirage)||!['Non renseigné','Discrète','Modérée','Abondante'].includes(pref.vapeur)||typeof pref.notes!=='string'||pref.notes.length>2000)throw Error('Préférences matériel invalides');

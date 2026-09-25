@@ -50,3 +50,17 @@ test('metadata correction refreshes an unsent steep without duplicating delivery
  let sent=[];await schedule(env,now+600000,async(sub,payload)=>{sent.push(payload);return 201;});
  assert.equal(sent.filter(p=>p.id.startsWith('steep-')).length,1);
 });
+test('smoking sync corrects pending daily and tree notifications, without resending delivered days',async(t)=>{
+ const now=Date.parse('2026-09-17T10:00:00Z');t.mock.method(Date,'now',()=>now);
+ const env=makeEnv(),c={...config,dateArret:'2026-08-17',steeps:[]};
+ await handle(req(env,'PUT',{subscription:sub,config:c}),env);
+ env.DB.sql.prepare('UPDATE devices SET state=? WHERE id=?').run(JSON.stringify({dateArret:c.dateArret,stage:1}),id);
+ await schedule(env,now,async()=>503);
+ assert.equal(env.DB.sql.prepare("SELECT count(*) n FROM deliveries WHERE event_id LIKE 'arbre-%'").get().n,1);
+ c.smokingDays=['2026-09-16'];await handle(req(env,'PUT',{subscription:sub,config:c}),env);
+ assert.equal(env.DB.sql.prepare("SELECT count(*) n FROM deliveries WHERE event_id LIKE 'arbre-%'").get().n,0);
+ assert.match(JSON.parse(env.DB.sql.prepare("SELECT payload FROM deliveries WHERE event_id LIKE 'jour-%'").get().payload).body,/30 jours/);
+ let sent=[];await schedule(env,now+600000,async(_,p)=>{sent.push(p);return 201;});assert.equal(sent.length,1);
+ c.smokingDays.push('2026-09-17');await handle(req(env,'PUT',{subscription:sub,config:c}),env);
+ await schedule(env,now+900000,async(_,p)=>{sent.push(p);return 201;});assert.equal(sent.length,1);
+});

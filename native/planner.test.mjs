@@ -23,3 +23,18 @@ test('tree thresholds and stale events are respected',()=> {
  const stages=result.filter(n=>n.id>=20000&&n.id<100000);
  assert.equal(stages.length,3); assert.match(stages[0].body,/stade 3/);
 });
+test('smoking pauses days and tree milestones, never all reminders',()=>{
+ const config={dateArret:'2026-08-18',suiviTabac:{version:1,archives:[],cigarettes:[{date:'2026-09-25',quantite:4}]}};
+ const result=plan({config},new Date(2026,8,25,12));
+ const daily=result.filter(n=>n.id<20000);
+ assert.match(daily[0].body,/38 jours/);assert.match(daily[1].body,/39 jours/);
+ const tree=result.find(n=>n.id===20001);
+ const expected=new Date(2026,7,18,9,5);expected.setDate(expected.getDate()+92);
+ assert.equal(+tree.schedule.at,+expected);
+});
+test('smoking on a milestone date keeps that morning’s acquired stage',()=>{
+ const config={dateArret:'2026-08-18',suiviTabac:{version:1,archives:[],cigarettes:[{date:'2026-09-18',quantite:1}]}};
+ const result=plan({config},new Date(2026,8,18,8));
+ assert.equal(+result.find(n=>n.id===20000).schedule.at,+new Date(2026,8,18,9,5));
+ assert.match(result.find(n=>n.id===10000).body,/31 jours/);
+});

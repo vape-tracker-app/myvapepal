@@ -159,11 +159,7 @@ function mettreAJourTout() {
 }
 
 function getJoursEcoules() {
-    if (!configUser || !configUser.dateArret) return 0;
-    const debut = new Date(configUser.dateArret);
-    const maintenant = new Date();
-    const diffTemps = Math.abs(maintenant - debut);
-    return Math.floor(diffTemps / (1000 * 60 * 60 * 24));
+    return MyVapeTabac.stats(configUser).days;
 }
 
 // =============================================================
@@ -558,7 +554,7 @@ function validerChangementDateArret() {
 function calculerEconomiePourMois(annee, moisIndex) {
     if (!configUser || !configUser.dateArret) return { tabac: 0, depenses: 0, nette: 0, jours: 0 };
 
-    const dateArret = new Date(configUser.dateArret);
+    const dateArret = new Date(MyVapeTabac.financeStart(configUser));
     const debutMois = new Date(annee, moisIndex, 1);
     const finMois = new Date(annee, moisIndex + 1, 0, 23, 59, 59, 999);
     const maintenant = new Date();
@@ -588,7 +584,7 @@ function calculerEconomiePourMois(annee, moisIndex) {
     const prixPaquet = configUser.prixPaquet || 12.5;
     const cigsParPaquet = configUser.cigsPaquet || 20;
 
-    const cigsEvitees = joursCalcul * cigsParJour;
+    const cigsEvitees = joursCalcul * cigsParJour - MyVapeTabac.countInMonth(configUser, annee, moisIndex);
     const economieTabac = (cigsEvitees / cigsParPaquet) * prixPaquet;
 
     const depensesMois = depenses.filter(d => {
@@ -613,7 +609,7 @@ function mettreAJourDashboard() {
     const prixPaquet = configUser ? (configUser.prixPaquet || 12.5) : 12.5;
     const cigsParPaquet = configUser ? (configUser.cigsPaquet || 20) : 20;
 
-    const cigsEvitees = Math.floor(jours * cigsParJour);
+    const cigsEvitees = Math.floor(MyVapeTabac.financialStats(configUser).avoided);
     const economieBruteTotale = (cigsEvitees / cigsParPaquet) * prixPaquet;
 
     const totalDepensesVape = depenses.reduce((acc, d) => acc + d.montant, 0);
@@ -623,7 +619,8 @@ function mettreAJourDashboard() {
     if (document.getElementById('prenom-accueil')) {
         document.getElementById('prenom-accueil').textContent = (configUser && configUser.prenom) ? `Bravo ${configUser.prenom} !` : 'Jours d\'arrêt';
     }
-    if (document.getElementById('card-cigs')) document.getElementById('card-cigs').textContent = cigsEvitees;
+    if (document.getElementById('card-cigs')) document.getElementById('card-cigs').textContent = Math.max(0, cigsEvitees);
+    if(typeof MyVapeTabacUI!=='undefined')MyVapeTabacUI.render();
     
     if (document.getElementById('card-economies')) document.getElementById('card-economies').textContent = `${economieNetteTotale.toFixed(2)} €`;
 
@@ -1778,7 +1775,7 @@ function afficherFinances() {
     const prixPaquet = configUser ? (configUser.prixPaquet || 12.5) : 12.5;
     const cigsParPaquet = configUser ? (configUser.cigsPaquet || 20) : 20;
 
-    const tabacEvite = ((jours * cigsParJour) / cigsParPaquet) * prixPaquet;
+    const tabacEvite = (MyVapeTabac.financialStats(configUser).avoided / cigsParPaquet) * prixPaquet;
     const totalDepenses = depenses.reduce((acc, d) => acc + d.montant, 0);
     const economieNette = tabacEvite - totalDepenses;
 
@@ -1889,7 +1886,7 @@ function afficherHistoriqueMensuel() {
     const conteneur = document.getElementById('liste-historique-mensuel');
     if (!conteneur || !configUser || !configUser.dateArret) return;
 
-    const dateArret = new Date(configUser.dateArret);
+    const dateArret = new Date(MyVapeTabac.financeStart(configUser));
     const maintenant = new Date();
 
     let anneeCourante = dateArret.getFullYear();

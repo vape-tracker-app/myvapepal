@@ -1,4 +1,5 @@
 import {test} from 'node:test';
+import MyVapeTabac from '../../suivi-tabac.js';
 import assert from 'node:assert/strict';
 import vm from 'node:vm';
 import {readFileSync} from 'node:fs';
@@ -9,7 +10,7 @@ function setup({failure=false,permission='granted'}={}){
  const subscription={unsubscribe:async()=>{current=null;return true;},options:{applicationServerKey:key.buffer},toJSON:()=>({endpoint:'https://fcm.googleapis.com/test',keys:{auth:'a',p256dh:'b'}})};
  current=subscription;
  const reg={pushManager:{getSubscription:async()=>current,subscribe:async()=>{current=subscription;return subscription;}}};
- const context=vm.createContext({console,Uint8Array,Date,Intl,JSON,Promise,Array,Error,atob,crypto,AbortSignal,isSecureContext:true,
+ const context=vm.createContext({MyVapeTabac,console,Uint8Array,Date,Intl,JSON,Promise,Array,Error,atob,crypto,AbortSignal,isSecureContext:true,
  configUser:{dateArret:'2026-01-01'},flacons:[],setTimeout(){},setInterval(){},
  document:{getElementById:id=>elements[id],addEventListener(){}},window:{Notification:{},PushManager:{},addEventListener(){}},Notification:{permission,requestPermission:async()=>permission},
  navigator:{serviceWorker:{register:async()=>reg,ready:Promise.resolve(reg)}},MyVapePushStorage:{get:async k=>records[k],set:async(k,v)=>records[k]=v},
@@ -79,4 +80,11 @@ test('offline opt-out persists and retries deletion without automatic reactivati
  s.controls.offline=false;await s.run('MyVapePush.sync()');assert.equal(s.records.account.pendingDelete,false);
  assert.equal(s.requests.filter(r=>r.opts?.method==='PUT').length,1);
  await button.onclick();assert.equal(s.records.account.enabled,true);
+});
+test('push sync shares only dates of current journey, not quantities or archives',async()=>{
+ const s=setup();
+ s.run(`configUser={dateArret:'2026-01-01',suiviTabac:{version:1,dateDebutFinances:'2025-01-01',archives:[{cigarettes:[{date:'2025-12-01',quantite:100}]}],cigarettes:[{date:'2026-01-03',quantite:3}]}}`);
+ await s.run('MyVapePush.sync()');await s.elements['btn-profil-notif'].onclick();
+ const payload=JSON.parse(s.requests.find(r=>r.opts?.method==='PUT').opts.body).config;
+ assert.deepEqual(payload.smokingDays,['2026-01-03']);assert.equal(payload.suiviTabac,undefined);assert.ok(!JSON.stringify(payload).includes('quantite'));
 });

@@ -123,6 +123,8 @@
                         </div>
                         <div class="stat-valeur" id="card-jours">0</div>
                         <div class="stat-unite" id="prenom-accueil">bravo !</div>
+                        <button type="button" id="btn-jai-fume" class="btn-jai-fume">🚬 J’ai fumé</button>
+                        <div id="cigarettes-fumees" class="stat-unite tabac-total" hidden></div>
                     </div>
 
                     <!-- 2. CIGARETTES ÉVITÉES -->
@@ -326,7 +328,7 @@
                     </div>
                 </div>
 
-                <p class="texte-secondaire" style="margin-bottom:14px;">En activant les notifications, tu transmets au service Cloudflare les informations nécessaires à leur envoi : abonnement de cet appareil, date d’arrêt, fuseau horaire, objectifs de nicotine et leurs dates, échéances de maturation, nom, dosage en nicotine et volume des flacons concernés. Les dépenses ne sont pas transmises au service de notifications. Tu peux désactiver les notifications à tout moment avec le bouton ci-dessus.</p>
+                <p class="texte-secondaire" style="margin-bottom:14px;">En activant les notifications, tu transmets au service Cloudflare les informations nécessaires à leur envoi : abonnement de cet appareil, date d’arrêt, dates des journées avec tabac (sans les quantités), fuseau horaire, objectifs de nicotine et leurs dates, échéances de maturation, nom, dosage en nicotine et volume des flacons concernés. Les dépenses ne sont pas transmises au service de notifications. Tu peux désactiver les notifications à tout moment avec le bouton ci-dessus.</p>
 
                 <div class="carte" style="margin-bottom:14px;">
                     <h3>Confidentialité et données</h3>
@@ -351,7 +353,7 @@
                     <h3>☁️ Sauvegarder mon parcours</h3>
                     <h4 id="backup-greeting" hidden></h4>
                     <p class="texte-secondaire">Retrouve tes données si tu changes de téléphone. Ajoute ton adresse e-mail pour activer la sauvegarde en ligne. Tu recevras uniquement les e-mails nécessaires à ta connexion, jamais de publicité ni de newsletter.</p>
-                    <p class="texte-secondaire">La sauvegarde comprend ton profil, tes flacons, tes recettes, tes dépenses, tes objectifs, tes p'tites victoires et la date de changement de résistance. Si tu actives la sauvegarde, ces données seront conservées dans ton espace privé chez Firebase (Google). Tes autorisations de notifications restent propres à chaque appareil.</p>
+                    <p class="texte-secondaire">La sauvegarde comprend ton profil, tes cigarettes enregistrées par date et tes parcours archivés, tes flacons, tes recettes, tes dépenses, tes objectifs, tes p'tites victoires et la date de changement de résistance. Si tu actives la sauvegarde, ces données seront conservées dans ton espace privé chez Firebase (Google). Tes autorisations de notifications restent propres à chaque appareil.</p>
                     <p id="backup-status" role="status" aria-live="polite">Données enregistrées uniquement sur ce téléphone.</p>
                     <form id="backup-login">
                         <label for="backup-email">Adresse e-mail (facultatif)</label>
@@ -865,7 +867,9 @@
     <script src="objectifs.js?v=v184"></script>
     <script src="stock-diy.js?v=v199"></script>
     <script src="accueil-sections.js?v=v202"></script>
+    <script src="suivi-tabac.js"></script>
     <script src="app.js?v=v206"></script>
+    <script src="tabac.js"></script>
     <script src="materiel.js?v=v204"></script>
     <script src="flacons-edition.js?v=v194"></script>
     <script src="diy-costs.js?v=v200"></script>

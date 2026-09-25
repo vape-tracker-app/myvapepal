@@ -1265,3 +1265,22 @@ input:focus, select:focus {
 .contact-dialog a { color:var(--rose-sakura); }
 .contact-dialog [role="status"] { line-height:1.5; margin:12px 0; }
 .contact-dialog form[hidden] { display:none; }
+
+/* Cigarettes ponctuelles : action secondaire et neutre dans la carte verte. */
+.btn-jai-fume {
+    align-self: start; justify-self: start; width: auto; min-height: 40px;
+    margin: 7px 0 0; padding: 7px 10px; border: 1px solid rgba(83, 187, 148, .45);
+    border-radius: 11px; color: #b8dfcb; background: rgba(61, 148, 113, .07);
+    font: inherit; font-size: .78rem; font-weight: 500; cursor: pointer;
+}
+.btn-jai-fume:focus-visible, .tabac-recommencer:focus-visible { outline: 2px solid #9fdaba; outline-offset: 3px; }
+.tabac-total { margin-top: 6px; line-height: 1.4; }
+.tabac-total[hidden] { display: none; }
+.tabac-dialog { margin: auto; border-color: rgba(83, 187, 148, .55); }
+.tabac-dialog h2 { margin-top: 0; }
+.tabac-dialog p { line-height: 1.5; }
+.tabac-quantite { display: grid; grid-template-columns: 48px minmax(0, 1fr) 48px; gap: 12px; align-items: center; margin: 22px 0; }
+.tabac-quantite button { margin: 0; min-height: 48px; padding: 0; font-size: 1.5rem; }
+.tabac-quantite input { text-align: center; min-height: 52px; font-size: 1.4rem; }
+.tabac-dialog .tabac-recommencer { width: 100%; padding: 14px 4px; border: 0; background: transparent; color: var(--texte-secondaire); font: inherit; font-size: .85rem; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+.tabac-dialog [role="status"] { color: #b8dfcb; }

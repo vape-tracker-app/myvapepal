@@ -70,3 +70,19 @@ test('goal notification is local-day aware, once per deadline, and rescheduled i
  assert.equal(plan(config,due.state,at('2026-09-19T08:00:00Z')).events.filter(e=>e.id.startsWith('objectif-')).length,0);
  assert.throws(()=>validateConfig({...c,goals:[{...c.goals[0],date:'2026-02-31'}]}));
 });
+test('dated smoking adjusts cumulative days and delays growth, regardless of quantities',()=>{
+ const c={...config,dateArret:'2026-08-18',smokingDays:['2026-09-25']};
+ const same=plan(c,{},at('2026-09-25T07:00:00Z'));assert.match(same.events[0].body,/38 jours/);
+ const next=plan(c,same.state,at('2026-09-26T07:00:00Z'));assert.match(next.events[0].body,/38 jours/);
+ const following=plan(c,next.state,at('2026-09-27T07:00:00Z'));assert.match(following.events[0].body,/39 jours/);
+ const delay={...config,smokingDays:['2026-09-16']};
+ const p=plan(delay,{dateArret:config.dateArret,stage:1},at('2026-09-17T07:00:00Z'));
+ assert.equal(p.events.filter(e=>e.id.startsWith('arbre-')).length,0);
+ assert.equal(plan(delay,p.state,at('2026-09-18T07:00:00Z')).events.filter(e=>e.id.startsWith('arbre-')).length,1);
+});
+test('smoking dates are validated; old push registrations still work',()=>{
+ const now=at('2026-09-25T12:00:00Z');
+ assert.equal(validateConfig(config,now).smokingDays,undefined);
+ for(const smokingDays of [null,{},['2026-02-30'],['2026-09-26'],['2026-09-24','2026-09-24'],['2025-01-01']])assert.throws(()=>validateConfig({...config,smokingDays},now));
+ assert.deepEqual(validateConfig({...config,smokingDays:['2026-09-24']},now).smokingDays,['2026-09-24']);
+});
