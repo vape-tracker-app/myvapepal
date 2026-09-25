@@ -1050,6 +1050,7 @@ function sauvegarderOnboarding() {
     }
     configUser = profil;
     initialiserInterface();
+    if (typeof MyVapeTour !== 'undefined') MyVapeTour.afterOnboarding();
 }
 
 function sauvegarderConfig() {
@@ -1969,7 +1970,7 @@ function supprimerObjectif(id) {
 function afficherEcran(idEcran) {
     if (idEcran === 'ecran-accueil' && !configUser?.dateArret) idEcran = 'ecran-onboarding';
     if (idEcran === 'ecran-profil') {
-        document.querySelectorAll('#ecran-profil > .carte:not(.backup-card)').forEach(card => card.hidden = !configUser?.dateArret);
+        document.querySelectorAll('#ecran-profil > .carte:not(.backup-card):not(.contact-profil)').forEach(card => card.hidden = !configUser?.dateArret);
         afficherProfil();
     }
     if (idEcran === 'ecran-accueil' && typeof MyVapeUI !== 'undefined') setTimeout(() => MyVapeUI.celebrate(), 0);
