@@ -123,8 +123,8 @@
                         </div>
                         <div class="stat-valeur" id="card-jours">0</div>
                         <div class="stat-unite" id="prenom-accueil">bravo !</div>
-                        <button type="button" id="btn-jai-fume" class="btn-jai-fume">🚬 J’ai fumé</button>
-                        <div id="cigarettes-fumees" class="stat-unite tabac-total" hidden></div>
+                        <div class="stat-unite">Prochain objectif</div>
+<div class="stat-unite-mois objectif-tabac-valeur" id="card-jours-objectif"></div>
                     </div>
 
                     <!-- 2. CIGARETTES ÉVITÉES -->
@@ -135,6 +135,8 @@
                         </div>
                         <div class="stat-valeur" id="card-cigs">0</div>
                         <div class="stat-unite">non fumées</div>
+                        <div class="stat-paquets" id="card-paquets">0 paquet</div>
+<div class="stat-unite" id="card-paquets-label">non acheté</div>
                     </div>
 
                     <!-- 3. ÉCONOMIE NETTE -->
@@ -161,6 +163,12 @@
                 </div>
 
                 <div id="suivi-objectif" class="carte suivi-objectif" aria-live="polite" hidden></div>
+                <div class="suivi-tabac-accueil">
+    <div class="suivi-tabac-accueil">
+    <button type="button" id="btn-jai-fume" class="btn-jai-fume">🚬 J’ai fumé</button>
+    <div id="cigarettes-fumees" class="stat-unite tabac-total" hidden></div>
+</div>
+</div>
                 <div style="display:flex; gap:8px; margin:10px 0 16px;">
                     <button id="btn-ouvrir-utilisation-directe" class="btn-primaire" type="button" style="flex:1; font-size:0.82rem; padding:10px 6px;">Utiliser un flacon prêt 💨</button>
                     <button id="btn-ouvrir-ajout" class="btn-secondaire" type="button" style="flex:1; font-size:0.82rem; padding:10px 6px; margin-top:0;">Préparer un flacon <img class="icone-flacon" src="./assets/menu/diy.png" alt="" width="24" height="24"></button>
@@ -680,7 +688,23 @@
             <section id="ecran-objectifs" class="ecran masque">
                 <h2>Mes Objectifs <img class="icone-inline" src="./assets/menu/objectifs.png" alt="" width="24" height="24"></h2>
                 <button id="btn-ouvrir-ajout-objectif" class="btn-primaire" type="button" style="margin-bottom: 14px;">Ajouter un objectif ➕</button>
+<div id="choix-type-objectif" class="form-card masque">
+    <p class="texte-secondaire">Quel objectif veux-tu définir ?</p>
 
+    <div class="liste-choix-saveurs">
+        <button type="button" id="btn-objectif-nicotine" class="choix-saveur-option">
+            <img class="icone-saveur" src="./assets/accueil/nicotine.png" alt="">
+            <span>Nicotine</span>
+            <span class="selection-saveur">✓</span>
+        </button>
+
+        <button type="button" id="btn-objectif-tabac" class="choix-saveur-option">
+            <img class="icone-saveur" src="./assets/accueil/jours.png" alt="">
+            <span>Sans tabac</span>
+            <span class="selection-saveur">✓</span>
+        </button>
+    </div>
+</div>
                 <div id="form-objectif" class="form-card masque">
                     <div class="groupe-champ">
                         <label>Dosage Nicotine Objectif (mg/ml)</label>
@@ -696,6 +720,51 @@
                     <button type="button" class="btn-primaire" onclick="sauvegarderObjectif()">Ajouter l'objectif</button>
                     <button type="button" id="btn-annuler-objectif" class="btn-secondaire">Annuler</button>
                 </div>
+                <div id="form-objectif-tabac" class="form-card masque">
+
+    <div class="groupe-champ">
+        <label>Mon objectif sans tabac</label>
+
+        <select id="obj-tabac-duree">
+            <option value="">Choisir un objectif</option>
+            <option value="1">1 mois</option>
+            <option value="2">2 mois</option>
+            <option value="3">3 mois</option>
+            <option value="6">6 mois</option>
+            <option value="12">1 an</option>
+            <option value="personnalise">Personnalisé</option>
+        </select>
+    </div>
+
+    <div id="obj-tabac-personnalise" class="groupe-champ masque">
+        <label>Durée personnalisée</label>
+
+        <div style="display:flex; gap:8px;">
+            <input
+                type="number"
+                id="obj-tabac-valeur"
+                min="1"
+                step="1"
+                placeholder="Ex : 4"
+                style="flex:1;"
+            >
+
+            <select id="obj-tabac-unite" style="flex:1;">
+                <option value="mois">mois</option>
+                <option value="ans">an(s)</option>
+            </select>
+        </div>
+    </div>
+
+    <button type="button" class="btn-primaire" id="btn-sauver-objectif-tabac">
+        Ajouter l'objectif
+    </button>
+
+    <button type="button" class="btn-secondaire" id="btn-annuler-objectif-tabac">
+        Annuler
+    </button>
+
+</div>
 
                 <div id="liste-objectifs"></div>
             </section>
@@ -864,11 +933,11 @@
     <script src="backup-config.js?v=v153"></script>
     <script src="backup.js?v=v203"></script>
     <script src="enhancements.js?v=v200"></script>
-    <script src="objectifs.js?v=v184"></script>
+    <script src="objectifs.js?v=v221"></script>
     <script src="stock-diy.js?v=v199"></script>
     <script src="accueil-sections.js?v=v202"></script>
     <script src="suivi-tabac.js"></script>
-    <script src="app.js?v=v206"></script>
+    <script src="app.js?v=v237"></script>
     <script src="tabac.js"></script>
     <script src="materiel.js?v=v204"></script>
     <script src="flacons-edition.js?v=v194"></script>

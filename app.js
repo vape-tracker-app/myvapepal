@@ -69,6 +69,8 @@ let flacons = [];
 let recettes = [];
 let depenses = [];
 let objectifs = [];
+let objectifsTabac = [];
+let objectifTabacEditionId = null;
 let observations = [];
 let dateArretEnAttente = null;
 
@@ -78,6 +80,7 @@ try {
     recettes = JSON.parse(localStorage.getItem('vt_recettes')) || [];
     depenses = JSON.parse(localStorage.getItem('vt_depenses')) || [];
     objectifs = JSON.parse(localStorage.getItem('vt_objectifs')) || [];
+    objectifsTabac = JSON.parse(localStorage.getItem('vt_objectifs_tabac')) || [];
     observations = JSON.parse(localStorage.getItem('vt_observations')) || [];
 } catch (e) {
     console.error("Erreur lecture LocalStorage", e);
@@ -603,6 +606,69 @@ function calculerEconomiePourMois(annee, moisIndex) {
     };
 }
 
+function afficherObjectifSansTabacAccueil() {
+    const zone = document.getElementById('card-jours-objectif');
+
+    if (!zone) return;
+
+    zone.replaceChildren();
+
+    if (!objectifsTabac || objectifsTabac.length === 0) {
+    const bouton = document.createElement('button');
+
+    bouton.type = 'button';
+    bouton.className = 'btn-definir-objectif-tabac';
+    bouton.textContent = 'Définir un objectif';
+
+    bouton.onclick = () => {
+        afficherEcran('ecran-objectifs');
+    };
+
+    zone.append(bouton);
+    return;
+}
+
+    const aujourdHui = new Date();
+    aujourdHui.setHours(12, 0, 0, 0);
+
+    const objectifsFuturs = objectifsTabac
+        .filter(o => {
+            if (!o.dateCible) return false;
+
+            const dateCible = new Date(o.dateCible + 'T12:00:00');
+            return dateCible >= aujourdHui;
+        })
+        .sort((a, b) => a.dateCible.localeCompare(b.dateCible));
+
+    if (objectifsFuturs.length === 0) {
+        return;
+    }
+
+    const prochain = objectifsFuturs[0];
+
+    const dateFormatee = new Date(
+        prochain.dateCible + 'T12:00:00'
+    ).toLocaleDateString('fr-FR');
+
+    const texte = document.createElement('div');
+texte.textContent = `${prochain.titre} le ${dateFormatee}`;
+
+    const progression = MyVapeGoals.progressionObjectifTabac(prochain);
+
+const barre = document.createElement('div');
+barre.className =
+    'objectif-progression-barre objectif-progression-barre-mini';
+
+const remplissage = document.createElement('div');
+remplissage.className =
+    'objectif-progression-remplissage-tabac';
+
+remplissage.style.width = `${progression.pourcentage}%`;
+
+barre.append(remplissage);
+
+zone.append(texte, barre);
+}
 function mettreAJourDashboard() {
     const jours = getJoursEcoules();
     const cigsParJour = configUser ? (configUser.cigsJour || 15) : 15;
@@ -616,10 +682,30 @@ function mettreAJourDashboard() {
     const economieNetteTotale = economieBruteTotale - totalDepensesVape;
 
     if (document.getElementById('card-jours')) document.getElementById('card-jours').textContent = jours;
+    afficherObjectifSansTabacAccueil();
+    const cardJoursObjectif = document.getElementById('card-jours-objectif');
+
     if (document.getElementById('prenom-accueil')) {
         document.getElementById('prenom-accueil').textContent = (configUser && configUser.prenom) ? `Bravo ${configUser.prenom} !` : 'Jours d\'arrêt';
     }
     if (document.getElementById('card-cigs')) document.getElementById('card-cigs').textContent = Math.max(0, cigsEvitees);
+    const cardPaquets = document.getElementById('card-paquets');
+
+if (cardPaquets) {
+    const paquetsEvites = Math.max(0, cigsEvitees / cigsParPaquet);
+
+    cardPaquets.textContent =
+        `${paquetsEvites.toLocaleString('fr-FR', {
+            minimumFractionDigits: 1,
+            maximumFractionDigits: 1
+        })} ${paquetsEvites < 2 ? 'paquet' : 'paquets'}`;
+        const labelPaquets = document.getElementById('card-paquets-label');
+
+if (labelPaquets) {
+    labelPaquets.textContent =
+        paquetsEvites < 2 ? 'non acheté' : 'non achetés';
+}
+}
     if(typeof MyVapeTabacUI!=='undefined')MyVapeTabacUI.render();
     
     if (document.getElementById('card-economies')) document.getElementById('card-economies').textContent = `${economieNetteTotale.toFixed(2)} €`;
@@ -656,12 +742,46 @@ function mettreAJourDashboard() {
             .sort((a, b) => new Date(a.date) - new Date(b.date));
 
         if (objectifsFuturs.length > 0) {
-            const pro = objectifsFuturs[0];
-            const dateFormatee = new Date(pro.date).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' });
-            cardNicotineObj.textContent = `${pro.titre} le ${dateFormatee}`;
-        } else {
-            cardNicotineObj.textContent = 'Aucun objectif futur';
-        }
+    const pro = objectifsFuturs[0];
+    const dateFormatee = new Date(pro.date).toLocaleDateString('fr-FR', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric'
+    });
+
+    cardNicotineObj.replaceChildren();
+
+    const texteObjectif = document.createElement('div');
+    texteObjectif.textContent = `${pro.titre} le ${dateFormatee}`;
+    cardNicotineObj.append(texteObjectif);
+
+    if (typeof MyVapeGoals !== 'undefined') {
+        const progression = MyVapeGoals.progressionObjectif(pro);
+
+        const barre = document.createElement('div');
+        barre.className = 'objectif-progression-barre objectif-progression-barre-mini';
+
+        const remplissage = document.createElement('div');
+        remplissage.className = 'objectif-progression-remplissage';
+        remplissage.style.width = `${progression.pourcentage}%`;
+
+        barre.append(remplissage);
+        cardNicotineObj.append(barre);
+    }
+} else {
+    cardNicotineObj.replaceChildren();
+
+    const bouton = document.createElement('button');
+    bouton.type = 'button';
+    bouton.className = 'btn-definir-objectif-nicotine';
+    bouton.textContent = 'Définir un objectif';
+
+    bouton.onclick = () => {
+        afficherEcran('ecran-objectifs');
+    };
+
+    cardNicotineObj.append(bouton);
+}
     }
 }
 
@@ -1245,6 +1365,25 @@ function sauvegarderDepense() {
     mettreAJourTout();
     if (typeof MyVapeUI !== 'undefined') MyVapeUI.toast('Dépense enregistrée');
 }
+let objectifEditionId = null;
+
+function modifierObjectif(id) {
+    const objectif = objectifs.find(o => o.id === id);
+    if (!objectif) return;
+
+    objectifEditionId = id;
+
+    document.getElementById('obj-nicotine-valeur').value = parseFloat(objectif.titre);
+    document.getElementById('obj-date').value = objectif.date;
+
+    document.getElementById('form-objectif').classList.remove('masque');
+    const boutonSauvegarde = document.querySelector('#form-objectif .btn-primaire');
+if (boutonSauvegarde) {
+    boutonSauvegarde.textContent = 'Modifier mon objectif';
+}
+
+    document.getElementById('obj-nicotine-valeur').focus();
+}
 
 function sauvegarderObjectif() {
     const valStr = document.getElementById('obj-nicotine-valeur').value;
@@ -1257,14 +1396,27 @@ function sauvegarderObjectif() {
 
     const valNico = parseFloat(valStr);
     if (!Number.isFinite(valNico) || valNico < 0) { alert('Choisis un dosage positif ou nul.'); return; }
+    if (objectifEditionId) {
+    const objectif = objectifs.find(o => o.id === objectifEditionId);
+
+    if (objectif) {
+        objectif.titre = `${valNico} mg/ml`;
+        objectif.date = date;
+    }
+
+    objectifEditionId = null;
+} else {
     const nouvelObjectif = {
-        id: Date.now().toString(),
-        titre: `${valNico} mg/ml`,
-        date: date
-    };
+    id: Date.now().toString(),
+    titre: `${valNico} mg/ml`,
+    date: date,
+    dateCreation: new Date().toISOString().split('T')[0]
+};
 
     objectifs.unshift(nouvelObjectif);
-    localStorage.setItem('vt_objectifs', JSON.stringify(objectifs));
+}
+
+localStorage.setItem('vt_objectifs', JSON.stringify(objectifs));
     
     document.getElementById('obj-nicotine-valeur').value = '';
     document.getElementById('obj-date').value = '';
@@ -1942,18 +2094,26 @@ function supprimerDepense(id) {
 function afficherObjectifs() {
     const conteneur = document.getElementById('liste-objectifs');
     if (!conteneur) return;
-    if (objectifs.length === 0) {
+
+    if (objectifs.length === 0 && objectifsTabac.length === 0) {
         conteneur.innerHTML = '<p class="texte-vide">Aucun objectif fixé.</p>';
         return;
     }
 
     conteneur.innerHTML = objectifs.map(o => `
-        <div class="carte item-objectif" style="display:flex; justify-content:space-between; align-items:center;">
-            <div>
-                <strong><img class="icone-inline" src="./assets/menu/objectifs.png" alt="" width="24" height="24"> Nicotine : ${o.titre}</strong>
-                <p class="texte-secondaire">Date cible : ${new Date(o.date).toLocaleDateString('fr-FR')}</p>
+        <div class="carte item-objectif">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <div>
+                    <strong><img class="icone-inline" src="./assets/menu/objectifs.png" alt="" width="24" height="24"> Nicotine : ${o.titre}</strong>
+                    <p class="texte-secondaire">Date cible : ${new Date(o.date).toLocaleDateString('fr-FR')}</p>
+                </div>
+
+                <button type="button" class="btn-suppr" onclick="supprimerObjectif('${o.id}')">🗑️</button>
             </div>
-            <button type="button" class="btn-suppr" onclick="supprimerObjectif('${o.id}')">🗑️</button>
+
+            <button type="button" class="btn-secondaire" onclick="modifierObjectif('${o.id}')">
+                Modifier
+            </button>
         </div>
     `).join('');
 }
@@ -2179,14 +2339,282 @@ if (navSante) navSante.onclick = () => afficherEcran('ecran-sante');
         };
     }
 
-    const btnOuvObj = document.getElementById('btn-ouvrir-ajout-objectif');
-    if (btnOuvObj) {
-        btnOuvObj.onclick = () => {
-            const formObj = document.getElementById('form-objectif');
-            if (formObj) formObj.classList.remove('masque');
-        };
+ const btnOuvObj = document.getElementById('btn-ouvrir-ajout-objectif');
+
+if (btnOuvObj) {
+    btnOuvObj.onclick = () => {
+        objectifEditionId = null;
+
+        const choixType = document.getElementById('choix-type-objectif');
+        const formObj = document.getElementById('form-objectif');
+
+        if (formObj) formObj.classList.add('masque');
+        if (choixType) choixType.classList.remove('masque');
+    };
+}
+
+const btnObjectifNicotine = document.getElementById('btn-objectif-nicotine');
+
+if (btnObjectifNicotine) {
+    btnObjectifNicotine.onclick = () => {
+        const choixType = document.getElementById('choix-type-objectif');
+        const formObj = document.getElementById('form-objectif');
+
+        document.getElementById('obj-nicotine-valeur').value = '';
+        document.getElementById('obj-date').value = '';
+
+        const boutonSauvegarde = document.querySelector('#form-objectif .btn-primaire');
+
+        if (boutonSauvegarde) {
+            boutonSauvegarde.textContent = "Ajouter l'objectif";
+        }
+
+        if (choixType) choixType.classList.add('masque');
+        if (formObj) formObj.classList.remove('masque');
+    };
+}
+function calculerDateCibleSansTabac(nombreMois) {
+    const dateArret = configUser?.dateArret;
+
+    if (!dateArret) return null;
+
+    const [annee, mois, jour] = dateArret.split('-').map(Number);
+
+    const dateCible = new Date(annee, mois - 1, jour, 12, 0, 0);
+
+    dateCible.setMonth(dateCible.getMonth() + nombreMois);
+
+    const anneeCible = dateCible.getFullYear();
+    const moisCible = String(dateCible.getMonth() + 1).padStart(2, '0');
+    const jourCible = String(dateCible.getDate()).padStart(2, '0');
+
+    return `${anneeCible}-${moisCible}-${jourCible}`;
+}
+function sauvegarderObjectifSansTabac() {
+    const estUneModification = objectifTabacEditionId !== null;
+    const selectDuree = document.getElementById('obj-tabac-duree');
+
+    if (!selectDuree || !selectDuree.value) {
+        afficherToast('Choisis un objectif sans tabac.');
+        return;
     }
 
+    let nombreMois;
+    let titre;
+
+    if (selectDuree.value === 'personnalise') {
+        const valeur = Number.parseInt(
+            document.getElementById('obj-tabac-valeur').value,
+            10
+        );
+
+        const unite = document.getElementById('obj-tabac-unite').value;
+
+        if (!valeur || valeur < 1) {
+            afficherToast('Indique une durée valide.');
+            return;
+        }
+
+        if (unite === 'ans') {
+            nombreMois = valeur * 12;
+            titre = valeur === 1 ? '1 an' : `${valeur} ans`;
+        } else {
+            nombreMois = valeur;
+            titre = valeur === 1 ? '1 mois' : `${valeur} mois`;
+        }
+    } else {
+        nombreMois = Number.parseInt(selectDuree.value, 10);
+        titre = nombreMois === 12 ? '1 an' : `${nombreMois} mois`;
+    }
+
+    const dateCible = calculerDateCibleSansTabac(nombreMois);
+
+    if (!dateCible) {
+        afficherToast("Impossible de trouver ta date d'arrêt.");
+        return;
+    }
+
+    if (objectifTabacEditionId) {
+    const objectif = objectifsTabac.find(
+        o => o.id === objectifTabacEditionId
+    );
+
+    if (objectif) {
+        objectif.nombreMois = nombreMois;
+        objectif.titre = titre;
+        objectif.dateCible = dateCible;
+    }
+
+    objectifTabacEditionId = null;
+} else {
+    const nouvelObjectif = {
+        id: Date.now().toString(),
+        type: 'sans-tabac',
+        nombreMois,
+        titre,
+        dateCible,
+        dateCreation: new Date().toISOString().split('T')[0]
+    };
+
+    objectifsTabac.push(nouvelObjectif);
+}
+
+    localStorage.setItem(
+        'vt_objectifs_tabac',
+        JSON.stringify(objectifsTabac)
+    );
+
+    selectDuree.value = '';
+
+    const zonePersonnalisee = document.getElementById('obj-tabac-personnalise');
+    if (zonePersonnalisee) {
+        zonePersonnalisee.classList.add('masque');
+    }
+
+    const valeurPersonnalisee = document.getElementById('obj-tabac-valeur');
+    if (valeurPersonnalisee) {
+        valeurPersonnalisee.value = '';
+    }
+
+    const formObjTabac = document.getElementById('form-objectif-tabac');
+    if (formObjTabac) {
+        formObjTabac.classList.add('masque');
+    }
+
+    const boutonSauvegarde = document.getElementById('btn-sauver-objectif-tabac');
+if (boutonSauvegarde) {
+    boutonSauvegarde.textContent = "Ajouter l'objectif";
+}
+    mettreAJourTout();
+    afficherToast(
+    estUneModification
+        ? `Objectif ${titre} modifié 🌸`
+        : `Objectif ${titre} ajouté 🌸`
+);
+}
+function modifierObjectifSansTabac(id) {
+    const objectif = objectifsTabac.find(o => o.id === id);
+    if (!objectif) return;
+
+    objectifTabacEditionId = id;
+
+    const selectDuree = document.getElementById('obj-tabac-duree');
+    const zonePersonnalisee = document.getElementById('obj-tabac-personnalise');
+    const valeurPersonnalisee = document.getElementById('obj-tabac-valeur');
+    const unitePersonnalisee = document.getElementById('obj-tabac-unite');
+    const formObjTabac = document.getElementById('form-objectif-tabac');
+    const boutonSauvegarde = document.getElementById('btn-sauver-objectif-tabac');
+
+    const dureesStandard = [1, 2, 3, 6, 12];
+
+    if (dureesStandard.includes(objectif.nombreMois)) {
+        selectDuree.value = String(objectif.nombreMois);
+        zonePersonnalisee.classList.add('masque');
+    } else {
+        selectDuree.value = 'personnalise';
+        zonePersonnalisee.classList.remove('masque');
+
+        if (objectif.nombreMois % 12 === 0) {
+            valeurPersonnalisee.value = objectif.nombreMois / 12;
+            unitePersonnalisee.value = 'ans';
+        } else {
+            valeurPersonnalisee.value = objectif.nombreMois;
+            unitePersonnalisee.value = 'mois';
+        }
+    }
+
+    if (boutonSauvegarde) {
+        boutonSauvegarde.textContent = "Modifier l'objectif";
+    }
+
+    if (formObjTabac) {
+        formObjTabac.classList.remove('masque');
+    }
+}
+
+window.modifierObjectifSansTabac = modifierObjectifSansTabac;
+function supprimerObjectifSansTabac(id) {
+    objectifsTabac = objectifsTabac.filter(o => o.id !== id);
+
+    localStorage.setItem(
+        'vt_objectifs_tabac',
+        JSON.stringify(objectifsTabac)
+    );
+
+    mettreAJourTout();
+
+    afficherToast('Objectif supprimé');
+}
+window.supprimerObjectifSansTabac = supprimerObjectifSansTabac;
+const btnSauverObjectifTabac = document.getElementById('btn-sauver-objectif-tabac');
+
+if (btnSauverObjectifTabac) {
+    btnSauverObjectifTabac.onclick = sauvegarderObjectifSansTabac;
+}
+const btnAnnulerObjectifTabac = document.getElementById('btn-annuler-objectif-tabac');
+
+if (btnAnnulerObjectifTabac) {
+    btnAnnulerObjectifTabac.onclick = () => {
+        objectifTabacEditionId = null;
+
+        const formObjTabac = document.getElementById('form-objectif-tabac');
+        const selectDuree = document.getElementById('obj-tabac-duree');
+        const zonePersonnalisee = document.getElementById('obj-tabac-personnalise');
+        const valeurPersonnalisee = document.getElementById('obj-tabac-valeur');
+        const boutonSauvegarde = document.getElementById('btn-sauver-objectif-tabac');
+
+        if (selectDuree) {
+            selectDuree.value = '';
+        }
+
+        if (valeurPersonnalisee) {
+            valeurPersonnalisee.value = '';
+        }
+
+        if (zonePersonnalisee) {
+            zonePersonnalisee.classList.add('masque');
+        }
+
+        if (boutonSauvegarde) {
+            boutonSauvegarde.textContent = "Ajouter l'objectif";
+        }
+
+        if (formObjTabac) {
+            formObjTabac.classList.add('masque');
+        }
+    };
+}
+const btnObjectifTabac = document.getElementById('btn-objectif-tabac');
+
+if (btnObjectifTabac) {
+    btnObjectifTabac.onclick = () => {
+        const choixType = document.getElementById('choix-type-objectif');
+        const formObjTabac = document.getElementById('form-objectif-tabac');
+
+        if (choixType) choixType.classList.add('masque');
+        if (formObjTabac) formObjTabac.classList.remove('masque');
+    };
+}
+const selectDureeTabac = document.getElementById('obj-tabac-duree');
+
+if (selectDureeTabac) {
+    selectDureeTabac.onchange = () => {
+        const zonePersonnalisee = document.getElementById('obj-tabac-personnalise');
+
+        if (!zonePersonnalisee) return;
+
+        if (selectDureeTabac.value === 'personnalise') {
+            zonePersonnalisee.classList.remove('masque');
+        } else {
+            zonePersonnalisee.classList.add('masque');
+
+            const valeurPersonnalisee = document.getElementById('obj-tabac-valeur');
+            if (valeurPersonnalisee) {
+                valeurPersonnalisee.value = '';
+            }
+        }
+    };
+}
     const btnOuvRec = document.getElementById('btn-ouvrir-ajout-recette');
     if (btnOuvRec && tabCreer) {
         btnOuvRec.onclick = () => {
