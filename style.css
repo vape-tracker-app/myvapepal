@@ -1395,3 +1395,79 @@ input:focus, select:focus {
     font-weight: 700;
     line-height: 1.2;
 }
+.separateur-liquides {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+
+    margin: 9px 0 12px;
+}
+
+.separateur-liquides-ligne {
+    flex: 1;
+    height: 1px;
+
+    background: linear-gradient(
+        90deg,
+        transparent,
+        rgba(125, 211, 252, 0.35),
+        transparent
+    );
+}
+
+.separateur-liquides-titre {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    color: var(--texte-secondaire);
+    font-size: 0.95rem;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.separateur-liquides-icone {
+    width: 24px;
+    height: 24px;
+    object-fit: contain;
+}
+.ligne-additif-recette {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+}
+
+.icone-additif-recette {
+    width: 24px;
+    height: 24px;
+    object-fit: contain;
+    flex-shrink: 0;
+}
+.label-additif-recette {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+}
+
+.icone-additif-form {
+    width: 24px;
+    height: 24px;
+    object-fit: contain;
+    flex-shrink: 0;
+}
+#card-economies-mois {
+    margin-top: 12px;
+}
+.celebration-tabac-titre {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.celebration-tabac-fleur {
+    width: 30px;
+    height: 30px;
+    object-fit: contain;
+    flex-shrink: 0;
+}

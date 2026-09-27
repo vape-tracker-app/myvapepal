@@ -169,8 +169,24 @@
     <div id="cigarettes-fumees" class="stat-unite tabac-total" hidden></div>
 </div>
 </div>
+<div class="separateur-liquides">
+    <span class="separateur-liquides-ligne"></span>
+
+    <span class="separateur-liquides-titre">
+        <img
+            class="separateur-liquides-icone"
+            src="./assets/accueil/nicotine.png"
+            alt=""
+            width="28"
+            height="28"
+        >
+        <span>Mes liquides</span>
+    </span>
+
+    <span class="separateur-liquides-ligne"></span>
+</div>
                 <div style="display:flex; gap:8px; margin:10px 0 16px;">
-                    <button id="btn-ouvrir-utilisation-directe" class="btn-primaire" type="button" style="flex:1; font-size:0.82rem; padding:10px 6px;">Utiliser un flacon prêt 💨</button>
+                    <button id="btn-ouvrir-utilisation-directe" class="btn-primaire" type="button" style="flex:1; font-size:0.82rem; padding:10px 6px;">Entamer un flacon prêt 💨</button>
                     <button id="btn-ouvrir-ajout" class="btn-secondaire" type="button" style="flex:1; font-size:0.82rem; padding:10px 6px; margin-top:0;">Préparer un flacon <img class="icone-flacon" src="./assets/menu/diy.png" alt="" width="24" height="24"></button>
                 </div>
 
@@ -205,16 +221,25 @@
                 </div>
 
                 <!-- FLACONS ENTAMÉS -->
-<div class="carte" id="carte-flacons-entames" style="margin-top:16px;">
-    <h2>Mes flacons entamés <img class="icone-inline" src="./assets/menu/accueil.png" alt="" width="24" height="24"></h2>
-    <p class="texte-secondaire" style="margin-bottom:12px;">
-        Les liquides actuellement ouverts.
-    </p>
+<details id="section-flacons-entames" class="accueil-repliable">
+    <summary>
+        <img class="repliable-icone" src="./assets/menu/accueil.png" alt="" width="28" height="28">
 
-    <div id="liste-flacons-entames">
+        <span class="repliable-textes">
+            <span class="repliable-titre">Mes flacons entamés</span>
+            <span id="resume-entames" class="repliable-resume">
+                Aucun flacon entamé
+            </span>
+        </span>
+
+        <span id="compteur-entames" class="repliable-compteur">0</span>
+        <span class="repliable-chevron" aria-hidden="true"></span>
+    </summary>
+
+    <div id="liste-flacons-entames" class="repliable-contenu">
         <p class="texte-vide">Aucun autre flacon entamé.</p>
     </div>
-</div>
+</details>
 
                 <!-- Sections secondaires repliables -->
                 <details id="section-flacons-reserve" class="accueil-repliable">
@@ -440,6 +465,41 @@
                         <label>Temps de maturation / steep (Jours) - <i>Optionnel</i></label>
                         <input type="number" id="recette-steep-days" placeholder="Ex: 10 (laisser vide si aucun)" min="0" step="1">
                     </div>
+                    <div class="groupe-champ">
+    <label>
+        Additifs <span class="texte-secondaire">(facultatif)</span>
+    </label>
+
+    <div class="grille-champs-2col">
+        <div class="groupe-champ">
+            <label for="recette-additif-frais" class="label-additif-recette">
+    <img src="./assets/saveurs/frais.png" class="icone-additif-form" alt="">
+    <span>Frais</span>
+</label>
+            <input
+                type="number"
+                id="recette-additif-frais"
+                min="0"
+                step="1"
+                placeholder="Nombre de gouttes"
+            >
+        </div>
+
+        <div class="groupe-champ">
+            <label for="recette-additif-sucre" class="label-additif-recette">
+    <img src="./assets/saveurs/bonbon.png" class="icone-additif-form" alt="">
+    <span>Sucré</span>
+</label>
+            <input
+                type="number"
+                id="recette-additif-sucre"
+                min="0"
+                step="1"
+                placeholder="Nombre de gouttes"
+            >
+        </div>
+    </div>
+</div>
 
                     <div class="box-calcul-live" style="background: rgba(255, 183, 197, 0.08); border: 1px solid rgba(255, 183, 197, 0.3); padding: 12px; border-radius: 12px; margin-top: 14px; margin-bottom: 14px;">
                         <div class="titre-calcul-live" style="color: var(--rose-sakura); font-weight: bold; margin-bottom: 8px;"><img class="icone-flacon" src="./assets/menu/diy.png" alt="" width="24" height="24"> Ingrédients à mélanger :</div>
@@ -528,7 +588,29 @@
                     <button type="button" id="btn-fermer-ajustement" class="btn-secondaire">Fermer le calculateur</button>
                 </div>
 
-                <div id="liste-recettes"></div>
+                <details id="section-recettes-enregistrees" class="accueil-repliable">
+    <summary>
+        <img
+            class="repliable-icone"
+            src="./assets/menu/diy.png"
+            alt=""
+            width="28"
+            height="28"
+        >
+
+        <span class="repliable-textes">
+            <span class="repliable-titre">Mes recettes enregistrées</span>
+            <span id="resume-recettes" class="repliable-resume">
+                Aucune recette enregistrée
+            </span>
+        </span>
+
+        <span id="compteur-recettes" class="repliable-compteur">0</span>
+        <span class="repliable-chevron" aria-hidden="true"></span>
+    </summary>
+
+    <div id="liste-recettes" class="repliable-contenu"></div>
+</details>
             </section>
 
             <!-- ÉCRAN 3 : VICTOIRES -->
@@ -928,25 +1010,52 @@
         </nav>
 
     </div>
+    <div id="celebration-objectif-tabac"
+     class="modale-fond masque"
+     role="dialog"
+     aria-modal="true"
+     aria-labelledby="celebration-tabac-titre">
+
+    <div class="modale-contenu">
+        <h2 id="celebration-tabac-titre" class="celebration-tabac-titre">
+    <img src="./assets/menu/accueil.png" alt="" class="celebration-tabac-fleur">
+    <span>Objectif sans tabac atteint !</span>
+</h2>
+
+        <p id="celebration-tabac-message"></p>
+
+        <p>Définir un nouvel objectif ?</p>
+
+        <button type="button" id="btn-nouvel-objectif-tabac" class="btn-primaire">
+            Oui, carrément !
+        </button>
+
+        <button type="button" id="btn-plus-tard-objectif-tabac" class="btn-secondaire">
+            Plus tard
+        </button>
+    </div>
+</div>
     <script src="push-storage.js?v=v138"></script>
     <div id="confirmation-action" role="status" aria-live="polite" aria-atomic="true"></div>
     <script src="backup-config.js?v=v153"></script>
     <script src="backup.js?v=v203"></script>
     <script src="enhancements.js?v=v200"></script>
-    <script src="objectifs.js?v=v221"></script>
+    <script src="objectifs.js?v=v223"></script>
     <script src="stock-diy.js?v=v199"></script>
-    <script src="accueil-sections.js?v=v202"></script>
+    <script src="accueil-sections.js?v=v203"></script>
     <script src="suivi-tabac.js"></script>
-    <script src="app.js?v=v237"></script>
+    <script src="app.js?v=v248"></script>
     <script src="tabac.js"></script>
     <script src="materiel.js?v=v204"></script>
     <script src="flacons-edition.js?v=v194"></script>
-    <script src="diy-costs.js?v=v200"></script>
+    <script src="diy-costs.js?v=v205"></script>
     <script src="guide-articles.js?v=v197"></script>
     <script src="guide-vape.js?v=v197"></script>
     <script src="tutoriel.js?v=v205"></script>
     <script src="contact-config.js?v=v206"></script>
     <script src="contact.js?v=v206"></script>
     <script src="push.js?v=v156"></script>
+
+    
 </body>
 </html>

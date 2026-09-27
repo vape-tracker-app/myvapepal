@@ -44,7 +44,12 @@ async function reconcile(force = false) {
     message = 'Notifications bloquées par Android. Autorise-les dans les paramètres de MyVapePal.';
     fingerprint = ''; render(); return;
   }
-  const data = {config: read('vt_config', {}), bottles: read('vt_flacons', []), goals: read('vt_objectifs', [])};
+  const data = {
+    config: read('vt_config', {}),
+    bottles: read('vt_flacons', []),
+    goals: read('vt_objectifs', []),
+    tobaccoGoals: read('vt_objectifs_tabac', [])
+};
   const stamp = JSON.stringify([data, new Date().toDateString(), new Date().getTimezoneOffset()]);
   if (!force && stamp === fingerprint) return;
   const pending = await notifications.getPending();
@@ -52,6 +57,13 @@ async function reconcile(force = false) {
   if (old.length) await notifications.cancel({notifications: old.map(n => ({id: n.id}))});
   const planned = plan(data);
   if (planned.length) await notifications.schedule({notifications: planned});
+  const verification = await notifications.getPending();
+
+console.log(
+    '🔔 Notifications programmées :',
+    verification.notifications.length,
+    verification.notifications
+);
   fingerprint = stamp;
   message = ''; render();
 }

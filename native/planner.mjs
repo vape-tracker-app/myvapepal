@@ -3,7 +3,12 @@ const localDate = value => {
   const match = /^(\d{4})-(\d{2})-(\d{2})/.exec(value || '');
   return match ? new Date(+match[1], +match[2] - 1, +match[3], 9) : new Date(NaN);
 };
-export function plan({config = {}, bottles = [], goals = []}, now = new Date()) {
+export function plan({
+    config = {},
+    bottles = [],
+    goals = [],
+    tobaccoGoals = []
+}, now = new Date()) {
   const notifications = [];
   const add = (id, at, title, body) => {
     if (Number.isFinite(+at) && at > now) notifications.push({id, title, body,
@@ -28,5 +33,15 @@ export function plan({config = {}, bottles = [], goals = []}, now = new Date()) 
     add(100000 + index, new Date(f.steepReadyAt), 'Un flacon est prêt !', `${f.nom || 'Ton flacon'} a terminé sa maturation. Retrouve-le dans ta réserve.`));
   goals.filter(g => g.statut !== 'atteint').forEach((g, index) =>
     add(200000 + index, localDate(g.date), 'On fait le point ? 🎯', `Aujourd’hui, ton objectif : ${g.titre || 'faire le point sur ta nicotine'}.`));
+  tobaccoGoals
+    .filter(g => g.statut !== 'atteint' && g.dateCible)
+    .forEach((g, index) =>
+        add(
+            300000 + index,
+            localDate(g.dateCible),
+            'Objectif sans tabac atteint ! 🌸',
+            `Bravo ! Tu as atteint ton objectif de ${g.titre || 'parcours sans tabac'} !`
+        )
+    );
   return notifications;
 }

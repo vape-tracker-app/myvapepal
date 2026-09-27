@@ -636,15 +636,26 @@ function afficherObjectifSansTabacAccueil() {
             if (!o.dateCible) return false;
 
             const dateCible = new Date(o.dateCible + 'T12:00:00');
-            return dateCible >= aujourdHui;
+            return dateCible > aujourdHui;
         })
         .sort((a, b) => a.dateCible.localeCompare(b.dateCible));
 
     if (objectifsFuturs.length === 0) {
-        return;
-    }
+    const bouton = document.createElement('button');
 
-    const prochain = objectifsFuturs[0];
+    bouton.type = 'button';
+    bouton.className = 'btn-definir-objectif-tabac';
+    bouton.textContent = 'Définir un objectif';
+
+    bouton.onclick = () => {
+        afficherEcran('ecran-objectifs');
+    };
+
+    zone.append(bouton);
+    return;
+}
+
+const prochain = objectifsFuturs[0];
 
     const dateFormatee = new Date(
         prochain.dateCible + 'T12:00:00'
@@ -1189,7 +1200,8 @@ let sauvegardeRecetteEnCours=false;
 let recetteEditionId=null;
 function reinitialiserRecette(){
     recetteEditionId=null;
-    for(const [id,v] of Object.entries({'recette-nom':'','recette-volume':50,'recette-nicotine':6,'recette-arome':15,'recette-taux-booster':20,'recette-steep-days':''}))document.getElementById(id).value=v;
+    for(const [id,v] of Object.entries({'recette-nom':'','recette-volume':50,'recette-nicotine':6,'recette-arome':15,'recette-taux-booster':20,'recette-steep-days':'','recette-additif-frais':'',
+'recette-additif-sucre':''}))document.getElementById(id).value=v;
     document.querySelector('#form-recette h3').textContent='Nouvelle recette DIY';
     document.querySelector('#form-recette button.btn-primaire').textContent='Sauvegarder la recette';
     DIYCosts.load('recette',null);calculerDosagesDIY();DIYCosts.preview('recette');
@@ -1198,7 +1210,16 @@ function modifierRecette(id){
     const r=recettes.find(r=>r.id===id);if(!r)return;
     document.getElementById('tab-mode-creer').click();
     recetteEditionId=id;
-    for(const [field,v] of Object.entries({'recette-nom':r.nom,'recette-volume':r.volumeTotal??50,'recette-nicotine':r.nicotine??0,'recette-arome':r.arome??0,'recette-taux-booster':r.coutDIY?.tauxBooster??20,'recette-steep-days':r.steepDays??0}))document.getElementById(field).value=v;
+    for(const [field,v] of Object.entries({
+    'recette-nom':r.nom,
+    'recette-volume':r.volumeTotal??50,
+    'recette-nicotine':r.nicotine??0,
+    'recette-arome':r.arome??0,
+    'recette-taux-booster':r.coutDIY?.tauxBooster??20,
+    'recette-steep-days':r.steepDays??0,
+    'recette-additif-frais':r.additifs?.frais?.gouttes??'',
+    'recette-additif-sucre':r.additifs?.sucre?.gouttes??''
+}))document.getElementById(field).value=v;
     document.querySelector('#form-recette h3').textContent='Modifier la recette DIY';
     document.querySelector('#form-recette button.btn-primaire').textContent='Enregistrer les modifications';
     DIYCosts.load('recette',r);calculerDosagesDIY();DIYCosts.preview('recette');
@@ -1216,9 +1237,41 @@ async function sauvegarderRecette() {
         if(recetteEditionId&&!previous)throw Error('Cette recette n’existe plus.');
         const cout=DIYCosts.snapshot('recette'),a=cout.amounts;
         const categoriesSaveurs=MyVapeUI.readFlavorSelect(document.getElementById('recette-saveurs'));
-        const recette=DIYCosts.attach({...previous,id:previous?.id??crypto.randomUUID(),nom,type:'DIY',categoriesSaveurs,categorieSaveur:categoriesSaveurs[0],
-            nicotine:Number(document.getElementById('recette-nicotine').value),arome:Number(document.getElementById('recette-arome').value),steepDays,
-            volumeTotal:a.volTotal,volArome:a.volArome,volBooster:a.volBooster,nbrFioles:a.volBooster/10,volBase:a.volBase},cout);
+        const gouttesFrais = Number(document.getElementById('recette-additif-frais').value || 0);
+const gouttesSucre = Number(document.getElementById('recette-additif-sucre').value || 0);
+
+if (!Number.isSafeInteger(gouttesFrais) || gouttesFrais < 0 ||
+    !Number.isSafeInteger(gouttesSucre) || gouttesSucre < 0) {
+    throw Error('Indique un nombre entier de gouttes pour les additifs.');
+}
+
+const additifs = {};
+
+if (gouttesFrais > 0) {
+    additifs.frais = { gouttes: gouttesFrais };
+}
+
+if (gouttesSucre > 0) {
+    additifs.sucre = { gouttes: gouttesSucre };
+}
+const recette=DIYCosts.attach({
+    ...previous,
+    id:previous?.id??crypto.randomUUID(),
+    nom,
+    type:'DIY',
+    categoriesSaveurs,
+    categorieSaveur:categoriesSaveurs[0],
+    nicotine:Number(document.getElementById('recette-nicotine').value),
+    arome:Number(document.getElementById('recette-arome').value),
+    steepDays,
+    volumeTotal:a.volTotal,
+    volArome:a.volArome,
+    volBooster:a.volBooster,
+    nbrFioles:a.volBooster/10,
+    volBase:a.volBase,
+    additifs
+},cout);
+
         DIYCosts.persist('vt_recettes',previous?recettes.map(r=>r.id===previous.id?recette:r):[recette,...recettes]);
         reinitialiserRecette();document.getElementById('form-recette').classList.add('masque');
         mettreAJourTout();MyVapeUI.toast(previous?'Recette modifiée':'Recette enregistrée');
@@ -1684,7 +1737,7 @@ function afficherReserveEtMaturation() {
                 <div style="margin-top:8px; display:flex; justify-content:space-between; align-items:center;">
                     <span class="badge-steep pret"><img class="icone-inline" src="./assets/menu/accueil.png" alt="" width="24" height="24"> Prêt à savourer</span>
                     <button type="button" class="btn-primaire" style="width:auto; padding:6px 14px; font-size:0.8rem;" onclick="utiliserCeFlacon('${f.id}')">
-                        ${quantite > 1 ? 'Entamer 1 flacon 💨' : 'Utiliser ce flacon 💨'}
+                        ${quantite > 1 ? 'Entamer 1 flacon 💨' : 'Entamer ce flacon 💨'}
                     </button>
                 </div>
             `;
@@ -1810,6 +1863,18 @@ function terminerFlacon(id) {
 function afficherRecettes() {
     const conteneur = document.getElementById('liste-recettes');
     if (!conteneur) return;
+    const compteur = document.getElementById('compteur-recettes');
+const resume = document.getElementById('resume-recettes');
+
+if (compteur) {
+    compteur.textContent = String(recettes.length);
+}
+
+if (resume) {
+    resume.textContent = recettes.length
+        ? `${recettes.length} recette${recettes.length > 1 ? 's' : ''} disponible${recettes.length > 1 ? 's' : ''}`
+        : 'Aucune recette enregistrée';
+}
     if (recettes.length === 0) {
         conteneur.innerHTML = '<p class="texte-vide">Aucune recette DIY enregistrée.</p>';
         return;
@@ -1834,10 +1899,25 @@ function afficherRecettes() {
     `).join('');
     Array.from(conteneur.children).forEach((card,index)=>{
         const r=recettes[index];
-        for(const [key,a] of Object.entries(r.additifs||{})){
-            const info=document.createElement('p');info.className='texte-secondaire';
-            info.textContent=`${key==='frais'?'Additif frais':'Additif sucré'} : ${Number(a.gouttes).toLocaleString('fr-FR',{maximumFractionDigits:4})} gouttes (${(a.gouttes/a.gouttesParMl).toLocaleString('fr-FR',{maximumFractionDigits:4})} ml)`;card.append(info);
-        }
+     for(const [key,a] of Object.entries(r.additifs||{})){
+    const info=document.createElement('p');
+    info.className='texte-secondaire ligne-additif-recette';
+
+    const icone=document.createElement('img');
+    icone.className='icone-additif-recette';
+    icone.src=key==='frais'
+        ? './assets/saveurs/frais.png'
+        : './assets/saveurs/bonbon.png';
+    icone.alt='';
+
+    const texte=document.createElement('span');
+    texte.textContent =
+        `${key==='frais'?'Additif frais':'Additif sucré'} : ` +
+        `${Number(a.gouttes).toLocaleString('fr-FR')} goutte${Number(a.gouttes)>1?'s':''}`;
+
+    info.append(icone,texte);
+    card.append(info);
+}
         const edit=document.createElement('button');edit.type='button';edit.className='btn-secondaire';edit.textContent='Modifier';edit.onclick=()=>modifierRecette(r.id);card.append(edit);
     });
 }
@@ -2448,13 +2528,15 @@ function sauvegarderObjectifSansTabac() {
     objectifTabacEditionId = null;
 } else {
     const nouvelObjectif = {
-        id: Date.now().toString(),
-        type: 'sans-tabac',
-        nombreMois,
-        titre,
-        dateCible,
-        dateCreation: new Date().toISOString().split('T')[0]
-    };
+    id: Date.now().toString(),
+    type: 'sans-tabac',
+    nombreMois,
+    titre,
+    dateCible,
+    dateCreation: new Date().toISOString().split('T')[0],
+    statut: 'en-cours',
+    celebrationVue: false
+};
 
     objectifsTabac.push(nouvelObjectif);
 }
@@ -2492,6 +2574,38 @@ if (boutonSauvegarde) {
         : `Objectif ${titre} ajouté 🌸`
 );
 }
+
+function mettreAJourSuggestionsObjectifsTabac() {
+    const select = document.getElementById('obj-tabac-duree');
+
+    if (!select || !configUser?.dateArret) return;
+
+    const depart = new Date(configUser.dateArret + 'T12:00:00');
+    const maintenant = new Date();
+
+    for (const option of select.options) {
+        const mois = Number.parseInt(option.value, 10);
+
+        // On ne touche ni au placeholder ni à "Personnalisé"
+        if (!Number.isFinite(mois)) continue;
+
+        const dateJalon = new Date(depart);
+        dateJalon.setMonth(dateJalon.getMonth() + mois);
+
+        const jalonAtteint = dateJalon <= maintenant;
+
+option.hidden = jalonAtteint;
+option.disabled = jalonAtteint;
+option.style.display = jalonAtteint ? 'none' : '';
+    }
+
+    // Si la valeur actuellement sélectionnée vient de disparaître,
+    // on revient sur "Choisir un objectif".
+    if (select.selectedOptions[0]?.hidden) {
+        select.value = '';
+    }
+}
+
 function modifierObjectifSansTabac(id) {
     const objectif = objectifsTabac.find(o => o.id === id);
     if (!objectif) return;
@@ -2590,7 +2704,7 @@ if (btnObjectifTabac) {
     btnObjectifTabac.onclick = () => {
         const choixType = document.getElementById('choix-type-objectif');
         const formObjTabac = document.getElementById('form-objectif-tabac');
-
+mettreAJourSuggestionsObjectifsTabac();
         if (choixType) choixType.classList.add('masque');
         if (formObjTabac) formObjTabac.classList.remove('masque');
     };

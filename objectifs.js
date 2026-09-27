@@ -39,6 +39,121 @@ function progressionObjectif(o) {
         joursRestants
     };
 }
+function actualiserObjectifsTabacAtteints() {
+    let modification = false;
+
+    for (const objectif of objectifsTabac) {
+        if (
+            objectif.statut !== 'atteint' &&
+            objectif.dateCible &&
+            objectif.dateCible <= today()
+        ) {
+            objectif.statut = 'atteint';
+            objectif.atteintLe = objectif.dateCible;
+
+            if (objectif.celebrationVue === undefined) {
+                objectif.celebrationVue = false;
+            }
+
+            modification = true;
+        }
+    }
+
+    if (modification) {
+        localStorage.setItem(
+            'vt_objectifs_tabac',
+            JSON.stringify(objectifsTabac)
+        );
+    }
+}
+
+function afficherCelebrationObjectifTabac() {
+    const objectif = objectifsTabac.find(
+        o => o.statut === 'atteint' && o.celebrationVue !== true
+    );
+
+    if (!objectif) return;
+
+    const modal = document.getElementById('celebration-objectif-tabac');
+    const message = document.getElementById('celebration-tabac-message');
+
+    if (!modal || !message) return;
+
+    message.textContent = `Bravo ! Tu as atteint ton objectif de ${objectif.titre} sans tabac !`;
+
+    modal.dataset.objectifId = objectif.id;
+    modal.classList.remove('masque');
+
+    if (!matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        const shower = element(
+            'div',
+            '',
+            'celebration-petales celebration-objectif'
+        );
+
+        shower.setAttribute('aria-hidden', 'true');
+
+        for (let i = 0; i < 28; i++) {
+            const petal = document.createElement('i');
+            petal.style.left = `${Math.random() * 100}%`;
+            petal.style.animationDelay = `${Math.random() * .8}s`;
+            petal.style.setProperty(
+                '--derive',
+                `${Math.random() * 140 - 70}px`
+            );
+            shower.append(petal);
+        }
+
+        document.body.append(shower);
+        setTimeout(() => shower.remove(), 5200);
+    }
+}
+
+function fermerCelebrationObjectifTabac() {
+    const modal = document.getElementById('celebration-objectif-tabac');
+    if (!modal) return;
+
+    const objectifId = modal.dataset.objectifId;
+    const objectif = objectifsTabac.find(o => o.id === objectifId);
+
+    if (objectif) {
+        objectif.celebrationVue = true;
+
+        localStorage.setItem(
+            'vt_objectifs_tabac',
+            JSON.stringify(objectifsTabac)
+        );
+    }
+
+    modal.classList.add('masque');
+    delete modal.dataset.objectifId;
+
+    mettreAJourTout();
+}
+
+function nouvelObjectifApresCelebrationTabac() {
+    const modal = document.getElementById('celebration-objectif-tabac');
+    if (!modal) return;
+
+    const objectifId = modal.dataset.objectifId;
+    const objectif = objectifsTabac.find(o => o.id === objectifId);
+
+    if (objectif) {
+        objectif.celebrationVue = true;
+
+        localStorage.setItem(
+            'vt_objectifs_tabac',
+            JSON.stringify(objectifsTabac)
+        );
+    }
+
+    modal.classList.add('masque');
+    delete modal.dataset.objectifId;
+
+    mettreAJourTout();
+    afficherEcran('ecran-objectifs');
+}
+
 function progressionObjectifTabac(o) {
     if (!configUser?.dateArret || !o.dateCible) {
         return {
@@ -97,6 +212,8 @@ function progressionObjectifTabac(o) {
         button(card,'Plus tard',render);
     }
     function render(){
+        actualiserObjectifsTabacAtteints();
+        afficherCelebrationObjectifTabac();
         const card=document.getElementById('suivi-objectif');if(!card)return;
         const list=pending(),due=list.find(o=>o.date<=today());card.replaceChildren();card.hidden=!due;
         if(due){card.append(element('h3',`🎯 Ton objectif : ${due.titre}`),element('p',due.date===today()?'C’est aujourd’hui ! Où en es-tu ?':`Tu l’avais prévu le ${new Date(due.date+'T12:00:00').toLocaleDateString('fr-FR')}. Où en es-tu ?`));button(card,'Oui, objectif atteint !',()=>win(due));button(card,'Pas encore',()=>postpone(card,due));}
@@ -253,7 +370,20 @@ container.append(tabacDetails);
     function refreshDay(){if(document.visibilityState==='visible' && today()!==lastDay){lastDay=today();render();}}
     document.addEventListener('visibilitychange',refreshDay);
     setInterval(refreshDay,60000);
-   return {
+
+    const btnPlusTardTabac = document.getElementById('btn-plus-tard-objectif-tabac');
+
+if (btnPlusTardTabac) {
+    btnPlusTardTabac.onclick = fermerCelebrationObjectifTabac;
+}
+
+const btnNouvelObjectifTabac = document.getElementById('btn-nouvel-objectif-tabac');
+
+if (btnNouvelObjectifTabac) {
+    btnNouvelObjectifTabac.onclick = nouvelObjectifApresCelebrationTabac;
+}
+
+return {
     render,
     progressionObjectif,
     progressionObjectifTabac

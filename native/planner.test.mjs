@@ -38,3 +38,39 @@ test('smoking on a milestone date keeps that morning’s acquired stage',()=>{
  assert.equal(+result.find(n=>n.id===20000).schedule.at,+new Date(2026,8,18,9,5));
  assert.match(result.find(n=>n.id===10000).body,/31 jours/);
 });
+test('pending tobacco-free goals schedule a notification on their target date', () => {
+    const now = new Date(2026, 8, 27, 8);
+
+    const result = plan({
+        tobaccoGoals: [
+            {
+                titre: '6 mois',
+                dateCible: '2027-02-17',
+                statut: 'en-cours'
+            },
+            {
+                titre: '3 mois',
+                dateCible: '2026-12-17',
+                statut: 'atteint'
+            }
+        ]
+    }, now);
+
+    const notification = result.find(n => n.id === 300000);
+
+    assert.ok(notification);
+    assert.equal(
+        +notification.schedule.at,
+        +new Date(2027, 1, 17, 9)
+    );
+    assert.equal(
+        notification.title,
+        'Objectif sans tabac atteint ! 🌸'
+    );
+    assert.match(notification.body, /6 mois/);
+
+    assert.equal(
+        result.filter(n => n.id >= 300000).length,
+        1
+    );
+});
