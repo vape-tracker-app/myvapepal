@@ -16,10 +16,10 @@ function corrigerFicheFlacon(f, valeurs) {
     next.nom = valeurs.nom.trim();
     if (!next.nom || /[<>]/.test(next.nom)) throw Error('Indique un nom sans les caractères < et >.');
     if (!['DIY', 'Prêt à vaper'].includes(valeurs.type)) throw Error('Choisis le type de flacon.');
-    if (!['fruite','gourmand','classic','menthe','frais','boisson','autre'].includes(valeurs.categorieSaveur)) throw Error('Choisis une saveur.');
+    if (!['fruite','gourmand','classic','menthe','frais','boisson','cbd'].includes(valeurs.categorieSaveur)) throw Error('Choisis une saveur.');
     next.type = valeurs.type; next.categorieSaveur = valeurs.categorieSaveur;
     const flavors=valeurs.categoriesSaveurs || [valeurs.categorieSaveur];
-    if (!Array.isArray(flavors) || !flavors.length || flavors.some(k=>!['fruite','gourmand','classic','menthe','frais','boisson','autre'].includes(k))) throw Error('Choisis une ou plusieurs saveurs.');
+    if (!Array.isArray(flavors) || !flavors.length || flavors.some(k=>!['fruite','gourmand','classic','menthe','frais','boisson','cbd'].includes(k))) throw Error('Choisis une ou plusieurs saveurs.');
     next.categoriesSaveurs=[...new Set(flavors)];next.categorieSaveur=next.categoriesSaveurs[0];
     for (const key of ['volume','nicotine','arome','steepDays']) {
         if (key === 'arome' && valeurs.type === 'Prêt à vaper') continue;
@@ -58,6 +58,19 @@ function corrigerFicheFlacon(f, valeurs) {
     if(valeurs.coutFlacon!==String(f.coutFlacon??''))delete next.coutPartiel;
     return next;
 }
+
+if (next.categoriesSaveurs.includes('cbd')) {
+    const cbdMgMl = Number(valeurs.cbdMgMl);
+
+    if (!Number.isFinite(cbdMgMl) || cbdMgMl <= 0) {
+        throw Error('Indique un dosage CBD valide.');
+    }
+
+    next.cbdMgMl = cbdMgMl;
+} else {
+    delete next.cbdMgMl;
+}
+
 function creerDialogueFlacon(titre) {
     const dialog = document.createElement('dialog');
     dialog.className = 'dialog-flacon-edition';
@@ -87,12 +100,41 @@ function modifierFlacon(id) {
         group.append(input); form.append(group); fields[key] = input;
     };
     field('nom','Nom du liquide','text',f.nom);
-    field('categorieSaveur','Type de saveur',null,f.categorieSaveur || 'autre',Object.entries({fruite:'🍓 Fruité',gourmand:'🍰 Gourmand',classic:'🍂 Classic',menthe:'🌿 Menthe',frais:'🧊 Frais',boisson:'🥤 Boisson',autre:'✨ Autre'}));
+    field(
+    'categorieSaveur',
+    'Type de saveur',
+    null,
+    f.categorieSaveur || 'fruite',
+    Object.entries({
+        fruite:'🍓 Fruité',
+        gourmand:'🍰 Gourmand',
+        classic:'🍂 Classic',
+        menthe:'🌿 Menthe',
+        frais:'🧊 Frais',
+        boisson:'🥤 Boisson',
+        cbd:'🌱 CBD'
+    })
+);
     MyVapeUI.attachFlavorSelect(fields.categorieSaveur,MyVapeUI.bottleFlavors(f));
     field('type','Type',null,f.type,[['DIY','DIY (Fait maison)'],['Prêt à vaper','Prêt à vaper (Commercial)']]);
     field('volume','Contenance par flacon (ml)','number',f.volume);
-    field('nicotine','Nicotine (mg/ml)','number',f.nicotine);
-    field('arome','Arôme (%)','number',f.arome || 0);
+
+field('nicotine','Nicotine (mg/ml)','number',f.nicotine);
+
+field('cbdMgMl','CBD (mg/ml)','number',f.cbdMgMl ?? '');
+
+field('arome','Arôme (%)','number',f.arome || 0);
+const updateCBD = () => {
+    const saveurs = MyVapeUI.readFlavorSelect(fields.categorieSaveur);
+    const estCBD = saveurs.includes('cbd');
+
+    fields.cbdMgMl.parentElement.hidden = !estCBD;
+    fields.cbdMgMl.disabled = !estCBD;
+    fields.cbdMgMl.required = estCBD;
+};
+
+fields.categorieSaveur.addEventListener('change', updateCBD);
+updateCBD();
     const updateArome=()=>{const pav=fields.type.value==='Prêt à vaper';fields.arome.disabled=pav;fields.arome.required=!pav;fields.arome.parentElement.hidden=pav;};
     fields.type.addEventListener('change',updateArome);updateArome();
     if (!f.startedAt) field('quantite','Nombre de flacons en réserve','number',f.quantite ?? 1);

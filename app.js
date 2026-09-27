@@ -100,6 +100,55 @@ document.addEventListener('DOMContentLoaded', () => {
     } else {
         initialiserInterface();
     }
+    const categorieSaveurDirect = document.getElementById('categorie-saveur-direct');
+const groupeCbdDirect = document.getElementById('groupe-cbd-direct');
+
+if (categorieSaveurDirect && groupeCbdDirect) {
+
+    const mettreAJourChampCBD = () => {
+        const saveurs = MyVapeUI.readFlavorSelect(categorieSaveurDirect);
+        const estCBD = saveurs.includes('cbd');
+
+        groupeCbdDirect.style.display = estCBD ? '' : 'none';
+
+        if (!estCBD) {
+            const cbdDirect = document.getElementById('cbd-direct');
+            const cbdConcentrationDirect = document.getElementById('cbd-concentration-direct');
+
+            if (cbdDirect) cbdDirect.value = '';
+            if (cbdConcentrationDirect) cbdConcentrationDirect.textContent = '';
+        }
+    };
+
+    categorieSaveurDirect.addEventListener('change', mettreAJourChampCBD);
+    mettreAJourChampCBD();
+}
+const cbdDirect = document.getElementById('cbd-direct');
+const volumeDirect = document.getElementById('volume-direct');
+const cbdConcentrationDirect = document.getElementById('cbd-concentration-direct');
+
+function calculerConcentrationCBD() {
+    if (!cbdDirect || !volumeDirect || !cbdConcentrationDirect) return;
+
+    const cbdTotal = parseFloat(cbdDirect.value);
+    const volume = parseFloat(volumeDirect.value);
+
+    if (cbdTotal > 0 && volume > 0) {
+        const concentration = cbdTotal / volume;
+
+        cbdConcentrationDirect.textContent =
+            `Concentration calculée : ${concentration.toLocaleString('fr-FR', {
+                maximumFractionDigits: 2
+            })} mg/ml`;
+    } else {
+        cbdConcentrationDirect.textContent = '';
+    }
+}
+
+if (cbdDirect && volumeDirect) {
+    cbdDirect.addEventListener('input', calculerConcentrationCBD);
+    volumeDirect.addEventListener('input', calculerConcentrationCBD);
+}
 
     configurerEcouteurs();
     configurerSwipeNavigation();
@@ -1358,15 +1407,47 @@ async function sauvegarderFlaconDirect() {
     const cout = pav && coutInput.value !== '' ? Number(coutInput.value) : null;
     if (cout !== null && (!Number.isFinite(cout) || cout < 0)) {alert('Indique un coût valide.');return;}
 
+const saveursDirect = MyVapeUI.readFlavorSelect(
+    document.getElementById('categorie-saveur-direct')
+);
+if (saveursDirect.includes('cbd')) {
+    const cbdTotal = parseFloat(document.getElementById('cbd-direct')?.value);
+    const volume = parseFloat(document.getElementById('volume-direct')?.value);
+
+    if (!volume || volume <= 0) {
+        alert('Indique la contenance de ton flacon.');
+        document.getElementById('volume-direct')?.focus();
+        return;
+    }
+
+    if (!cbdTotal || cbdTotal <= 0) {
+        alert('Indique la quantité de CBD inscrite sur ton flacon.');
+        document.getElementById('cbd-direct')?.focus();
+        return;
+    }
+}
+
+let cbdMgMl = null;
+
+if (saveursDirect.includes('cbd')) {
+    const cbdTotal = parseFloat(document.getElementById('cbd-direct')?.value) || 0;
+    const volume = parseFloat(document.getElementById('volume-direct').value) || 0;
+
+    if (cbdTotal > 0 && volume > 0) {
+        cbdMgMl = cbdTotal / volume;
+    }
+}
+
     const nouveauFlaconActif = {
         id: Date.now().toString(),
         nom: nom,
-        categorieSaveur: MyVapeUI.readFlavorSelect(document.getElementById('categorie-saveur-direct'))[0],
-        categoriesSaveurs: MyVapeUI.readFlavorSelect(document.getElementById('categorie-saveur-direct')),
+        categorieSaveur: saveursDirect[0],
+categoriesSaveurs: saveursDirect,
         type: document.getElementById('type-direct').value,
         volume: parseFloat(document.getElementById('volume-direct').value) || 0,
-        nicotine: parseFloat(document.getElementById('nicotine-direct').value) || 0,
-        arome: 0,
+nicotine: parseFloat(document.getElementById('nicotine-direct').value) || 0,
+cbdMgMl: cbdMgMl,
+arome: 0,
         preparedAt: dateDebut.toISOString(),
         startedAt: dateDebut.toISOString(),
         dateOuverture: dateDebut.toISOString(),
@@ -1388,6 +1469,11 @@ async function sauvegarderFlaconDirect() {
         }else enregistrerFlaconEtDepense(nouveauFlaconActif, ajouter);
         document.getElementById('nom-direct').value = '';
         coutInput.value = '';
+        const cbdInput = document.getElementById('cbd-direct');
+const cbdConcentration = document.getElementById('cbd-concentration-direct');
+
+if (cbdInput) cbdInput.value = '';
+if (cbdConcentration) cbdConcentration.textContent = '';
         mettreAJourTout();
         afficherEcran('ecran-accueil');
         if (typeof MyVapeUI !== 'undefined') MyVapeUI.toast(ajouter ? 'Flacon et dépense ajoutés' : 'Flacon ajouté');
@@ -1582,7 +1668,12 @@ if (sceauAllDay) {
 
     if (actif) {
         if (document.getElementById('nom-liquide')) document.getElementById('nom-liquide').textContent = `💨 ${actif.nom}`;
-        if (document.getElementById('details-nicotine')) document.getElementById('details-nicotine').textContent = `Nicotine : ${actif.nicotine} mg/ml | Type : ${actif.type}`;
+        if (document.getElementById('details-nicotine')) {
+    document.getElementById('details-nicotine').textContent =
+        actif.cbdMgMl != null
+            ? `CBD : ${actif.cbdMgMl.toLocaleString('fr-FR', { maximumFractionDigits: 2 })} mg/ml | Type : ${actif.type}`
+            : `Nicotine : ${actif.nicotine} mg/ml | Type : ${actif.type}`;
+}
         
         const dateDebut = actif.startedAt || actif.dateOuverture || actif.preparedAt;
         const dateOuv = new Date(dateDebut);
@@ -1604,7 +1695,7 @@ if (zoneCategorie) {
                 <option value="classic">🍂 Classic</option>
                 <option value="menthe">🌿 Menthe</option>
                 <option value="boisson">🥤 Boisson</option>
-                <option value="autre">✨ Autre</option>
+                <option value="cbd">🌱 CBD</option>
             </select>
         `;
     } else {
@@ -1644,7 +1735,10 @@ function afficherFlaconsEntames() {
             <div class="carte carte-flacon-coloree" style="margin-top:10px; padding:12px; --couleur-flacon:${typeof MyVapeUI !== 'undefined' ? MyVapeUI.bottleColor(f) : 'var(--border-carte)'};">
                 <strong style="color:${typeof MyVapeUI !== 'undefined' ? MyVapeUI.bottleColor(f) : 'inherit'}">${typeof MyVapeUI !== 'undefined' ? MyVapeUI.bottleIcon(f) : '✨'} ${echapperHTML(f.nom)}</strong>
                 <p class="texte-secondaire" style="margin-top:4px;">
-                    ${f.nicotine} mg/ml • ${f.volume} ml • Entamé le ${dateFormatee}${texteCoutFlacon(f)}
+                    ${f.cbdMgMl != null
+    ? `CBD ${f.cbdMgMl.toLocaleString('fr-FR', { maximumFractionDigits: 2 })} mg/ml`
+    : `${f.nicotine} mg/ml`
+} • ${f.volume} ml • Entamé le ${dateFormatee}${texteCoutFlacon(f)}
                 </p>
                 <p class="texte-secondaire" style="margin-top:4px;">
     ${MyVapeGear.resistanceDate(f)
@@ -1761,7 +1855,7 @@ function afficherReserveEtMaturation() {
             <option value="classic">🍂 Classic</option>
             <option value="menthe">🌿 Menthe</option>
             <option value="boisson">🥤 Boisson</option>
-            <option value="autre">✨ Autre</option>
+            <option value="cbd">🌱 CBD</option>
         </select>
     </div>
 ` : ''}

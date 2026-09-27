@@ -27,7 +27,12 @@ const MyVapeGuide = (() => {
         'dgccrf':'DGCCRF · Questions et réponses sur les cigarettes électroniques',
         'brevet':'Brevet US3200819A · Herbert A. Gilbert, 1965',
         'calcul':'Calculs pédagogiques MyVapePal',
-        'edition':'Explications et exemples MyVapePal'
+
+'edition':'Explications et exemples MyVapePal',
+
+'anses-cbd':'Anses · Usages du vapotage : CBD, composition et caractéristiques des e-liquides',
+
+'mildeca-cbd':'MILDECA · Étude sur la composition des produits contenant du CBD'
     };
     const aliases={dtl:'mtl',rdl:'mtl',airflow:'mtl',ohms:'watts',niveau:'amorcage',pause:'amorcage',brule:'problemes',charge:'batterie',accus:'batterie',temperature:'batterie',enfants:'conservation',emballage:'conservation',gilbert:'histoire',vapexpo:'histoire',milligrammes:'nicotine',pourcentage:'diy',prixml:'cout',lot:'cout',reserve:'cout',journal:'choisir',dates:'resistance'};
     const start=['vape','pg','vg','nicotine','choisir','mtl','amorcage','continuer'];

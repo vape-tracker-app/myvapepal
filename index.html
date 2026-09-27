@@ -436,7 +436,7 @@
                         <label>Nom du liquide / de la recette</label>
                         <input type="text" id="recette-nom" placeholder="Ex: Alucard" required>
                         <label for="recette-saveurs">Saveurs de la recette</label>
-                        <select id="recette-saveurs"><option value="autre">Autre</option></select>
+                        <select id="recette-saveurs"><option value="cbd">CBD</option>></select>
                     </div>
 
                     <div class="grille-champs-2col">
@@ -885,7 +885,7 @@
     <option value="menthe">🌿 Menthe</option>
     <option value="frais">🧊 Frais</option>
     <option value="boisson">🥤 Boisson</option>
-    <option value="autre">✨ Autre</option>
+    <option value="cbd">🌱 CBD</option>
 </select>
                     <div class="groupe-champ">
                         <label>Type</label>
@@ -948,7 +948,7 @@
     <option value="menthe">🌿 Menthe</option>
     <option value="frais">🧊 Frais</option>
     <option value="boisson">🥤 Boisson</option>
-    <option value="autre">✨ Autre</option>
+    <option value="cbd">🌱 CBD</option>
 </select>
                     <div class="groupe-champ">
                         <label>Type</label>
@@ -961,6 +961,23 @@
                         <label>Contenance (ml)</label>
                         <input type="number" id="volume-direct" placeholder="50" required>
                     </div>
+                    <div class="groupe-champ" id="groupe-cbd-direct" style="display: none;">
+    <label for="cbd-direct">CBD indiqué sur le flacon (mg)</label>
+    <input
+        type="number"
+        id="cbd-direct"
+        min="0"
+        step="1"
+        inputmode="decimal"
+        placeholder="Ex : 300"
+    >
+    <p class="texte-secondaire">
+        Recopie simplement la quantité de CBD indiquée sur ton flacon.
+        Exemple : « CBD 300 mg ».
+    </p>
+
+    <p class="texte-secondaire" id="cbd-concentration-direct"></p>
+</div>
                     <div class="groupe-champ">
                         <label>Nicotine (mg/ml)</label>
                         <input type="number" step="0.5" id="nicotine-direct" placeholder="3" required>
@@ -1039,18 +1056,18 @@
     <div id="confirmation-action" role="status" aria-live="polite" aria-atomic="true"></div>
     <script src="backup-config.js?v=v153"></script>
     <script src="backup.js?v=v203"></script>
-    <script src="enhancements.js?v=v200"></script>
+    <script src="enhancements.js?v=v206"></script>
     <script src="objectifs.js?v=v223"></script>
     <script src="stock-diy.js?v=v199"></script>
     <script src="accueil-sections.js?v=v203"></script>
     <script src="suivi-tabac.js"></script>
-    <script src="app.js?v=v248"></script>
+    <script src="app.js?v=v255"></script>
     <script src="tabac.js"></script>
     <script src="materiel.js?v=v204"></script>
-    <script src="flacons-edition.js?v=v194"></script>
+    <script src="flacons-edition.js?v=v195"></script>
     <script src="diy-costs.js?v=v205"></script>
-    <script src="guide-articles.js?v=v197"></script>
-    <script src="guide-vape.js?v=v197"></script>
+    <script src="guide-articles.js?v=v199"></script>
+    <script src="guide-vape.js?v=v198"></script>
     <script src="tutoriel.js?v=v205"></script>
     <script src="contact-config.js?v=v206"></script>
     <script src="contact.js?v=v206"></script>

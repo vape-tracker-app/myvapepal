@@ -241,6 +241,69 @@ const VapeGuideArticles = [
     "reviewed": "2026-09-25"
   },
   {
+  "id": "cbd",
+  "category": "Les liquides",
+  "title": "CBD et vape : comprendre son e-liquide",
+  "intro": "Isolat, broad spectrum, full spectrum, mg/ml : les repères pour comprendre ce que contient un e-liquide au CBD.",
+  "sections": [
+    {
+      "title": "CBD, THC et nicotine : trois choses différentes",
+      "paragraphs": [
+        "Le CBD, ou cannabidiol, est l’un des cannabinoïdes présents dans le chanvre. Il ne faut pas le confondre avec le THC, autre cannabinoïde responsable notamment des effets intoxicants du cannabis, ni avec la nicotine. Un e-liquide peut donc contenir du CBD sans contenir de nicotine.",
+        "Le CBD n’est cependant pas une substance neutre. Il agit sur l’organisme et peut interagir avec certains médicaments. Un e-liquide au CBD vendu comme produit de vapotage n’est pas un médicament et ne doit pas être présenté comme traitant une maladie."
+      ]
+    },
+    {
+      "title": "Isolat, broad spectrum et full spectrum",
+      "paragraphs": [
+        "Ces termes décrivent le type d’extrait de chanvre utilisé. Un isolat de CBD ne contient que du CBD. Un extrait broad spectrum, ou spectre large, contient du CBD ainsi que d’autres composés du chanvre, par exemple d’autres cannabinoïdes, des terpènes ou des flavonoïdes, mais sans THC. Un extrait full spectrum, ou spectre complet, conserve un ensemble plus large de composés du chanvre et peut notamment contenir du THC à l’état de traces.",
+        "Ces appellations décrivent une composition, pas un classement de qualité. « Full spectrum » ne signifie donc pas automatiquement « meilleur » ou « plus efficace » qu’un isolat. Pour savoir ce que contient réellement un produit, l’étiquette et les informations fournies par le fabricant restent indispensables."
+      ]
+    },
+    {
+      "title": "300 mg ou 30 mg/ml : comprendre le dosage",
+      "paragraphs": [
+        "Sur un produit au CBD, la quantité peut être indiquée pour l’ensemble du flacon plutôt qu’en milligrammes par millilitre. Les deux nombres ne veulent pas dire la même chose. Pour obtenir une concentration en mg/ml, on divise la quantité totale de CBD en milligrammes par le volume de liquide en millilitres.",
+        "Exemple : un flacon de 10 ml contenant 300 mg de CBD correspond à une concentration de 30 mg/ml. Un flacon de 30 ml contenant les mêmes 300 mg correspondrait à 10 mg/ml. MyVapePal effectue cette conversion lorsqu’un flacon prêt à vaper au CBD est enregistré.",
+        "Cette valeur décrit la concentration annoncée du liquide. Elle ne permet pas de calculer directement la quantité de CBD effectivement absorbée par une personne."
+      ]
+    },
+    {
+      "title": "Pourquoi le PG/VG et le matériel comptent",
+      "paragraphs": [
+        "Le CBD est soluble dans le propylène glycol, ou PG, mais très peu soluble dans la glycérine végétale, ou VG. La formulation d’un e-liquide au CBD peut donc différer de celle d’autres liquides. Une proportion importante de VG peut notamment favoriser une recristallisation du CBD.",
+        "Les e-liquides au CBD sont généralement utilisés avec des dispositifs peu puissants. L’Anses indique que le CBD peut se dégrader lorsque la température devient trop élevée. Il ne faut donc pas augmenter arbitrairement la puissance pour produire davantage d’aérosol : respecte la plage prévue pour la résistance et les recommandations du fabricant du liquide et du matériel."
+      ]
+    },
+    {
+      "title": "CBD et nicotine restent deux informations séparées",
+      "paragraphs": [
+        "La concentration en CBD et la concentration en nicotine décrivent deux substances différentes. Un liquide peut contenir du CBD et aucune nicotine ; la présence de CBD ne permet donc pas de déduire le taux de nicotine.",
+        "Dans MyVapePal, ces deux informations sont suivies séparément pour cette raison. « CBD 30 mg/ml » ne signifie jamais « nicotine 30 mg/ml »."
+      ]
+    },
+    {
+      "title": "Lire l’étiquette avec attention",
+      "paragraphs": [
+        "Vérifie le volume, la quantité ou la concentration de CBD, la composition annoncée et le type d’extrait lorsqu’il est précisé. N’utilise dans une cigarette électronique qu’un produit explicitement destiné au vapotage : une huile de CBD destinée à être avalée ou déposée sous la langue n’est pas un e-liquide.",
+        "La composition réelle n’est pas toujours parfaitement reflétée par l’étiquette. Une étude française portant sur 223 produits CBD achetés en 2022 et 2023 a notamment constaté des écarts fréquents entre les teneurs annoncées et les teneurs mesurées, ainsi que la présence de certains cannabinoïdes non annoncés dans quelques produits. L’étiquette reste nécessaire pour identifier le produit, mais elle ne constitue donc pas à elle seule une analyse de laboratoire.",
+        "En cas de traitement médicamenteux, de grossesse, de symptômes après utilisation ou de doute sur un produit, demande conseil à un professionnel de santé plutôt que d’essayer d’ajuster seul la quantité consommée."
+      ]
+    }
+  ],
+  "remember": "Isolat, broad spectrum et full spectrum décrivent la composition de l’extrait ; les mg/ml décrivent sa concentration dans le liquide.",
+  "related": [
+    "etiquette",
+    "nicotine",
+    "ratio"
+  ],
+  "refs": [
+    "anses-cbd",
+    "mildeca-cbd"
+  ],
+  "reviewed": "2026-09-27"
+},
+  {
     "id": "sels",
     "category": "Les liquides",
     "title": "Nicotine classique et sels de nicotine",
@@ -425,6 +488,156 @@ const VapeGuideArticles = [
     ],
     "reviewed": "2026-09-25"
   },
+  {
+  "id": "vapeur",
+  "category": "Le matériel",
+  "title": "Faire plus de vapeur : comprendre ce qui change le nuage",
+  "intro": "Résistance, watts, airflow, PG/VG : comprendre pourquoi certaines configurations produisent beaucoup plus d’aérosol que d’autres.",
+  "sections": [
+    {
+      "title": "D’où vient la quantité de vapeur ?",
+      "paragraphs": [
+        "Le nuage visible d’une cigarette électronique est un aérosol produit lorsque la résistance chauffe le liquide présent dans sa mèche. Sa quantité ne dépend pas d’un seul réglage : le matériel, la puissance, l’arrivée d’air, le liquide et la façon d’inhaler interviennent ensemble.",
+        "Pour produire davantage d’aérosol, il faut généralement un ensemble conçu pour vaporiser davantage de liquide pendant une inhalation et laisser circuler suffisamment d’air. C’est pourquoi deux vapoteuses contenant le même liquide peuvent produire des nuages très différents."
+      ]
+    },
+    {
+      "title": "La résistance : les ohms ne racontent pas toute l’histoire",
+      "paragraphs": [
+        "Les résistances de faible valeur en ohms sont souvent conçues pour fonctionner à des puissances plus élevées et avec davantage d’air. Elles sont donc fréquemment associées à une production d’aérosol importante. Mais la valeur en ohms, prise seule, ne permet pas de prévoir exactement la quantité de vapeur.",
+        "La conception de la résistance compte aussi : sa surface de chauffe, son alimentation en liquide, son airflow et la plage de puissance prévue par le fabricant forment un ensemble. Deux résistances affichant la même valeur en ohms peuvent donc se comporter différemment.",
+        "Pour chercher davantage de vapeur, choisis une résistance prévue par le fabricant pour cet usage plutôt que simplement la valeur en ohms la plus basse disponible."
+      ]
+    },
+    {
+      "title": "Les watts : plus de puissance, mais dans la bonne résistance",
+      "paragraphs": [
+        "Une résistance conçue pour fonctionner à une puissance plus élevée peut vaporiser davantage de liquide et produire davantage d’aérosol. Cela ne signifie pas qu’il suffit d’augmenter les watts sur n’importe quelle résistance.",
+        "Chaque résistance possède une plage de puissance prévue par son fabricant. Une résistance indiquée 12–16 W doit rester dans cette plage, même si l’appareil peut fournir 40 W ou davantage. Dépasser sa plage pour obtenir un plus gros nuage peut surchauffer la mèche, dégrader le goût et endommager la résistance.",
+        "Si ton matériel permet de régler la puissance, commence dans la partie basse de la plage indiquée et ajuste à l’intérieur de cette plage. Pour changer nettement de production de vapeur, il peut être nécessaire de changer de résistance ou de matériel plutôt que de forcer le réglage actuel."
+      ]
+    },
+    {
+      "title": "L’airflow et le tirage changent aussi le nuage",
+      "paragraphs": [
+        "Un tirage MTL est généralement plus serré et utilise un débit d’air plus faible. Il est souvent associé à une production de vapeur relativement discrète. Le RDL et surtout le DTL utilisent généralement une arrivée d’air plus ouverte et permettent d’inhaler un volume d’aérosol plus important.",
+        "L’airflow accompagne donc la puissance et la résistance. Fermer fortement l’arrivée d’air d’une configuration prévue pour fonctionner avec beaucoup d’air n’est pas une méthode pour concentrer la vapeur. Respecte le fonctionnement prévu pour le matériel.",
+        "MTL, RDL et DTL ne sont pas des niveaux de progression. Produire un gros nuage n’est pas le signe d’une vape plus avancée ou de meilleure qualité : ce sont simplement des façons différentes de vapoter."
+      ]
+    },
+    {
+      "title": "Le PG/VG : pourquoi la VG compte",
+      "paragraphs": [
+        "La glycérine végétale, ou VG, est généralement associée à un aérosol plus dense et visible que le propylène glycol, ou PG. C’est pourquoi les liquides destinés aux configurations produisant beaucoup de vapeur contiennent souvent une proportion importante de VG.",
+        "Mais choisir davantage de VG ne suffit pas. La VG est plus visqueuse : un liquide très riche en VG doit pouvoir alimenter correctement la mèche. Une petite cartouche conçue pour un liquide plus fluide peut mal fonctionner avec un liquide trop épais.",
+        "Le bon ratio est donc celui qui reste compatible avec la résistance et le matériel. Ne remplace pas automatiquement un liquide 50/50 par un liquide très riche en VG dans le seul but d’obtenir davantage de vapeur."
+      ]
+    },
+    {
+      "title": "Plus de vapeur signifie aussi plus de liquide consommé",
+      "paragraphs": [
+        "Produire davantage d’aérosol signifie généralement vaporiser davantage de liquide. Une configuration puissante destinée à de gros nuages peut donc vider un réservoir beaucoup plus rapidement qu’un petit pod utilisé en MTL.",
+        "Cette différence compte particulièrement avec un liquide nicotiné. Le taux en mg/ml décrit la concentration du liquide, mais l’exposition dépend aussi du matériel et de la quantité utilisée. Passer à une configuration qui consomme beaucoup plus de liquide sans tenir compte de ce changement peut modifier fortement l’exposition à la nicotine.",
+        "Si tu changes radicalement de matériel ou de style de vape, ne transpose donc pas automatiquement toutes les habitudes de ton ancienne configuration."
+      ]
+    },
+    {
+      "title": "Pour obtenir davantage de vapeur sans bricoler au hasard",
+      "paragraphs": [
+        "Cherche un ensemble cohérent : une résistance conçue pour une production d’aérosol plus importante, utilisée dans sa plage de puissance, avec l’airflow adapté et un liquide dont le ratio PG/VG est compatible. Si tu veux beaucoup plus de vapeur que ton matériel actuel n’est conçu pour en produire, changer de configuration est plus logique que dépasser ses limites.",
+        "Un gros nuage n’est ni un indicateur de qualité ni un objectif nécessaire pour bien vapoter. La bonne configuration reste celle qui correspond à ton usage, à ton liquide et au fonctionnement prévu par le fabricant."
+      ]
+    }
+  ],
+  "remember": "La quantité de vapeur vient d’un ensemble : résistance, puissance, airflow, tirage et liquide doivent être compatibles.",
+  "related": [
+    "resistance",
+    "watts",
+    "vg"
+  ],
+  "refs": [
+    "fabricant-guide",
+    "fabricant-watts",
+    "fabricant-tirages",
+    "fabricant-liquides"
+  ],
+  "reviewed": "2026-09-27"
+},
+{
+  "id": "vapeur",
+  "category": "Le matériel",
+  "title": "Faire plus de vapeur : comprendre ce qui change le nuage",
+  "intro": "Résistance, watts, airflow, PG/VG : comprendre pourquoi certaines configurations produisent beaucoup plus d’aérosol que d’autres.",
+  "sections": [
+    {
+      "title": "D’où vient la quantité de vapeur ?",
+      "paragraphs": [
+        "Le nuage visible d’une cigarette électronique est un aérosol produit lorsque la résistance chauffe le liquide présent dans sa mèche. Sa quantité ne dépend pas d’un seul réglage : le matériel, la puissance, l’arrivée d’air, le liquide et la façon d’inhaler interviennent ensemble.",
+        "Pour produire davantage d’aérosol, il faut généralement un ensemble conçu pour vaporiser davantage de liquide pendant une inhalation et laisser circuler suffisamment d’air. C’est pourquoi deux vapoteuses contenant le même liquide peuvent produire des nuages très différents."
+      ]
+    },
+    {
+      "title": "La résistance : les ohms ne racontent pas toute l’histoire",
+      "paragraphs": [
+        "Les résistances de faible valeur en ohms sont souvent conçues pour fonctionner à des puissances plus élevées et avec davantage d’air. Elles sont donc fréquemment associées à une production d’aérosol importante. Mais la valeur en ohms, prise seule, ne permet pas de prévoir exactement la quantité de vapeur.",
+        "La conception de la résistance compte aussi : sa surface de chauffe, son alimentation en liquide, son airflow et la plage de puissance prévue par le fabricant forment un ensemble. Deux résistances affichant la même valeur en ohms peuvent donc se comporter différemment.",
+        "Pour chercher davantage de vapeur, choisis une résistance prévue par le fabricant pour cet usage plutôt que simplement la valeur en ohms la plus basse disponible."
+      ]
+    },
+    {
+      "title": "Les watts : plus de puissance, mais dans la bonne résistance",
+      "paragraphs": [
+        "Une résistance conçue pour fonctionner à une puissance plus élevée peut vaporiser davantage de liquide et produire davantage d’aérosol. Cela ne signifie pas qu’il suffit d’augmenter les watts sur n’importe quelle résistance.",
+        "Chaque résistance possède une plage de puissance prévue par son fabricant. Une résistance indiquée 12–16 W doit rester dans cette plage, même si l’appareil peut fournir 40 W ou davantage. Dépasser sa plage pour obtenir un plus gros nuage peut surchauffer la mèche, dégrader le goût et endommager la résistance.",
+        "Si ton matériel permet de régler la puissance, commence dans la partie basse de la plage indiquée et ajuste à l’intérieur de cette plage. Pour changer nettement de production de vapeur, il peut être nécessaire de changer de résistance ou de matériel plutôt que de forcer le réglage actuel."
+      ]
+    },
+    {
+      "title": "L’airflow et le tirage changent aussi le nuage",
+      "paragraphs": [
+        "Un tirage MTL est généralement plus serré et utilise un débit d’air plus faible. Il est souvent associé à une production de vapeur relativement discrète. Le RDL et surtout le DTL utilisent généralement une arrivée d’air plus ouverte et permettent d’inhaler un volume d’aérosol plus important.",
+        "L’airflow accompagne donc la puissance et la résistance. Fermer fortement l’arrivée d’air d’une configuration prévue pour fonctionner avec beaucoup d’air n’est pas une méthode pour concentrer la vapeur. Respecte le fonctionnement prévu pour le matériel.",
+        "MTL, RDL et DTL ne sont pas des niveaux de progression. Produire un gros nuage n’est pas le signe d’une vape plus avancée ou de meilleure qualité : ce sont simplement des façons différentes de vapoter."
+      ]
+    },
+    {
+      "title": "Le PG/VG : pourquoi la VG compte",
+      "paragraphs": [
+        "La glycérine végétale, ou VG, est généralement associée à un aérosol plus dense et visible que le propylène glycol, ou PG. C’est pourquoi les liquides destinés aux configurations produisant beaucoup de vapeur contiennent souvent une proportion importante de VG.",
+        "Mais choisir davantage de VG ne suffit pas. La VG est plus visqueuse : un liquide très riche en VG doit pouvoir alimenter correctement la mèche. Une petite cartouche conçue pour un liquide plus fluide peut mal fonctionner avec un liquide trop épais.",
+        "Le bon ratio est donc celui qui reste compatible avec la résistance et le matériel. Ne remplace pas automatiquement un liquide 50/50 par un liquide très riche en VG dans le seul but d’obtenir davantage de vapeur."
+      ]
+    },
+    {
+      "title": "Plus de vapeur signifie aussi plus de liquide consommé",
+      "paragraphs": [
+        "Produire davantage d’aérosol signifie généralement vaporiser davantage de liquide. Une configuration puissante destinée à de gros nuages peut donc vider un réservoir beaucoup plus rapidement qu’un petit pod utilisé en MTL.",
+        "Cette différence compte particulièrement avec un liquide nicotiné. Le taux en mg/ml décrit la concentration du liquide, mais l’exposition dépend aussi du matériel et de la quantité utilisée. Passer à une configuration qui consomme beaucoup plus de liquide sans tenir compte de ce changement peut modifier fortement l’exposition à la nicotine.",
+        "Si tu changes radicalement de matériel ou de style de vape, ne transpose donc pas automatiquement toutes les habitudes de ton ancienne configuration."
+      ]
+    },
+    {
+      "title": "Pour obtenir davantage de vapeur sans bricoler au hasard",
+      "paragraphs": [
+        "Cherche un ensemble cohérent : une résistance conçue pour une production d’aérosol plus importante, utilisée dans sa plage de puissance, avec l’airflow adapté et un liquide dont le ratio PG/VG est compatible. Si tu veux beaucoup plus de vapeur que ton matériel actuel n’est conçu pour en produire, changer de configuration est plus logique que dépasser ses limites.",
+        "Un gros nuage n’est ni un indicateur de qualité ni un objectif nécessaire pour bien vapoter. La bonne configuration reste celle qui correspond à ton usage, à ton liquide et au fonctionnement prévu par le fabricant."
+      ]
+    }
+  ],
+  "remember": "La quantité de vapeur vient d’un ensemble : résistance, puissance, airflow, tirage et liquide doivent être compatibles.",
+  "related": [
+    "resistance",
+    "watts",
+    "vg"
+  ],
+  "refs": [
+    "fabricant-guide",
+    "fabricant-watts",
+    "fabricant-tirages",
+    "fabricant-liquides"
+  ],
+  "reviewed": "2026-09-27"
+},
   {
     "id": "resistance",
     "category": "Le matériel",

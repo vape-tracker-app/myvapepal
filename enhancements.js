@@ -7,7 +7,7 @@ const MyVapeUI = (() => {
     menthe:   { label: 'Menthe',icon: '🌿', color: '#8dd9bd' },
     frais:    { label: 'Frais', icon: '🧊', color: '#a8dff5' },
     boisson:  { label: 'Boisson',       icon: '🥤', color: '#8dc8ef' },
-    autre:    { label: 'Autre',         icon: '✨', color: '#e8c85a' }
+    cbd:      { label: 'CBD', icon: '🌱', color: '#78a96b' }
 };
 
 const legacyColors = {
@@ -42,7 +42,7 @@ const legacyColors = {
         const keys = Array.isArray(bottle?.categoriesSaveurs) && bottle.categoriesSaveurs.length
             ? bottle.categoriesSaveurs : [bottle?.categorieSaveur];
         const valid = [...new Set(keys.filter(key => Object.prototype.hasOwnProperty.call(flavorCategories,key)))];
-        return valid.length ? valid : ['autre'];
+        return valid;
     }
     function bottleColor(bottle) {
         if (!bottle?.categorieSaveur && !bottle?.categoriesSaveurs?.length && legacyColors[bottle?.couleur]) return legacyColors[bottle.couleur];
@@ -52,7 +52,7 @@ const legacyColors = {
         return bottleFlavors(bottle).map(key => `<img class="icone-saveur" src="./assets/saveurs/${key}.png" alt="${flavorCategories[key].label}" width="32" height="32" decoding="async">`).join('');
     }
     function readFlavorSelect(select) {
-        if (!select) return ['autre'];
+        if (!select) return [];
         return bottleFlavors({categoriesSaveurs: select._saveurs || Array.from(select.selectedOptions, option=>option.value),categorieSaveur:select.value});
     }
     function setFlavorSelect(select, record) {
@@ -139,13 +139,18 @@ const legacyColors = {
     function attachFlavorSelect(select, initial) {
         if (!select || select.dataset.choixMultiple) return;
         select.dataset.choixMultiple = 'oui';
-        const current = initial || readFlavorSelect(select);
+        const current = initial !== undefined ? initial : [];
+        const categoriesDisponibles = Object.entries(flavorCategories)
+    .filter(([key]) => key !== 'cbd' || select.id === 'categorie-saveur-direct');
         select.replaceChildren();
-        for (const [key, flavor] of Object.entries(flavorCategories)) {
+        for (const [key, flavor] of categoriesDisponibles) {
             const opt=document.createElement('option');opt.value=key;opt.textContent=flavor.label;select.append(opt);
         }
         select.multiple=true;select.hidden=true;select.required=false;
-        select._saveurs=bottleFlavors({categoriesSaveurs:current});
+
+for (const opt of select.options) opt.selected = false;
+
+select._saveurs=bottleFlavors({categoriesSaveurs:current});
         const button=document.createElement('button');button.type='button';button.className='champ-saveur';
         if(select.id) button.id=select.id+'-illustration';
         button.setAttribute('aria-haspopup','dialog');button.setAttribute('aria-expanded','false');
@@ -153,7 +158,9 @@ const legacyColors = {
             const chosen=readFlavorSelect(select);
             for(const opt of select.options)opt.selected=chosen.includes(opt.value);
             button.innerHTML=bottleIcon({categoriesSaveurs:chosen});
-            const label=document.createElement('span');label.textContent=chosen.map(k=>flavorCategories[k].label).join(' / ');button.append(label);
+            const label=document.createElement('span');label.textContent = chosen.length
+    ? chosen.map(k => flavorCategories[k].label).join(' / ')
+    : 'Sélectionner une saveur';button.append(label);
             button.setAttribute('aria-label','Saveurs : '+label.textContent);
         };
         select.after(button);render();
@@ -172,7 +179,7 @@ const legacyColors = {
             const ok=document.createElement('button');ok.type='button';ok.className='btn-primaire';ok.textContent='OK';
             const cancel=document.createElement('button');cancel.type='button';cancel.className='btn-secondaire';cancel.textContent='Annuler';
             const refresh=()=>{buttons.forEach(([key,b])=>{b.classList.toggle('selectionnee',draft.includes(key));b.setAttribute('aria-pressed',String(draft.includes(key)));});ok.disabled=!draft.length;};
-            for(const [key,flavor] of Object.entries(flavorCategories)){
+            for(const [key,flavor] of categoriesDisponibles){
                 const b=document.createElement('button');b.type='button';b.className='choix-saveur-option';
                 b.innerHTML=bottleIcon({categorieSaveur:key})+`<span>${flavor.label}</span><span class="selection-saveur" aria-hidden="true">✓</span>`;
                 b.querySelector('img').alt='';
