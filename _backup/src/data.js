@@ -1,5 +1,5 @@
 import MyVapeTabac from '../../suivi-tabac.js';
-export const KEYS=['vt_config','vt_flacons','vt_recettes','vt_depenses','vt_objectifs','vt_observations','vt_materiel','vt_stock_diy','vt_stock_mouvements','vt_gazette_favoris','vt_date_resistance','vt_victoire_quotidienne_date'];
+export const KEYS=['vt_config','vt_flacons','vt_recettes','vt_depenses','vt_objectifs','vt_observations','vt_materiel','vt_stock_diy','vt_stock_mouvements','vt_gazette_favoris','vt_objectif_economie','vt_date_resistance','vt_victoire_quotidienne_date'];
 export function validate(snapshot) {
     if(!snapshot || snapshot.version!==1 || !snapshot.data || typeof snapshot.data!=='object' || Array.isArray(snapshot.data))throw Error('Sauvegarde incompatible');
     if(new TextEncoder().encode(JSON.stringify(snapshot)).length>750000)throw Error('Sauvegarde trop volumineuse');
@@ -13,8 +13,18 @@ export function validate(snapshot) {
         } else {
             const parsed=JSON.parse(value);
             if(key==='vt_config') {
-                if(!parsed || typeof parsed!=='object' || Array.isArray(parsed) || typeof parsed.dateArret!=='string' || !Number.isFinite(Date.parse(parsed.dateArret)))throw Error('Profil invalide');
-            } else if(!Array.isArray(parsed) || parsed.length>10000 || parsed.some(v=>!v || typeof v!=='object' || Array.isArray(v)))throw Error('Liste invalide');
+    if(!parsed || typeof parsed!=='object' || Array.isArray(parsed) || typeof parsed.dateArret!=='string' || !Number.isFinite(Date.parse(parsed.dateArret)))throw Error('Profil invalide');
+} else if(key==='vt_objectif_economie') {
+    if(
+        !parsed ||
+        typeof parsed!=='object' ||
+        Array.isArray(parsed) ||
+        typeof parsed.nom!=='string' ||
+        !parsed.nom.trim() ||
+        !Number.isFinite(Number(parsed.montant)) ||
+        Number(parsed.montant)<=0
+    ) throw Error('Objectif économie invalide');
+} else if(!Array.isArray(parsed) || parsed.length>10000 || parsed.some(v=>!v || typeof v!=='object' || Array.isArray(v)))throw Error('Liste invalide');
             if(key==='vt_flacons')for(const flacon of parsed) {
                 if(flacon.quantite!==undefined && (!Number.isSafeInteger(flacon.quantite) || flacon.quantite<1 || flacon.quantite>100))throw Error('Quantité invalide');
             }
@@ -92,7 +102,7 @@ if(key==='vt_flacons'||key==='vt_recettes') {
                 const pref=parsed.preferencesMateriel;
                 if(!pref||typeof pref!=='object'||!['Non renseigné','Serré (comme une cigarette)','Intermédiaire','Aérien','Indirect (MTL)','Direct restrictif (RDL)','Direct (DTL)'].includes(pref.tirage)||!['Non renseigné','Discrète','Modérée','Abondante'].includes(pref.vapeur)||typeof pref.notes!=='string'||pref.notes.length>2000)throw Error('Préférences matériel invalides');
             }
-            const records=key==='vt_config'?[parsed]:parsed;
+            const records=(key==='vt_config'||key==='vt_objectif_economie')?[parsed]:parsed;
             const numeric=['coutFlacon','cigsJour','prixPaquet','cigsPaquet','nicotineActuelle','volume','nicotine','arome','steepDays','montant','volumeTotal','volArome','volBooster','nbrFioles','volBase'];
             const text=['nom','prenom','type','categorie','titre','texte','couleur','categorieSaveur','dateArret','date','dateConstat','preparedAt','startedAt','finishedAt','dateOuverture','dateFermeture','steepReadyAt','dateResistance','materielConfigurationId','materielResume','materielDateResistance','materielDateCoton'];
             for(const record of records) {

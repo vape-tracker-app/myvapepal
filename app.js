@@ -729,6 +729,23 @@ barre.append(remplissage);
 
 zone.append(texte, barre);
 }
+function calculerEconomieNetteTotale() {
+    const cigsParPaquet = configUser ? (configUser.cigsPaquet || 20) : 20;
+    const prixPaquet = configUser ? (configUser.prixPaquet || 12.5) : 12.5;
+
+    const cigsEvitees = Math.floor(
+        MyVapeTabac.financialStats(configUser).avoided
+    );
+
+    const economieBruteTotale =
+        (cigsEvitees / cigsParPaquet) * prixPaquet;
+
+    const totalDepensesVape =
+        depenses.reduce((acc, d) => acc + d.montant, 0);
+
+    return economieBruteTotale - totalDepensesVape;
+}
+window.calculerEconomieNetteTotale = calculerEconomieNetteTotale;
 function mettreAJourDashboard() {
     const jours = getJoursEcoules();
     const cigsParJour = configUser ? (configUser.cigsJour || 15) : 15;
@@ -738,8 +755,7 @@ function mettreAJourDashboard() {
     const cigsEvitees = Math.floor(MyVapeTabac.financialStats(configUser).avoided);
     const economieBruteTotale = (cigsEvitees / cigsParPaquet) * prixPaquet;
 
-    const totalDepensesVape = depenses.reduce((acc, d) => acc + d.montant, 0);
-    const economieNetteTotale = economieBruteTotale - totalDepensesVape;
+    const economieNetteTotale = calculerEconomieNetteTotale();
 
     if (document.getElementById('card-jours')) document.getElementById('card-jours').textContent = jours;
     afficherObjectifSansTabacAccueil();
@@ -777,7 +793,52 @@ if (labelPaquets) {
         const signe = ecoMois.nette >= 0 ? '+' : '';
         elCardMois.textContent = `${signe} ${ecoMois.nette.toFixed(2)} € ce mois-ci`;
     }
+const cardEconomieObjectif = document.getElementById('card-economies-objectif');
 
+if (cardEconomieObjectif) {
+    const projetEconomie = JSON.parse(
+        localStorage.getItem('vt_objectif_economie') || 'null'
+    );
+
+    cardEconomieObjectif.replaceChildren();
+    cardEconomieObjectif.classList.toggle(
+    'sans-objectif',
+    !projetEconomie
+);
+
+    if (projetEconomie) {
+        const montantCible = Number(projetEconomie.montant);
+        const economieRealisee = Math.max(0, economieNetteTotale);
+
+        const pourcentage = montantCible > 0
+            ? Math.min(100, Math.round((economieRealisee / montantCible) * 100))
+            : 0;
+
+        const barre = document.createElement('div');
+        barre.className =
+            'objectif-progression-barre objectif-progression-barre-mini';
+
+        const remplissage = document.createElement('div');
+        remplissage.className =
+            'objectif-progression-remplissage-economie';
+
+        remplissage.style.width = `${pourcentage}%`;
+
+        barre.append(remplissage);
+        cardEconomieObjectif.append(barre);
+    } else {
+        const bouton = document.createElement('button');
+        bouton.type = 'button';
+        bouton.className = 'btn-definir-objectif-economie';
+        bouton.textContent = 'Définir un objectif';
+
+        bouton.onclick = () => {
+            afficherEcran('ecran-objectifs');
+        };
+
+        cardEconomieObjectif.append(bouton);
+    }
+}
     const cardNicotineVal = document.getElementById('card-nicotine-valeur');
     const cardNicotineObj = document.getElementById('card-nicotine-objectif');
 
@@ -2803,6 +2864,72 @@ mettreAJourSuggestionsObjectifsTabac();
         if (formObjTabac) formObjTabac.classList.remove('masque');
     };
 }
+
+const btnObjectifEconomie = document.getElementById('btn-objectif-economie');
+
+if (btnObjectifEconomie) {
+    btnObjectifEconomie.onclick = () => {
+        const choixType = document.getElementById('choix-type-objectif');
+        const formObjEconomie = document.getElementById('form-objectif-economie');
+
+        if (choixType) choixType.classList.add('masque');
+        if (formObjEconomie) formObjEconomie.classList.remove('masque');
+    };
+}
+const btnAnnulerObjectifEconomie = document.getElementById('btn-annuler-objectif-economie');
+
+if (btnAnnulerObjectifEconomie) {
+    btnAnnulerObjectifEconomie.onclick = () => {
+        const formObjEconomie = document.getElementById('form-objectif-economie');
+        const choixType = document.getElementById('choix-type-objectif');
+
+        document.getElementById('obj-economie-nom').value = '';
+        document.getElementById('obj-economie-montant').value = '';
+
+        if (formObjEconomie) formObjEconomie.classList.add('masque');
+        if (choixType) choixType.classList.remove('masque');
+    };
+}
+const btnSauverObjectifEconomie = document.getElementById('btn-sauver-objectif-economie');
+
+if (btnSauverObjectifEconomie) {
+    btnSauverObjectifEconomie.onclick = () => {
+        const nom = document.getElementById('obj-economie-nom')?.value.trim();
+        const montant = Number.parseFloat(
+            document.getElementById('obj-economie-montant')?.value
+        );
+
+        if (!nom || !Number.isFinite(montant) || montant <= 0) {
+            alert('Indique ton projet plaisir et le montant de ton objectif.');
+            return;
+        }
+
+        const objectifEconomie = {
+            nom,
+            montant
+        };
+
+        localStorage.setItem(
+            'vt_objectif_economie',
+            JSON.stringify(objectifEconomie)
+        );
+
+        document.getElementById('obj-economie-nom').value = '';
+        document.getElementById('obj-economie-montant').value = '';
+
+        const formObjEconomie = document.getElementById('form-objectif-economie');
+        if (formObjEconomie) formObjEconomie.classList.add('masque');
+
+        mettreAJourTout();
+
+        if (typeof MyVapeGoals !== 'undefined') {
+            MyVapeGoals.render();
+        }
+
+        MyVapeUI.toast('Projet plaisir enregistré 💛');
+    };
+}
+
 const selectDureeTabac = document.getElementById('obj-tabac-duree');
 
 if (selectDureeTabac) {

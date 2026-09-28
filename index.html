@@ -140,15 +140,23 @@
                     </div>
 
                     <!-- 3. ÉCONOMIE NETTE -->
-                    <div class="carte-stat stat-doree">
-                        <div class="stat-entete">
-                            <img class="stat-icone-illustration" src="./assets/accueil/economies.png" alt="" width="28" height="28">
-                            <span class="stat-titre">Économie nette</span>
-                        </div>
-                        <div class="stat-valeur" id="card-economies">0,00 €</div>
-                        <div class="stat-unite" id="card-economies-soustitre">depuis mon arrêt</div>
-                        <div class="stat-unite-mois" id="card-economies-mois">+ 0,00 € ce mois-ci</div>
-                    </div>
+                    <!-- 3. ÉCONOMIE NETTE -->
+<div class="carte-stat stat-doree">
+    <div class="stat-entete">
+        <img class="stat-icone-illustration" src="./assets/accueil/economies.png" alt="" width="28" height="28">
+        <span class="stat-titre">Économie nette</span>
+    </div>
+
+    <div class="stat-valeur" id="card-economies">0,00 €</div>
+
+    <div class="stat-unite" id="card-economies-soustitre">depuis mon arrêt</div>
+
+    <div class="stat-unite-mois stat-economies-mois" id="card-economies-mois">
+        + 0,00 € ce mois-ci
+    </div>
+
+    <div id="card-economies-objectif"></div>
+</div>
 
                     <!-- 4. NICOTINE ACTUELLE -->
                     <div class="carte-stat stat-rose">
@@ -785,6 +793,11 @@
             <span>Sans tabac</span>
             <span class="selection-saveur">✓</span>
         </button>
+        <button type="button" id="btn-objectif-economie" class="choix-saveur-option">
+    <img class="icone-saveur" src="./assets/accueil/economies.png" alt="">
+    <span>Économies</span>
+    <span class="selection-saveur">✓</span>
+</button>
     </div>
 </div>
                 <div id="form-objectif" class="form-card masque">
@@ -843,6 +856,46 @@
     </button>
 
     <button type="button" class="btn-secondaire" id="btn-annuler-objectif-tabac">
+        Annuler
+    </button>
+
+</div>
+<div id="form-objectif-economie" class="form-card masque">
+
+    <p class="texte-secondaire">
+        Et toi, tu prévois de t'offrir quoi avec tes économies ? 💛
+    </p>
+
+    <div class="groupe-champ">
+        <label for="obj-economie-nom">Mon projet plaisir</label>
+        <input
+            type="text"
+            id="obj-economie-nom"
+            placeholder="Ex : un week-end, un tatouage..."
+            maxlength="60"
+        >
+    </div>
+
+    <div class="groupe-champ">
+        <label for="obj-economie-montant">Montant de mon objectif</label>
+        <div style="position:relative; display:flex; align-items:center;">
+            <input
+                type="number"
+                id="obj-economie-montant"
+                min="1"
+                step="1"
+                placeholder="Ex : 500"
+                style="padding-right: 42px;"
+            >
+            <span style="position:absolute; right:12px; color:var(--rose-sakura); font-weight:600; pointer-events:none;">€</span>
+        </div>
+    </div>
+
+    <button type="button" class="btn-primaire" id="btn-sauver-objectif-economie">
+        Définir mon projet
+    </button>
+
+    <button type="button" class="btn-secondaire" id="btn-annuler-objectif-economie">
         Annuler
     </button>
 
@@ -1055,13 +1108,13 @@
     <script src="push-storage.js?v=v138"></script>
     <div id="confirmation-action" role="status" aria-live="polite" aria-atomic="true"></div>
     <script src="backup-config.js?v=v153"></script>
-    <script src="backup.js?v=v209"></script>
+    <script src="backup.js?v=v211"></script>
     <script src="enhancements.js?v=v206"></script>
-    <script src="objectifs.js?v=v223"></script>
+    <script src="objectifs.js?v=v225"></script>
     <script src="stock-diy.js?v=v199"></script>
     <script src="accueil-sections.js?v=v203"></script>
     <script src="suivi-tabac.js"></script>
-    <script src="app.js?v=v255"></script>
+    <script src="app.js?v=v260"></script>
     <script src="tabac.js"></script>
     <script src="materiel.js?v=v204"></script>
     <script src="flacons-edition.js?v=v196"></script>

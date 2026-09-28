@@ -363,6 +363,83 @@ item.append(deleteBtn);
 }
 
 container.append(tabacDetails);
+const projetEconomie = JSON.parse(
+    localStorage.getItem('vt_objectif_economie') || 'null'
+);
+
+const economieDetails = element('details', '', 'carte');
+
+const economieSummary = document.createElement('summary');
+
+const economieIcon = document.createElement('img');
+economieIcon.src = './assets/accueil/economies.png';
+economieIcon.alt = '';
+economieIcon.width = 28;
+economieIcon.height = 28;
+economieIcon.className = 'icone-inline';
+
+const economieTitre = document.createElement('span');
+economieTitre.textContent = 'Mon projet plaisir';
+
+economieSummary.append(economieIcon, economieTitre);
+economieDetails.append(economieSummary);
+
+if (projetEconomie) {
+    const item = element('div', '', 'carte');
+
+    const economieRealisee =
+        typeof window.calculerEconomieNetteTotale === 'function'
+            ? Math.max(0, window.calculerEconomieNetteTotale())
+            : 0;
+
+    const montantCible = Number(projetEconomie.montant);
+
+    const pourcentage = montantCible > 0
+        ? Math.min(100, Math.round((economieRealisee / montantCible) * 100))
+        : 0;
+
+    item.append(
+        element('h3', `💛 ${projetEconomie.nom}`),
+        element(
+            'p',
+            `${economieRealisee.toFixed(2)} € / ${montantCible.toFixed(2)} €`
+        )
+    );
+
+    const zoneProgression = element('div', '', 'objectif-progression');
+
+    const barre = element('div', '', 'objectif-progression-barre');
+    const remplissage = element(
+        'div',
+        '',
+        'objectif-progression-remplissage-economie'
+    );
+
+    remplissage.style.width = `${pourcentage}%`;
+
+    barre.append(remplissage);
+
+    const infosProgression = element(
+        'div',
+        `${pourcentage}% de ton projet financé`,
+        'objectif-progression-infos'
+    );
+
+    zoneProgression.append(barre, infosProgression);
+    item.append(zoneProgression);
+
+    economieDetails.append(item);
+} else {
+    economieDetails.append(
+        element(
+            'p',
+            'Aucun projet plaisir défini.',
+            'texte-vide'
+        )
+    );
+}
+
+container.append(economieDetails);
         const completed=objectifs.filter(o=>o.statut==='atteint');if(completed.length){const history=element('details','','carte');history.append(element('summary',`🌸 Mes réussites (${completed.length})`));for(const o of completed)history.append(element('p',`${o.titre} · atteint le ${new Date(o.atteintLe+'T12:00:00').toLocaleDateString('fr-FR')}`));container.append(history);}
         if(!objectifs.length)container.append(element('p','Aucun objectif fixé.','texte-vide'));
     }
