@@ -55,11 +55,7 @@ function corrigerFicheFlacon(f, valeurs) {
         if (!Number.isFinite(cost) || cost < 0) throw Error('Indique un coût valide.');
         next.coutFlacon = valeurs.coutFlacon===String(f.coutFlacon??'')?f.coutFlacon:Math.round(cost * 100) / 100;
     }
-    if(valeurs.coutFlacon!==String(f.coutFlacon??''))delete next.coutPartiel;
-    return next;
-}
-
-if (next.categoriesSaveurs.includes('cbd')) {
+    if (next.categoriesSaveurs.includes('cbd')) {
     const cbdMgMl = Number(valeurs.cbdMgMl);
 
     if (!Number.isFinite(cbdMgMl) || cbdMgMl <= 0) {
@@ -70,6 +66,11 @@ if (next.categoriesSaveurs.includes('cbd')) {
 } else {
     delete next.cbdMgMl;
 }
+    if(valeurs.coutFlacon!==String(f.coutFlacon??''))delete next.coutPartiel;
+    return next;
+}
+
+
 
 function creerDialogueFlacon(titre) {
     const dialog = document.createElement('dialog');

@@ -5,7 +5,7 @@ export function validate(snapshot) {
     if(new TextEncoder().encode(JSON.stringify(snapshot)).length>750000)throw Error('Sauvegarde trop volumineuse');
     const data={};
     for(const key of KEYS) {
-        const value=snapshot.data[key];
+        let value=snapshot.data[key];
         if(value==null){data[key]=null;continue;}
         if(typeof value!=='string')throw Error('Sauvegarde invalide');
         if(key==='vt_date_resistance' || key==='vt_victoire_quotidienne_date') {
@@ -19,8 +19,22 @@ export function validate(snapshot) {
                 if(flacon.quantite!==undefined && (!Number.isSafeInteger(flacon.quantite) || flacon.quantite<1 || flacon.quantite>100))throw Error('Quantité invalide');
             }
             if(key==='vt_flacons'||key==='vt_recettes')for(const flacon of parsed) {
-                if(flacon.categoriesSaveurs!==undefined && (!Array.isArray(flacon.categoriesSaveurs) || flacon.categoriesSaveurs.length<1 || flacon.categoriesSaveurs.length>7 || flacon.categoriesSaveurs.some(k=>!['fruite','gourmand','classic','menthe','frais','boisson','autre'].includes(k))))throw Error('Saveurs invalides');
-            }
+    if(flacon.categoriesSaveurs!==undefined) {
+        if(!Array.isArray(flacon.categoriesSaveurs) || flacon.categoriesSaveurs.length<1 || flacon.categoriesSaveurs.length>7) {
+            throw Error('Saveurs invalides');
+        }
+
+        // Migration des anciennes sauvegardes : "autre" est devenu "cbd".
+        flacon.categoriesSaveurs = flacon.categoriesSaveurs.map(k => k === 'autre' ? 'cbd' : k);
+
+        if(flacon.categoriesSaveurs.some(k=>!['fruite','gourmand','classic','menthe','frais','boisson','cbd'].includes(k))) {
+            throw Error('Saveurs invalides');
+        }
+    }
+}
+if(key==='vt_flacons'||key==='vt_recettes') {
+    value=JSON.stringify(parsed);
+}
             if(key==='vt_gazette_favoris' && (parsed.length>500 || parsed.some(v=>typeof v.id!=='string'||!/^[a-z0-9_-]{1,100}$/.test(v.id)||Object.keys(v).some(k=>k!=='id'))))throw Error('Favoris invalides');
             if(key==='vt_stock_diy'){
                 const ids=new Set();
@@ -109,7 +123,7 @@ export function validate(snapshot) {
                 }
             };check(parsed);
         }
-        data[key]=value;
+     data[key]=value;
     }
     return {version:1,data};
 }
