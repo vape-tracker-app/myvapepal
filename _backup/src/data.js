@@ -108,7 +108,16 @@ if(key==='vt_flacons'||key==='vt_recettes') {
             for(const record of records) {
                 if(record.additifs!==undefined){
                     if(!record.additifs||typeof record.additifs!=='object'||Array.isArray(record.additifs))throw Error('Additifs invalides');
-                    for(const [k,a] of Object.entries(record.additifs))if(!['frais','sucre'].includes(k)||!a||typeof a!=='object'||Array.isArray(a)||!['gouttes','gouttesParMl'].every(f=>typeof a[f]==='number'&&Number.isFinite(a[f])&&a[f]>0&&a[f]<=1e9))throw Error('Dosage additif invalide');
+                    for(const [k,a] of Object.entries(record.additifs))if(
+    !['frais','sucre'].includes(k) ||
+    !a ||
+    typeof a!=='object' ||
+    Array.isArray(a) ||
+    typeof a.gouttes!=='number' ||
+    !Number.isFinite(a.gouttes) ||
+    a.gouttes<=0 ||
+    a.gouttes>1e9
+) throw Error('Dosage additif invalide');
                 }
                 if(record.coutDIY!==undefined){
                     const c=record.coutDIY;

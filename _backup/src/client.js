@@ -45,11 +45,25 @@ async function reconcile(){
                 :'Veux-tu activer la sauvegarde automatique de ton parcours actuel ?';
             status('Connectée · sauvegarde automatique en attente de ton choix');
         }
-    }catch(error){
+   }catch(error){
     console.error('ERREUR SAUVEGARDE MYVAPEPAL :', error);
 
-    const code=typeof error?.code==='string'?error.code:((['Profil invalide','Nombre invalide','Texte invalide','Liste invalide','Date invalide','État invalide','Identifiant invalide','Texte invalide dans la sauvegarde','Sauvegarde trop volumineuse'].includes(error?.message))?error.message:'donnees-locales');status('Sauvegarde indisponible ('+code+'). Tes données restent sur cet appareil.');}
-    finally{busy=false;panel();if(ready)changed();}
+    const code =
+        typeof error?.code === 'string'
+            ? error.code
+            : (error?.message || 'donnees-locales');
+
+    status(
+        'Sauvegarde indisponible (' +
+        code +
+        '). Tes données restent sur cet appareil.'
+    );
+}
+finally{
+    busy=false;
+    panel();
+    if(ready)changed();
+}
 }
 
 export function changed(){
