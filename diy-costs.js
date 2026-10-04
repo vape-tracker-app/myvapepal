@@ -53,9 +53,11 @@ const keysFor=()=>Object.keys(names);
         const prices=pricing(prefix),a=amounts(prefix),c=cost(a,prices);
         const rate=Number(value(prefix==='recette'?'recette-taux-booster':prefix==='ajust'?'ajust-taux-booster':prefix+'-taux-booster'));
         const stockSelection=Object.fromEntries(keysFor(prefix).map(k=>[k,value(`${prefix}-stock-${k}`)]));
-        return {prices,amounts:a,...c,tauxBooster:rate,stockSelection};
+        if(typeof MyVapeAromes!=='undefined')MyVapeAromes.validate(prefix,stockSelection);
+        return {prefix,prices,amounts:a,...c,tauxBooster:rate,stockSelection};
     }
     function attach(record,s){
+    if(typeof MyVapeAromes!=='undefined')MyVapeAromes.attach(record,s.prefix);
     record.coutDIY={
         prix:s.prices,
         tauxBooster:s.tauxBooster,
@@ -113,7 +115,7 @@ const keysFor=()=>Object.keys(names);
             catch(e){lines.push('Stock insuffisant ou incompatible : '+e.message);state.stockStatus.classList.add('stock-insuffisant');}
             state.stockStatus.textContent=lines.join('\n');
 
-        }catch(e){state.output.textContent=e.message;state.stockStatus.textContent='';if(prefix==='recette')document.getElementById('calc-base').textContent='À vérifier';}
+        }catch(e){state.output.textContent=e.message;state.stockStatus.textContent='';if(prefix==='recette')for(const id of ['calc-base','calc-arome','calc-booster'])document.getElementById(id).textContent='À vérifier';}
     }
     function load(prefix,recipe){
         const s=recipe?.coutDIY;
@@ -130,7 +132,9 @@ const keysFor=()=>Object.keys(names);
         if(prefix!=='ajust'){
     states[prefix].lastVolume=Number(value(volumeId(prefix)));
 }
-        applyStock(prefix);preview(prefix);
+        applyStock(prefix);
+        if(typeof MyVapeAromes!=='undefined')MyVapeAromes.load(prefix,recipe);
+        preview(prefix);
     }
     function purchases(prices,date,selection){
         if(!/^\d{4}-\d{2}-\d{2}$/.test(date)||!Number.isFinite(+new Date(date))||new Date(date).toISOString().slice(0,10)!==date)throw Error('Renseigne une date d’achat valide.');

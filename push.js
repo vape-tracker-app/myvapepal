@@ -31,7 +31,7 @@ const MyVapePush = (() => {
             smokingDays:MyVapeTabac.entries(configUser).map(item=>item.date).sort(),
             timezone:Intl.DateTimeFormat().resolvedOptions().timeZone,
             goals:(typeof objectifs==='undefined'?[]:objectifs).filter(o=>o.statut!=='atteint').map(o=>({id:String(o.id),date:o.date,nicotine:parseFloat(o.titre)})),
-            steeps:flacons.filter(f=>!f.termine && !f.actif && !f.startedAt && f.steepReadyAt && Number.isFinite(Date.parse(f.steepReadyAt)))
+            steeps:flacons.filter(f=>!f.termine && !f.actif && !f.startedAt && !f.maturationNonRenseignee && f.steepReadyAt && Number.isFinite(Date.parse(f.steepReadyAt)))
                 .map(f=>({
                     id:String(f.id),readyAt:new Date(f.steepReadyAt).toISOString(),
                     ...(typeof f.nom==='string' && f.nom.trim() ? {nom:f.nom.trim().slice(0,120)} : {}),

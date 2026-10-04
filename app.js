@@ -1326,7 +1326,7 @@ function modifierRecette(id){
     'recette-nicotine':r.nicotine??0,
     'recette-arome':r.arome??0,
     'recette-taux-booster':r.coutDIY?.tauxBooster??20,
-    'recette-steep-days':r.steepDays??0,
+    'recette-steep-days':r.maturationNonRenseignee?'':r.steepDays??0,
     'recette-additif-frais':r.additifs?.frais?.gouttes??'',
     'recette-additif-sucre':r.additifs?.sucre?.gouttes??''
 }))document.getElementById(field).value=v;
@@ -1406,7 +1406,9 @@ async function sauvegarderFlacon() {
 
     const dateFabriqueStr = document.getElementById('date-ouverture').value;
     const dateFabrique = dateFabriqueStr ? new Date(dateFabriqueStr) : new Date();
-    const steepDays = Math.max(0, parseInt(document.getElementById('flacon-steep-days').value || 0, 10));
+    const steepInput=document.getElementById('flacon-steep-days').value;
+    const steepDays=steepInput.trim()===''?0:Number(steepInput);
+    if(!Number.isSafeInteger(steepDays)||steepDays<0||!Number.isFinite(+dateFabrique)||!Number.isFinite(+new Date(+dateFabrique+steepDays*86400000))){alert('Vérifie la date et le nombre entier de jours de maturation.');return;}
     let dateFinSteep = null;
 
     if (steepDays > 0) {
@@ -1841,7 +1843,7 @@ function afficherReserveEtMaturation() {
         const quantite = f.quantite ?? 1;
         const steepDays = parseFloat(f.steepDays) || 0;
         const dateFinSteep = f.steepReadyAt ? new Date(f.steepReadyAt).getTime() : 0;
-        const estEnMaturation = steepDays > 0 && dateFinSteep > 0 && maintenant < dateFinSteep;
+        const estEnMaturation = !f.maturationNonRenseignee && steepDays > 0 && dateFinSteep > 0 && maintenant < dateFinSteep;
 
         let moduleVisuel = '';
 
@@ -1873,7 +1875,7 @@ function afficherReserveEtMaturation() {
         } else {
             moduleVisuel = `
                 <div style="margin-top:8px; display:flex; justify-content:space-between; align-items:center;">
-                    <span class="badge-steep pret"><img class="icone-inline" src="./assets/menu/accueil.png" alt="" width="24" height="24"> Prêt à savourer</span>
+                    <span class="badge-steep pret"><img class="icone-inline" src="./assets/menu/accueil.png" alt="" width="24" height="24">${f.maturationNonRenseignee ? 'Durée de maturation non renseignée' : 'Prêt à savourer'}</span>
                     <button type="button" class="btn-primaire" style="width:auto; padding:6px 14px; font-size:0.8rem;" onclick="utiliserCeFlacon('${f.id}')">
                         ${quantite > 1 ? 'Entamer 1 flacon 💨' : 'Entamer ce flacon 💨'}
                     </button>
@@ -2026,7 +2028,7 @@ if (resume) {
             </div>
             <p class="texte-secondaire" style="margin-top:4px;">
                 <strong>Volume Total : ${r.volumeTotal || 50} ml</strong> | Nicotine : ${r.nicotine} mg/ml
-                ${r.steepDays ? ' | Steep : ' + r.steepDays + 'j' : ''}${texteCoutFlacon(r)}
+                ${r.maturationNonRenseignee ? ' | Maturation non renseignée' : r.steepDays ? ' | Steep : ' + r.steepDays + 'j' : ''}${texteCoutFlacon(r)}
             </p>
             <div style="background: rgba(255,255,255,0.03); border-radius: 8px; padding: 8px; margin-top: 8px; font-size: 0.8rem;">
                 <div style="display:flex; justify-content:space-between;"><span><img class="icone-flacon" src="./assets/menu/diy.png" alt="" width="24" height="24"> Concentré (${r.arome}%) :</span> <strong>${(r.volArome || 0).toFixed(1)} ml</strong></div>
@@ -2037,6 +2039,7 @@ if (resume) {
     `).join('');
     Array.from(conteneur.children).forEach((card,index)=>{
         const r=recettes[index];
+        if(r.aromeCatalogue&&typeof MyVapeAromes!=='undefined'){const details=document.createElement('details');const summary=document.createElement('summary');summary.textContent='Arôme et recommandations';details.append(summary);MyVapeAromes.details(details,r.aromeCatalogue);card.append(details);}
      for(const [key,a] of Object.entries(r.additifs||{})){
     const info=document.createElement('p');
     info.className='texte-secondaire ligne-additif-recette';
@@ -2960,7 +2963,7 @@ if (selectDureeTabac) {
                     if (document.getElementById('nicotine')) document.getElementById('nicotine').value = r.nicotine;
                     if (document.getElementById('volume')) document.getElementById('volume').value = r.volumeTotal || 50;
                     if (document.getElementById('arome')) document.getElementById('arome').value = r.arome || 0;
-                    if (document.getElementById('flacon-steep-days')) document.getElementById('flacon-steep-days').value = r.steepDays || 0;
+                    if (document.getElementById('flacon-steep-days')) document.getElementById('flacon-steep-days').value = r.maturationNonRenseignee ? '' : r.steepDays || 0;
                 }
             }
         };

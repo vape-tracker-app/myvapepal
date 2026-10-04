@@ -43,3 +43,39 @@ test('profile label follows account state without replacing its icon',async()=>{
  assert.equal(s.elements['btn-ouvrir-profil'],undefined);
  await s.run('signout()');assert.equal(s.elements['libelle-profil'].textContent,'Profil');
 });
+
+
+test('undo is hidden when no safety copy exists',async()=>{
+ const s=setup({configured:false,stored});await s.run('init()');
+ assert.equal(s.elements['backup-undo'].hidden,true);
+ assert.equal(s.elements['backup-undo-date'].hidden,true);
+});
+test('dated and legacy safety copies remain restorable without uploading',async()=>{
+ for(const savedAt of ['2026-10-04T10:00:00Z',undefined]){
+  const snapshot={version:1,data:{...stored},...(savedAt?{savedAt}:{})};
+  const s=setup({configured:false,stored:{...stored,vt_flacons:'[{"id":"later"}]',mvp_before_restore:JSON.stringify(snapshot),mvp_backup_meta:'{}'}});
+  await s.run('init()');
+  assert.equal(s.elements['backup-undo'].textContent,'Annuler la dernière restauration');
+  assert.equal(s.elements['backup-undo'].hidden,false);
+  assert.equal(s.elements['backup-undo-date'].hidden,false);
+  assert.match(s.elements['backup-undo-date'].textContent,savedAt?/2026/:/non disponible/);
+  s.context.confirm=()=>false;s.elements['backup-undo'].onclick();
+  assert.equal(s.values.get('vt_flacons'),'[{"id":"later"}]');
+  assert.ok(s.values.has('mvp_before_restore'));
+  s.context.confirm=()=>true;s.elements['backup-undo'].onclick();
+  assert.equal(s.values.get('vt_flacons'),'[]');
+  assert.equal(s.values.has('mvp_before_restore'),false);
+  assert.equal(s.values.has('mvp_backup_meta'),false);
+  assert.equal(s.puts,0);
+ }
+});
+test('restoring cloud data dates the safety copy of previous local data',async()=>{
+ const cloud={payload:{version:1,data:{vt_config:JSON.stringify({prenom:'Cloud',dateArret:'2026-01-01'})}},revision:4,updated_at:'2026-09-17'};
+ const s=setup({stored,cloud});await s.run('init()');await s.run('reconcile()');
+ await s.run('restoreRemote()');
+ const copy=JSON.parse(s.values.get('mvp_before_restore'));
+ assert.ok(Number.isFinite(Date.parse(copy.savedAt)));
+ assert.equal(copy.data.vt_config,stored.vt_config);
+ assert.equal(copy.data.vt_flacons,stored.vt_flacons);
+ assert.equal(dataTools.validate(copy).data.vt_config,stored.vt_config);
+});

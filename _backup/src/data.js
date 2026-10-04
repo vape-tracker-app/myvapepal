@@ -106,6 +106,19 @@ if(key==='vt_flacons'||key==='vt_recettes') {
             const numeric=['coutFlacon','cigsJour','prixPaquet','cigsPaquet','nicotineActuelle','volume','nicotine','arome','steepDays','montant','volumeTotal','volArome','volBooster','nbrFioles','volBase'];
             const text=['nom','prenom','type','categorie','titre','texte','couleur','categorieSaveur','dateArret','date','dateConstat','preparedAt','startedAt','finishedAt','dateOuverture','dateFermeture','steepReadyAt','dateResistance','materielConfigurationId','materielResume','materielDateResistance','materielDateCoton'];
             for(const record of records) {
+                if(record.maturationNonRenseignee!==undefined&&typeof record.maturationNonRenseignee!=='boolean')throw Error('État de maturation invalide');
+                if(record.maturationNonRenseignee&&(record.steepDays!=null||record.steepReadyAt!=null))throw Error('Durée inconnue incohérente');
+                if(record.aromeCatalogue!=null){
+                    const a=record.aromeCatalogue;
+                    const texts=v=>Array.isArray(v)&&v.every(s=>typeof s==='string'&&s.length<=5000);
+                    if(!a||typeof a!=='object'||a.version!==1||typeof a.id!=='string'||!/^[a-z0-9-]{1,150}$/.test(a.id)||typeof a.nom!=='string'||a.nom.length>500||!texts(a.saveurs)||!texts(a.categories)||!texts(a.notes)||!Array.isArray(a.dosages)||!Array.isArray(a.sources)||!Array.isArray(a.pointsAVerifier))throw Error('Fiche arôme invalide');
+                    if(a.categories.some(k=>!['fruite','gourmand','classic','menthe','frais','boisson','cbd'].includes(k)))throw Error('Catégorie arôme invalide');
+                    for(const s of a.sources)if(!s||typeof s.id!=='string'||!['fabricant','revendeur'].includes(s.type)||typeof s.url!=='string'||!/^https:\/\//i.test(s.url)||typeof s.verifieLe!=='string')throw Error('Source arôme invalide');
+                    const range=(min,max)=>Number.isFinite(min)&&Number.isFinite(max)&&min>=0&&max>=min;
+                    for(const d of a.dosages)if(!d||!range(d.minPourcent,d.maxPourcent)||d.maxPourcent>100||(d.ratioBase!=null&&(!range(d.ratioBase.pg,d.ratioBase.pg)||d.ratioBase.pg+d.ratioBase.vg!==100)))throw Error('Dosage arôme invalide');
+                    if(a.maturation!=null&&(!range(a.maturation.minJours,a.maturation.maxJours)||!Number.isSafeInteger(a.maturation.maxJours)))throw Error('Maturation arôme invalide');
+                    for(const p of a.pointsAVerifier)if(!p||typeof p.motif!=='string')throw Error('Indication arôme invalide');
+                }
                 if(record.additifs!==undefined){
                     if(!record.additifs||typeof record.additifs!=='object'||Array.isArray(record.additifs))throw Error('Additifs invalides');
                     for(const [k,a] of Object.entries(record.additifs))if(

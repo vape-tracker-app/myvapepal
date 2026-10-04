@@ -46,7 +46,7 @@ const legacyColors = {
     }
     function bottleColor(bottle) {
         if (!bottle?.categorieSaveur && !bottle?.categoriesSaveurs?.length && legacyColors[bottle?.couleur]) return legacyColors[bottle.couleur];
-        return flavorCategories[bottleFlavors(bottle)[0]].color;
+        return flavorCategories[bottleFlavors(bottle)[0]]?.color || '#ffb7c5';
     }
     function bottleIcon(bottle) {
         return bottleFlavors(bottle).map(key => `<img class="icone-saveur" src="./assets/saveurs/${key}.png" alt="${flavorCategories[key].label}" width="32" height="32" decoding="async">`).join('');

@@ -98,7 +98,7 @@ async function restoreRemote(){
     if(busy||!remote)return;
     if(!confirm('Remplacer les données de cet appareil par la sauvegarde en ligne ? Une copie de sécurité locale sera conservée avant le remplacement.'))return;
     try{
-        localStorage.setItem('mvp_before_restore',JSON.stringify(capture(localStorage)));
+        localStorage.setItem('mvp_before_restore',JSON.stringify({...capture(localStorage),savedAt:new Date().toISOString()}));
         restore(localStorage,remote.payload);remember(remote.payload,remote);
         location.reload();
     }catch{status('Restauration impossible. Tes données précédentes sont conservées.');}
@@ -112,9 +112,23 @@ async function signout(){
 }
 async function init(){
     $('backup-login').onsubmit=event=>event.preventDefault();
-    $('backup-undo').hidden=!localStorage.getItem('mvp_before_restore');
+    const undo=$('backup-undo'),copyDate=$('backup-undo-date');
+    const previous=localStorage.getItem('mvp_before_restore');
+    undo.textContent='Annuler la dernière restauration';
+    undo.hidden=!previous;
+    if(copyDate){
+        copyDate.hidden=!previous;
+        copyDate.textContent='Date de la copie de sécurité non disponible.';
+        try{
+            const savedAt=JSON.parse(previous)?.savedAt;
+            const savedDate=savedAt?new Date(savedAt):null;
+            if(savedDate && Number.isFinite(savedDate.getTime())){
+                copyDate.textContent='Copie des données de ce téléphone conservée le '+savedDate.toLocaleString('fr-FR')+'.';
+            }
+        }catch{/* Les anciennes copies restent accessibles sans date. */}
+    }
     $('backup-undo').onclick=()=>{
-        if(!confirm('Revenir aux données locales conservées avant la dernière restauration ? La sauvegarde en ligne ne sera pas modifiée automatiquement.'))return;
+        if(!confirm('Annuler la dernière restauration et retrouver les données de ce téléphone telles qu’elles étaient juste avant ? Les modifications faites depuis seront remplacées. La sauvegarde en ligne ne sera pas modifiée automatiquement.'))return;
         try{restore(localStorage,JSON.parse(localStorage.getItem('mvp_before_restore')));localStorage.removeItem('mvp_backup_meta');localStorage.removeItem('mvp_before_restore');location.reload();}
         catch{status('Impossible de revenir aux données précédentes.');}
     };

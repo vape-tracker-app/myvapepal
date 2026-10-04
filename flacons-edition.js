@@ -17,14 +17,17 @@ function corrigerFicheFlacon(f, valeurs) {
     if (!next.nom || /[<>]/.test(next.nom)) throw Error('Indique un nom sans les caractères < et >.');
     if (!['DIY', 'Prêt à vaper'].includes(valeurs.type)) throw Error('Choisis le type de flacon.');
     if (!['fruite','gourmand','classic','menthe','frais','boisson','cbd'].includes(valeurs.categorieSaveur)) throw Error('Choisis une saveur.');
-    next.type = valeurs.type; next.categorieSaveur = valeurs.categorieSaveur;
+    next.type = valeurs.type; if(next.type!=='DIY')delete next.aromeCatalogue; next.categorieSaveur = valeurs.categorieSaveur;
     const flavors=valeurs.categoriesSaveurs || [valeurs.categorieSaveur];
     if (!Array.isArray(flavors) || !flavors.length || flavors.some(k=>!['fruite','gourmand','classic','menthe','frais','boisson','cbd'].includes(k))) throw Error('Choisis une ou plusieurs saveurs.');
     next.categoriesSaveurs=[...new Set(flavors)];next.categorieSaveur=next.categoriesSaveurs[0];
     for (const key of ['volume','nicotine','arome','steepDays']) {
+        if (key === 'steepDays' && valeurs[key] === '') {next.steepDays=null;next.maturationNonRenseignee=true;continue;}
+        if (key === 'steepDays') next.maturationNonRenseignee=false;
         if (key === 'arome' && valeurs.type === 'Prêt à vaper') continue;
         const n = Number(valeurs[key]);
         if (valeurs[key] === '' || !Number.isFinite(n) || n < 0 || (key === 'volume' && n <= 0) || (key === 'arome' && n > 100)) throw Error('Vérifie les quantités, le volume et les dosages.');
+        if(key==='steepDays'&&!Number.isSafeInteger(n))throw Error('Indique un nombre entier de jours.');
         next[key] = n;
     }
     if (!f.startedAt) {
@@ -44,7 +47,8 @@ function corrigerFicheFlacon(f, valeurs) {
         if (resistance && (!/^\d{4}-\d{2}-\d{2}$/.test(resistance) || !Number.isFinite(+new Date(resistance)))) throw Error('Vérifie la date de résistance.');
         if (!f.materielConfigurationId) next.dateResistance = resistance || null;
     }
-    if (next.preparedAt !== f.preparedAt || next.steepDays !== Number(f.steepDays || 0)) {
+    if (next.maturationNonRenseignee) next.steepReadyAt=null;
+    if (!next.maturationNonRenseignee && (next.preparedAt !== f.preparedAt || next.steepDays !== Number(f.steepDays || 0) || f.maturationNonRenseignee)) {
         const ready = +new Date(next.preparedAt) + next.steepDays * 86400000;
         if (!Number.isFinite(ready) || !Number.isFinite(+new Date(ready))) throw Error('Durée de maturation trop grande.');
         next.steepReadyAt = next.steepDays > 0 ? new Date(ready).toISOString() : null;
@@ -86,6 +90,7 @@ function modifierFlacon(id) {
     const f = flacons.find(item => item.id === id);
     if (!f || f.termine) return;
     const dialog = creerDialogueFlacon('Modifier le flacon');
+    if(f.aromeCatalogue&&typeof MyVapeAromes!=='undefined'){const details=document.createElement('details');const summary=document.createElement('summary');summary.textContent='Arôme et recommandations conservées';details.append(summary);MyVapeAromes.details(details,f.aromeCatalogue);dialog.append(details);}
     const form = document.createElement('form');
     const fields = {};
     const field = (key, label, type, value, options) => {
@@ -140,7 +145,8 @@ updateCBD();
     fields.type.addEventListener('change',updateArome);updateArome();
     if (!f.startedAt) field('quantite','Nombre de flacons en réserve','number',f.quantite ?? 1);
     field('preparedAt','Date et heure de préparation','datetime-local',dateLocaleFlacon(f.preparedAt || f.dateOuverture || f.startedAt));
-    field('steepDays','Durée de maturation (jours)','number',f.steepDays || 0);
+    field('steepDays','Durée de maturation (jours ; vide : inconnue, 0 : sans attente)','number',f.maturationNonRenseignee?'':f.steepDays || 0);
+    fields.steepDays.required=false;fields.steepDays.step='1';
     if (f.startedAt) {
         field('startedAt','Date et heure de début d’utilisation','datetime-local',dateLocaleFlacon(f.startedAt));
         field('dateResistance','Date du changement de résistance (facultatif)','date',MyVapeGear.resistanceDate(f) || '');

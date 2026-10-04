@@ -31,6 +31,7 @@ const DIYStock=(()=>{
         if(volumeRestant>volumeInitial)throw Error('Le volume restant dépasse la quantité achetée.');
         if(!/^\d{4}-\d{2}-\d{2}$/.test(v.dateAchat)||!Number.isFinite(Date.parse(v.dateAchat))||new Date(v.dateAchat).toISOString().slice(0,10)!==v.dateAchat)throw Error('Indique une date valide.');
         const lot={id:crypto.randomUUID(),type:v.type,nom:text(v.nom),volumeInitial,volumeRestant,prixTotal:v.prixTotal==null||v.prixTotal===''?null:finite(v.prixTotal,'le prix'),dateAchat:v.dateAchat,tauxBooster:v.type==='booster'?finite(v.tauxBooster,'le taux du booster',0.000001):null};
+        if(v.type==='arome'&&v.aromeCatalogue)lot.aromeCatalogue=JSON.parse(JSON.stringify(v.aromeCatalogue));
         if(['frais','sucre'].includes(v.type)&&v.gouttesParMl!=null&&v.gouttesParMl!=='')lot.gouttesParMl=finite(v.gouttesParMl,'les gouttes pour 1 ml',0.000001);
         const changes={[LOTS]:[lot,...read(LOTS)]};
         if(expense){if(!(lot.prixTotal>0))throw Error('Indique le prix d’achat pour l’ajouter aux finances.');changes.vt_depenses=[{id:crypto.randomUUID(),nom:`${lot.nom} · ${ml(volumeInitial)}`,categorie:'Base/Booster/Arôme',montant:Math.round(lot.prixTotal*100)/100,date:lot.dateAchat+'T12:00:00',stockLotId:lot.id},...depenses];}
@@ -99,6 +100,7 @@ const DIYStock=(()=>{
         const mode=field(form,'Que souhaites-tu ajouter ?','achat',[['achat','Un nouvel achat'],['existant','Du stock déjà présent (même entamé)']]);
         const type=field(form,'Ingrédient',preferred,Object.entries(labels));
         const nom=field(form,'Nom du produit','',null,'text');nom.required=true;nom.maxLength=120;
+        const catalogueSelection=typeof MyVapeAromes!=='undefined'?MyVapeAromes.stockPicker(form,type,nom):()=>null;
         const pack=field(form,'Contenance du conditionnement',30);
         const unite=field(form,'Unité','ml',[['ml','ml'],['l','L'],['boosters','Boosters de 10 ml']]);
         const packs=field(form,'Nombre de conditionnements',1);packs.step='1';packs.min='1';packs.max='1000';
@@ -123,7 +125,7 @@ const DIYStock=(()=>{
         form.onsubmit=e=>{e.preventDefault();if(!form.reportValidity())return;try{
             const count=finite(packs.value,'le nombre de conditionnements',1);if(!Number.isInteger(count)||count>1000)throw Error('Nombre de conditionnements invalide.');
             const v=finite(pack.value,'la contenance',0.000001)*count*(unite.value==='l'?1000:unite.value==='boosters'?10:1);
-            const lot={type:type.value,nom:nom.value,volumeInitial:v,volumeRestant:mode.value==='existant'?remaining.value:v,prixTotal:price.value===''?null:finite(price.value,'le prix')*count,tauxBooster:rate.value,dateAchat:date.value,gouttesParMl:conversion.value};
+            const lot={aromeCatalogue:catalogueSelection(),type:type.value,nom:nom.value,volumeInitial:v,volumeRestant:mode.value==='existant'?remaining.value:v,prixTotal:price.value===''?null:finite(price.value,'le prix')*count,tauxBooster:rate.value,dateAchat:date.value,gouttesParMl:conversion.value};
             const finish=expense=>{addLot(lot,expense);dialog.close();updated();};
             if(mode.value==='achat'&&lot.prixTotal>0){
                 const confirmation=el('section');

@@ -29,7 +29,7 @@ export function plan({
     }
     add(20000 + index, at, 'Ton cerisier grandit 🌸', `Ton cerisier atteint le stade ${index + 2}. Découvre-le dans MyVapePal !`);
   });
-  bottles.filter(f => !f.termine && !f.actif && !f.startedAt && f.steepReadyAt).forEach((f, index) =>
+  bottles.filter(f => !f.termine && !f.actif && !f.startedAt && !f.maturationNonRenseignee && f.steepReadyAt).forEach((f, index) =>
     add(100000 + index, new Date(f.steepReadyAt), 'Un flacon est prêt !', `${f.nom || 'Ton flacon'} a terminé sa maturation. Retrouve-le dans ta réserve.`));
   goals.filter(g => g.statut !== 'atteint').forEach((g, index) =>
     add(200000 + index, localDate(g.date), 'On fait le point ? 🎯', `Aujourd’hui, ton objectif : ${g.titre || 'faire le point sur ta nicotine'}.`));
