@@ -1662,20 +1662,10 @@ function afficherDernierChangementResistance() {
         }
     }
 
-    if (!valeur) {
-        libelle.textContent = '🔧 Aucun changement de résistance enregistré';
-        return;
-    }
+    libelle.textContent='🔧 '+MyVapeGear.maintenanceText(actif);
+    const bouton=document.getElementById('btn-changer-resistance');
+    if(bouton)bouton.textContent=MyVapeGear.changeLabel(actif);
 
-    const date = new Date(`${valeur}T12:00:00`);
-
-    libelle.textContent = !isNaN(date.getTime())
-    ? `🔧 Résistance changée le ${date.toLocaleDateString('fr-FR', {
-        day: '2-digit',
-        month: '2-digit',
-        year: 'numeric'
-    })}`
-    : '🔧 Aucun changement de résistance enregistré';
 }
 
 function changerResistance(idFlacon = null) {
@@ -1802,14 +1792,7 @@ function afficherFlaconsEntames() {
 } • ${f.volume} ml • Entamé le ${dateFormatee}${texteCoutFlacon(f)}
                 </p>
                 <p class="texte-secondaire" style="margin-top:4px;">
-    ${MyVapeGear.resistanceDate(f)
-        ? `🔧 Résistance changée le ${new Date(`${MyVapeGear.resistanceDate(f)}T12:00:00`).toLocaleDateString('fr-FR', {
-            day: '2-digit',
-            month: '2-digit',
-            year: 'numeric'
-        })}`
-        : '🔧 Aucun changement de résistance enregistré'
-    }
+    🔧 ${echapperHTML(MyVapeGear.maintenanceText(f))}
 </p>
 
                 ${MyVapeGear.bottleLine(f)}
@@ -1826,7 +1809,7 @@ function afficherFlaconsEntames() {
     class="btn-secondaire"
     style="width:auto; padding:6px 12px; font-size:0.8rem; margin-top:8px;"
     onclick="changerResistance('${f.id}')">
-    Changer ma résistance
+    ${echapperHTML(MyVapeGear.changeLabel(f))}
 </button>
 <button type="button"
     class="btn-secondaire"

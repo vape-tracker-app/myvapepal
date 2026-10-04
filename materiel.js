@@ -13,7 +13,7 @@ const MyVapeGear = (() => {
     const expertText=['atomiseur','coton','airflow','personnalisation'];
     const expertNumbers=['diametreFil','diametreInterieur','spires'];
     const isExpert=c=>c?.systeme==='Reconstructible';
-    const statuses=['J’utilise','À tester'];
+    const statuses=['J’utilise','À tester','Je n’utilise plus'];
     const draws=['Non renseigné','Indirect (MTL)','Direct restrictif (RDL)','Direct (DTL)'];
     const drawLabel=v=>({'Serré (comme une cigarette)':'Indirect (MTL)','Intermédiaire':'Direct restrictif (RDL)','Aérien':'Direct (DTL)'}[v]||v);
     const resistanceValues=[0.1,0.15,0.16,0.17,0.18,0.2,0.25,0.3,0.4,0.5,0.6,0.7,0.8,0.9,1,1.2,1.4,1.5,1.6,1.8,2,2.2];
@@ -28,23 +28,27 @@ const MyVapeGear = (() => {
     function find(id,devices=read()) {
         for(const device of devices){const config=(device.configurations||[]).find(c=>c.id===id);if(config)return {device,config};}return null;
     }
-    const name=pair=>[pair.device.nom,...(isExpert(pair.config)?[pair.config.expert?.atomiseur,pair.config.expert?.montage!=='Non renseigné'?pair.config.expert?.montage:null]:[]),resistanceLabel(pair.config.ohms)].filter(Boolean).join(' · ');
+    const name=pair=>[pair.device.nom,pair.config.cartouche||pair.config.clearomiseur?.replace('|',' · ')||pair.config.reservoirManuel,...(isExpert(pair.config)?[pair.config.expert?.atomiseur,pair.config.expert?.montage!=='Non renseigné'?pair.config.expert?.montage:null]:[]),resistanceLabel(pair.config.ohms)].filter(Boolean).join(' · ');
     const refresh=()=>{mettreAJourTout();};
     function saveDevices(devices){localStorage.setItem(KEY,JSON.stringify(devices));}
-    function upsertDevice(values,id=null){
-        const all=read();const index=all.findIndex(d=>d.id===id);
-        if(id&&index<0)throw Error('Appareil introuvable.');
+    function buildDevice(values,previous=null){
         const item={
-    ...(index>=0?all[index]:{id:crypto.randomUUID(),configurations:[]}),
+    ...(previous||{id:crypto.randomUUID(),configurations:[]}),
     nom:clean(values.nom),
     marque:clean(values.marque),
     modele:clean(values.modele),
     repere:clean(values.repere),
     type:choice(values.type,types),
-    statut:choice(values.statut,statuses),
+    statut:choice(values.statut??previous?.statut??statuses[0],statuses),
     notes:clean(values.notes)
 };
         if(!item.nom)throw Error('Donne un nom à cet appareil.');
+        return item;
+    }
+    function upsertDevice(values,id=null){
+        const all=read();const index=all.findIndex(d=>d.id===id);
+        if(id&&index<0)throw Error('Appareil introuvable.');
+        const item=buildDevice(values,index>=0?all[index]:null);
         if(index<0)all.push(item);else all[index]=item;saveDevices(all);return item.id;
     }
     function deleteDevice(deviceId){
@@ -95,10 +99,23 @@ const MyVapeGear = (() => {
 
     refresh();
 }
-    function upsertConfiguration(deviceId,values,id=null){
-        const all=read(),device=all.find(d=>d.id===deviceId);if(!device)throw Error('Appareil introuvable.');
-        const configs=device.configurations||[];const index=configs.findIndex(c=>c.id===id);if(id&&index<0)throw Error('Configuration introuvable.');
-        const item={...(index>=0?configs[index]:{}),id:id||crypto.randomUUID(),nom:resistanceLabel(number(values.ohms)),resistance:clean(values.resistance),clearomiseur:clean(values.clearomiseur),ohms:number(values.ohms),watts:number(values.watts),tirage:choice(drawLabel(values.tirage),draws),vapeur:choice(values.vapeur,clouds),avis:choice(values.avis,reviews),notes:clean(values.notes),dateResistance:date(values.dateResistance)};
+    function deleteConfiguration(id){
+        const all=read(),pair=find(id,all);
+        if(!pair || pair.config.supprimee)return;
+        const linked=flacons.filter(f=>!f.termine && f.materielConfigurationId===id);
+        if(linked.length){
+            alert(`Impossible de supprimer cette cartouche ou ce montage : il est encore associé à ${linked.map(f=>f.nom).join(', ')}.\n\nChange d’abord le matériel associé à ces flacons depuis l’accueil.`);
+            return;
+        }
+        const label=pair.device.type==='Pod'?'cette cartouche':'ce montage';
+        if(!confirm(`Supprimer ${label} (${resistanceLabel(pair.config.ohms)}) ?\n\nIl ne figurera plus dans ton matériel. Le suivi des autres cartouches et l’historique des flacons terminés seront conservés.`))return;
+        // Conserver la référence historique, mais la retirer des choix et des fiches.
+        pair.config.supprimee=true;
+        saveDevices(all);
+        refresh();
+    }
+    function buildConfiguration(values,previous=null){
+        const item={...(previous||{}),id:previous?.id||crypto.randomUUID(),nom:resistanceLabel(number(values.ohms)),resistance:clean(values.resistance),clearomiseur:clean(values.clearomiseur),cartouche:clean(values.cartouche),reservoirManuel:clean(values.reservoirManuel),ohms:number(values.ohms),watts:number(values.watts),tirage:choice(drawLabel(values.tirage),draws),vapeur:choice(values.vapeur,clouds),avis:choice(values.avis??previous?.avis??reviews[0],reviews),notes:clean(values.notes),dateResistance:date(values.dateResistance)};
         item.systeme=choice(values.systeme??item.systeme??systems[0],systems);
         if(isExpert(item)){
             const input=values.expert??item.expert??{},expert={};
@@ -108,7 +125,31 @@ const MyVapeGear = (() => {
             item.expert=expert;item.dateCoton=date(values.dateCoton??item.dateCoton);
         }else{delete item.expert;delete item.dateCoton;}
         if(!item.nom)throw Error('Donne un nom à cette configuration.');
+        return item;
+    }
+    function saveMaterial(deviceValues,configurationValues){
+        const device=buildDevice(deviceValues);
+        const config=buildConfiguration(configurationValues);
+        device.configurations=[config];
+        const all=read();all.push(device);saveDevices(all);
+        return device.id;
+    }
+    function upsertConfiguration(deviceId,values,id=null){
+        const all=read(),device=all.find(d=>d.id===deviceId);if(!device)throw Error('Appareil introuvable.');
+        const configs=device.configurations||[];const index=configs.findIndex(c=>c.id===id);if(id&&index<0)throw Error('Configuration introuvable.');
+        const item=buildConfiguration(values,index>=0?configs[index]:null);
         if(index<0)configs.push(item);else configs[index]=item;device.configurations=configs;saveDevices(all);return item.id;
+    }
+    function maintenanceInfo(c){
+        if(isExpert(c))return {action:'Changer mon montage',changed:'Montage changé le ',empty:'Aucun changement de montage enregistré',dateLabel:'Date du changement de montage'};
+        if(c?.systeme===systems[1])return {action:'Changer ma cartouche',changed:'Cartouche changée le ',empty:'Aucun changement de cartouche enregistré',dateLabel:'Date du changement de cartouche'};
+        return {action:'Changer ma résistance',changed:'Résistance changée le ',empty:'Aucun changement de résistance enregistré',dateLabel:'Date du changement de résistance'};
+    }
+    const bottleMaintenance=f=>maintenanceInfo(f.termine?{systeme:f.materielSysteme}:find(f.materielConfigurationId)?.config);
+    const changeLabel=f=>bottleMaintenance(f).action;
+    function maintenanceText(f){
+        const value=resistanceDate(f),info=bottleMaintenance(f);
+        return value?info.changed+new Date(value+'T12:00:00').toLocaleDateString('fr-FR'):info.empty;
     }
     function resistanceDate(f){
         if(f.termine&&f.materielResume)return f.materielDateResistance||null;
@@ -138,7 +179,7 @@ const MyVapeGear = (() => {
             );
         }
 
-        if(dureeJours>0){
+        if(dureeJours>=0){
             if(!Array.isArray(pair.config.historiqueResistances)){
                 pair.config.historiqueResistances=[];
             }
@@ -156,22 +197,28 @@ const MyVapeGear = (() => {
 }
     function setCotton(id,value){
         const all=read(),pair=find(id,all);if(!pair||!isExpert(pair.config))throw Error('Choisis une configuration reconstructible.');
-        pair.config.dateCoton=date(value);saveDevices(all);
+        const next=date(value),previous=pair.config.dateCoton;
+        if(previous&&next){
+            const days=Math.round((Date.parse(next+'T12:00:00Z')-Date.parse(previous+'T12:00:00Z'))/86400000);
+            if(days<0)throw Error('La nouvelle date ne peut pas être antérieure au dernier changement de coton.');
+            if(days>0){pair.config.historiqueCotons||=[];pair.config.historiqueCotons.push({debut:previous,fin:next,dureeJours:days});}
+        }
+        pair.config.dateCoton=next;saveDevices(all);
     }
     function associate(bottleId,configId){
         const old=flacons.find(f=>f.id===bottleId);if(!old||old.termine||!old.startedAt)throw Error('Ce flacon n’est pas entamé.');
-        if(configId&&!find(configId))throw Error('Configuration introuvable.');
+        if(configId&&(!find(configId)||find(configId).config.supprimee))throw Error('Configuration introuvable.');
         const next={...old};
         if(!configId){next.dateResistance=resistanceDate(old);delete next.materielConfigurationId;}
         else next.materielConfigurationId=configId;
         const updated=flacons.map(f=>f.id===bottleId?next:f);localStorage.setItem('vt_flacons',JSON.stringify(updated));flacons=updated;
     }
-    function freeze(f){const pair=find(f.materielConfigurationId);if(pair){f.materielResume=name(pair);f.materielDateResistance=pair.config.dateResistance||null;if(isExpert(pair.config))f.materielDateCoton=pair.config.dateCoton||null;}}
+    function freeze(f){const pair=find(f.materielConfigurationId);if(pair){f.materielResume=name(pair);f.materielSysteme=pair.config.systeme||systems[0];f.materielDateResistance=pair.config.dateResistance||null;if(isExpert(pair.config))f.materielDateCoton=pair.config.dateCoton||null;}}
     function bottleLine(f){
         if(f.termine)return f.materielResume?`<p class="texte-secondaire">Matériel : ${echapperHTML(f.materielResume)}</p>`:'';
         if(!f.startedAt)return '';
         const pair=find(f.materielConfigurationId);
-        return `<div class="materiel-flacon"><p class="texte-secondaire">Matériel : ${pair?echapperHTML(name(pair)):'Non associé'}</p><button type="button" class="btn-secondaire btn-materiel-associer" onclick="MyVapeGear.associationDialog('${f.id}')">${pair?'Changer le matériel':'Associer du matériel'}</button>${pair&&isExpert(pair.config)?`<p class="texte-secondaire">${pair.config.dateCoton?'Coton changé le '+new Date(pair.config.dateCoton+'T12:00:00').toLocaleDateString('fr-FR'):'Coton : date non renseignée'}</p><button type="button" class="btn-secondaire" onclick="MyVapeGear.maintenanceDialog('${pair.config.id}')">Entretien du montage</button>`:''}</div>`;
+        return `<div class="materiel-flacon"><p class="texte-secondaire">Matériel : ${pair?echapperHTML(name(pair)):'Non associé'}</p><button type="button" class="btn-secondaire btn-materiel-associer" onclick="MyVapeGear.associationDialog('${f.id}')">${pair?'Changer le matériel':'Associer du matériel'}</button>${pair&&isExpert(pair.config)?`<p class="texte-secondaire">${pair.config.dateCoton?'Coton changé le '+new Date(pair.config.dateCoton+'T12:00:00').toLocaleDateString('fr-FR'):'Coton : date non renseignée'}</p><button type="button" class="btn-secondaire" onclick="MyVapeGear.maintenanceDialog('${pair.config.id}')">Changer mon coton</button>`:''}</div>`;
     }
     function el(tag,text,cls){const e=document.createElement(tag);if(text)e.textContent=text;if(cls)e.className=cls;return e;}
     function button(parent,text,action,primary=false){const b=el('button',text,primary?'btn-primaire':'btn-secondaire');b.type='button';b.onclick=action;parent.append(b);return b;}
@@ -222,6 +269,7 @@ const MyVapeGear = (() => {
     }
     function deviceDialog(id=null){
     const d=read().find(d=>d.id===id)||{};
+    let editor;
 
     const getMarques=()=>{
         return Object.keys(catalogueMateriel)
@@ -251,32 +299,31 @@ const MyVapeGear = (() => {
         )||null;
     };
 
-    modal(id?'Modifier l’appareil':'Ajouter un appareil',[
-        ['type','Type d’appareil','select',d.type||types[0],types],
+    modal(id?'Modifier l’appareil':'Ajouter mon matériel',[
+        ['type','Type d’appareil','select',d.type||types[0],types.map(t=>[t,typeLabel(t)])],
         ['marque','Marque','select',d.marque||'',[['','Choisir une marque']]],
+        ['marqueManuelle','Saisir la marque','text',''],
         ['modele','Modèle','select',d.modele||'',[['','Choisir un modèle']]],
+        ['modeleManuel','Saisir le modèle','text',''],
         ['repere','Mon repère (facultatif)','text',d.repere],
         ['nom','Nom / modèle','text',d.nom],
-        ['statut','Où en suis-je ?','select',d.statut||statuses[0],statuses],
         ['notes','Ce que j’aime, ce qui me gêne, pourquoi…','textarea',d.notes]
     ],v=>{
+        v.marque=clean(v.marque==='__autre__'?v.marqueManuelle:v.marque);
+        v.modele=clean(v.modele==='__autre__'?v.modeleManuel:v.modele);
+        const ancienSansMarque=id && !v.marque && !v.modele && d.nom;
+        if(!ancienSansMarque && (!v.marque || !v.modele)){
+            throw Error('Renseigne la marque et le modèle de cet appareil.');
+        }
+        const appareil=trouverAppareilCatalogue(v.marque,v.modele);
+        if(appareil)v.type=appareil.type==='pod'?'Pod':'Box / clearomiseur';
         if(v.marque && v.modele){
-            const appareil=trouverAppareilCatalogue(v.marque,v.modele);
-
-            if(appareil){
-                v.type=appareil.type==='pod'
-                    ? 'Pod'
-                    : 'Box / clearomiseur';
-
-                v.nom=v.repere
-                    ? `${v.marque} - ${v.modele} · ${v.repere}`
-                    : `${v.marque} - ${v.modele}`;
-            }
+            v.nom=`${v.marque} - ${v.modele}`+(clean(v.repere)?` · ${clean(v.repere)}`:'');
         }
 
-        const saved=upsertDevice(v,id);
+        const saved=id?upsertDevice(v,id):saveMaterial(v,editor.values());
         if(!id)rememberDevice(saved,true);
-    },'',null,'Enregistrer',(form,inputs)=>{
+    },'',null,id?'Enregistrer':'Enregistrer mon matériel',(form,inputs)=>{
 
         const groupeType=inputs.type.parentElement;
         const groupeMarque=inputs.marque.parentElement;
@@ -377,636 +424,262 @@ const actualiserApercuType=appareil=>{
             };
         };
 
-       const actualiserType=()=>{
-    const appareil=trouverAppareilCatalogue(
-        inputs.marque.value,
-        inputs.modele.value
-    );
-
-    if(!appareil){
-        actualiserApercuType(null);
-        return;
-    }
-
-    inputs.type.value=appareil.type==='pod'
-        ? 'Pod'
-        : 'Box / clearomiseur';
-
-    actualiserApercuType(appareil);
-};
-
+        const ajouterAutre=(select,label)=>{
+            const option=el('option',label);
+            option.value='__autre__';
+            select.append(option);
+        };
+        const actualiserType=()=>{
+            const marqueManuelle=inputs.marque.value==='__autre__';
+            const modeleManuel=inputs.modele.value==='__autre__';
+            for(const [input,visible] of [[inputs.marqueManuelle,marqueManuelle],[inputs.modeleManuel,modeleManuel]]){
+                input.parentElement.hidden=!visible;
+                input.disabled=!visible;
+                input.required=visible;
+            }
+            const appareil=trouverAppareilCatalogue(inputs.marque.value,inputs.modele.value);
+            groupeType.hidden=!!appareil || (!modeleManuel && !d.nom);
+            if(appareil)inputs.type.value=appareil.type==='pod'?'Pod':'Box / clearomiseur';
+            actualiserApercuType(appareil);
+            editor?.refresh();
+        };
         const actualiserModeles=(modeleSelectionne='')=>{
             const modeles=getModeles(inputs.marque.value);
-
-            remplirSelect(
-                inputs.modele,
-                modeles,
-                'Choisir un modèle'
-            );
-            actualiserApercuType(null);
-
+            remplirSelect(inputs.modele,modeles,'Choisir un modèle');
+            ajouterAutre(inputs.modele,'Autre modèle');
+            inputs.modele.disabled=!inputs.marque.value;
+            inputs.modeleManuel.value='';
             if(modeles.includes(modeleSelectionne)){
                 inputs.modele.value=modeleSelectionne;
-                actualiserType();
+            }else if(modeleSelectionne || inputs.marque.value==='__autre__'){
+                inputs.modele.value='__autre__';
+                inputs.modeleManuel.value=modeleSelectionne;
             }
+            actualiserType();
         };
-
         const marques=getMarques();
-
-        remplirSelect(
-            inputs.marque,
-            marques,
-            'Choisir une marque'
-        );
-
+        remplirSelect(inputs.marque,marques,'Choisir une marque');
+        ajouterAutre(inputs.marque,'Autre marque');
         const existant=trouverAppareilExistant();
-
         if(marques.includes(existant.marque)){
             inputs.marque.value=existant.marque;
+        }else if(existant.marque){
+            inputs.marque.value='__autre__';
+            inputs.marqueManuelle.value=existant.marque;
         }
-
+        // Les anciens appareils sans marque conservent leur nom éditable.
+        const ancienSansMarque=!!d.nom && !existant.marque;
+        groupeNom.hidden=!ancienSansMarque;
+        inputs.nom.disabled=!ancienSansMarque;
+        inputs.marque.required=!ancienSansMarque;
+        inputs.modele.required=!ancienSansMarque;
         actualiserModeles(existant.modele);
-
         inputs.marque.addEventListener('change',()=>{
             actualiserModeles();
+            if(inputs.marque.value==='__autre__')inputs.marqueManuelle.focus();
         });
-
         inputs.modele.addEventListener('change',()=>{
             actualiserType();
+            if(inputs.modele.value==='__autre__')inputs.modeleManuel.focus();
         });
-    });
-}
-    function configDialog(deviceId,id=null){
-    const d=read().find(d=>d.id===deviceId);if(!d)return;
-    const c=(d.configurations||[]).find(c=>c.id===id)||{};
-    const count=flacons.filter(f=>!f.termine&&f.materielConfigurationId===id).length;
-    const x=c.expert||{};
-
-    const cartouchesCompatibles=()=>{
-        if(d.type!=='Pod' || !d.marque || !d.modele) return [];
-
-        const cartouches=catalogueCartouches[d.marque]||[];
-
-        return cartouches.filter(cartouche=>
-            Array.isArray(cartouche.appareilsCompatibles) &&
-            cartouche.appareilsCompatibles.includes(d.modele)
-        );
-    };
-
-    const cartouches=cartouchesCompatibles();
-    const cataloguePod=cartouches.length>0;
-    const catalogueBox=
-    d.type==='Box / clearomiseur' &&
-    d.marque &&
-    d.modele;
-
-const clearomiseurs=Object.entries(catalogueClearomiseurs)
-    .flatMap(([marque,modeles])=>
-        modeles.map(clearomiseur=>({
-            ...clearomiseur,
-            marque
-        }))
-    )
-    .sort((a,b)=>{
-        if(a.marque===d.marque && b.marque!==d.marque) return -1;
-        if(a.marque!==d.marque && b.marque===d.marque) return 1;
-
-        return `${a.marque} ${a.modele}`.localeCompare(
-            `${b.marque} ${b.modele}`,
-            'fr'
-        );
-    });
-    const appareilCatalogue=d.marque && d.modele
-    ? (catalogueMateriel[d.marque]||[]).find(appareil=>
-        appareil.modele===d.modele
-    )
-    : null;
-
-    const optionsCartouches=[
-        ['','Choisir une cartouche'],
-        ...cartouches.map(cartouche=>[
-            cartouche.reference,
-            cartouche.reference
-        ])
-    ];
-
-    const fields=[
-        ['cartouche','Cartouche','select',c.cartouche||'',optionsCartouches],
-['marqueClearomiseur','Marque du clearomiseur','select','',[['','Choisir une marque']]],
-['clearomiseur','Clearomiseur','select',c.clearomiseur||'',[['','Choisir un clearomiseur']]],
-['resistanceCatalogue','Résistance','select','',[['','Choisir une résistance']]],
-['systeme','Système de résistance','select',c.systeme||systems[0],systems],
-['resistance','Référence de résistance / coil (facultatif)','text',c.resistance],
-        ['ohms','Valeur de résistance (Ω)','select',c.ohms??'', [['','Non renseignée'],...Array.from(new Set([...resistanceValues,...(c.ohms!=null?[c.ohms]:[])])).sort((a,b)=>a-b).map(v=>[String(v),`${v} Ω`])]],
-        ['ohmsExpert','Résistance totale mesurée du montage (Ω, facultatif)','number',c.ohms],
-        ['watts','Puissance utilisée (W, facultatif)','number',c.watts],
-        ['tirage','Type de tirage','select',drawLabel(c.tirage)||draws[0],draws],
-        ['vapeur','Quantité de vapeur','select',c.vapeur||clouds[0],clouds],
-        ['avis','Mon avis','select',c.avis||reviews[0],reviews],
-        ['notes','Pourquoi ? Sensations, goûts, difficultés…','textarea',c.notes],
-        ['dateResistance','Dernier changement de résistance / coil (facultatif)','date',c.dateResistance],
-        ['dateCoton','Dernier changement de coton (facultatif)','date',c.dateCoton],
-        ['atomiseur','Marque et modèle de l’atomiseur','text',x.atomiseur],
-        ...Object.entries(expertChoices).map(([k,options])=>[
-            k,
-            ({
-                famille:'Famille d’atomiseur',
-                source:'Origine du montage',
-                montage:'Nombre de coils',
-                matiere:'Matière du fil / mesh',
-                construction:'Construction du fil / mesh'
-            })[k],
-            'select',
-            x[k]||options[0],
-            options
-        ]),
-        ['diametreFil','Diamètre du fil (mm, facultatif)','number',x.diametreFil],
-        ['diametreInterieur','Diamètre intérieur du coil (mm, facultatif)','number',x.diametreInterieur],
-        ['spires','Nombre de spires par coil (facultatif)','number',x.spires],
-        ['coton','Coton utilisé (facultatif)','text',x.coton],
-        ['airflow','Réglage de l’airflow (facultatif)','text',x.airflow],
-        ['personnalisation','Autre montage / détails personnalisés (AWG, composition, mesh…)','textarea',x.personnalisation]
-    ];
-
-    modal(
-        id?'Modifier la configuration':'Ajouter une configuration',
-        fields,
-        v=>{
-            const expert=Object.fromEntries(
-                [...Object.keys(expertChoices),...expertText,...expertNumbers]
-                    .map(k=>[k,v[k]])
-            );
-
-            upsertConfiguration(
-                deviceId,
-                {
-                    ...v,
-                    ohms:v.systeme==='Reconstructible'?v.ohmsExpert:v.ohms,
-                    expert
-                },
-                id
-            );
-        },
-        count
-            ? `Cette configuration est associée à ${count} flacon(s). Les modifications se répercutent sur ces flacons.`
-            : 'Une fiche par cartouche ou montage. Les détails experts sont facultatifs : renseigne tes propres mesures et références.',
-        null,
-        'Enregistrer',
-        (form,inputs)=>{
-
-            const details=el('details',null,'materiel-expert');
-            details.append(el('summary','Configuration experte · reconstructible'));
-            details.append(
-                el(
-                    'p',
-                    'Atomiseur, montage, fil et coton : conserve les détails utiles pour retrouver ta configuration. « Autre » permet de décrire un matériel absent des listes.',
-                    'texte-secondaire'
-                )
-            );
-
-            for(const k of [
-                'atomiseur',
-                'famille',
-                'source',
-                'montage',
-                'matiere',
-                'construction',
-                ...expertNumbers,
-                'coton',
-                'airflow',
-                'personnalisation'
-            ]){
-                details.append(inputs[k].parentElement);
-            }
-
-            inputs.ohmsExpert.min='0.000001';
-            form.append(details);
-
-            const plagePuissance=el(
-                'p',
-                '',
-                'texte-secondaire'
-            );
-
-            inputs.resistanceCatalogue.parentElement.append(plagePuissance);
-
-            let choixResistances=[];
-            const remplirMarquesClearomiseurs=()=>{
-    inputs.marqueClearomiseur.replaceChildren();
-
-    const vide=el('option','Choisir une marque');
-    vide.value='';
-    inputs.marqueClearomiseur.append(vide);
-
-    const marques=Object.keys(catalogueClearomiseurs)
-        .sort((a,b)=>{
-            if(a===d.marque && b!==d.marque) return -1;
-            if(a!==d.marque && b===d.marque) return 1;
-            return a.localeCompare(b,'fr');
-        });
-
-    for(const marque of marques){
-        const option=el('option',marque);
-        option.value=marque;
-        inputs.marqueClearomiseur.append(option);
-    }
-
-    const autre=el('option','Autre marque');
-    autre.value='__autre__';
-    inputs.marqueClearomiseur.append(autre);
-};
-
-const remplirClearomiseurs=()=>{
-    inputs.clearomiseur.replaceChildren();
-
-    const vide=el('option','Choisir un clearomiseur');
-    vide.value='';
-    inputs.clearomiseur.append(vide);
-
-    const marque=inputs.marqueClearomiseur.value;
-
-    if(!marque || marque==='__autre__'){
-        return;
-    }
-
-    const modeles=catalogueClearomiseurs[marque]||[];
-
-    for(const clearomiseur of modeles){
-        const option=el(
-            'option',
-            clearomiseur.modele
-        );
-
-        option.value=`${marque}|${clearomiseur.modele}`;
-        inputs.clearomiseur.append(option);
-    }
-
-    const autre=el('option','Autre clearomiseur');
-    autre.value='__autre__';
-    inputs.clearomiseur.append(autre);
-};
-remplirMarquesClearomiseurs();
-
-if(c.clearomiseur && c.clearomiseur.includes('|')){
-    const [marque]=c.clearomiseur.split('|');
-    inputs.marqueClearomiseur.value=marque;
-}
-remplirClearomiseurs();
-
-            const ajouterValeurOhms=value=>{
-                const texte=String(value);
-
-                if(![...inputs.ohms.options].some(option=>option.value===texte)){
-                    const option=el('option',`${texte} Ω`);
-                    option.value=texte;
-                    inputs.ohms.append(option);
-                }
-            };
-
-            const trouverCartouche=()=>{
-                return cartouches.find(
-                    cartouche=>cartouche.reference===inputs.cartouche.value
-                );
-            };
-
-            const remplirResistances=()=>{
-                const cartouche=trouverCartouche();
-
-                inputs.resistanceCatalogue.replaceChildren();
-
-                const vide=el('option','Choisir une résistance');
-                vide.value='';
-                inputs.resistanceCatalogue.append(vide);
-
-                choixResistances=[];
-                plagePuissance.textContent='';
-
-                if(!cartouche){
-                    inputs.resistance.value='';
-                    inputs.ohms.value='';
-                    return;
-                }
-
-                if(cartouche.resistanceIntegree){
-                    inputs.systeme.value='Cartouche à résistance intégrée';
-
-                    choixResistances=(cartouche.variantes||[]).map(variante=>({
-                        resistance:cartouche.reference,
-                        ohms:String(variante.valeur),
-                        puissance:variante.puissance||''
-                    }));
-                }else{
-                    inputs.systeme.value='Résistance préfabriquée remplaçable';
-
-                    let resistances=[
-                        ...(catalogueResistances[cartouche.familleResistance]||[])
-                    ];
-
-                    if(Array.isArray(cartouche.resistancesCompatibles)){
-                        const autorisees=new Set(cartouche.resistancesCompatibles);
-
-                        resistances=resistances.filter(resistance=>
-                            autorisees.has(
-                                `${resistance.reference}|${resistance.valeur}`
-                            )
-                        );
-                    }
-
-                    choixResistances=resistances.map(resistance=>({
-                        resistance:resistance.reference,
-                        ohms:String(resistance.valeur),
-                        puissance:resistance.puissance||''
-                    }));
-                }
-
-                choixResistances.forEach((choix,index)=>{
-                    const label=[
-                        `${choix.ohms} Ω`,
-                        choix.puissance
-                    ].filter(Boolean).join(' · ');
-
-                    const option=el('option',label);
-                    option.value=String(index);
-                    inputs.resistanceCatalogue.append(option);
-                });
-
-                update();
-            };
-const remplirResistancesClearomiseur=()=>{
-    choixResistances=[];
-
-    inputs.resistanceCatalogue.replaceChildren();
-
-    const vide=el('option','Choisir une résistance');
-    vide.value='';
-    inputs.resistanceCatalogue.append(vide);
-
-    plagePuissance.textContent='';
-
-    if(!inputs.clearomiseur.value) return;
-
-    const [marque,modele]=inputs.clearomiseur.value.split('|');
-
-    const clearomiseur=(catalogueClearomiseurs[marque]||[])
-        .find(c=>c.modele===modele);
-
-    if(!clearomiseur?.familleResistance) return;
-
-    let resistances=[
-        ...(catalogueResistances[clearomiseur.familleResistance]||[])
-    ];
-
-    if(Array.isArray(clearomiseur.resistancesCompatibles)){
-        const autorisees=new Set(
-            clearomiseur.resistancesCompatibles
-        );
-
-        resistances=resistances.filter(resistance=>
-            autorisees.has(
-                `${resistance.reference}|${resistance.valeur}`
-            )
-        );
-    }
-
-    choixResistances=resistances.map(resistance=>({
-        resistance:resistance.reference,
-        ohms:String(resistance.valeur),
-        puissance:resistance.puissance||''
-    }));
-
-    choixResistances.forEach((choix,index)=>{
-        const option=el(
-            'option',
-            `${choix.resistance} · ${choix.ohms} Ω`
-        );
-
-        option.value=String(index);
-        inputs.resistanceCatalogue.append(option);
-    });
-};
-            const appliquerResistance=()=>{
-                const index=inputs.resistanceCatalogue.value;
-
-                if(index===''){
-                    inputs.resistance.value='';
-                    inputs.ohms.value='';
-                    plagePuissance.textContent='';
-                    return;
-                }
-
-                const choix=choixResistances[Number(index)];
-
-                if(!choix) return;
-
-                inputs.resistance.value=choix.resistance;
-
-                ajouterValeurOhms(choix.ohms);
-                inputs.ohms.value=choix.ohms;
-
-                plagePuissance.textContent=choix.puissance
-                    ? `Plage de puissance conseillée : ${choix.puissance}`
-                    : '';
-            };
-
-            const update=()=>{
-                const expert=inputs.systeme.value==='Reconstructible';
-
-                inputs.cartouche.parentElement.hidden=!cataloguePod;
-inputs.cartouche.disabled=!cataloguePod;
-
-inputs.clearomiseur.parentElement.hidden=!catalogueBox;
-inputs.clearomiseur.disabled=!catalogueBox;
-inputs.marqueClearomiseur.parentElement.hidden=!catalogueBox;
-inputs.marqueClearomiseur.disabled=!catalogueBox;
-
-const clearomiseurManuel=
-    catalogueBox &&
-    (
-        inputs.marqueClearomiseur.value==='__autre__' ||
-        inputs.clearomiseur.value==='__autre__'
-    );
-
-const materielCatalogue=
-    cataloguePod ||
-    (catalogueBox && !clearomiseurManuel);
-
-inputs.resistanceCatalogue.parentElement.hidden=!materielCatalogue;
-inputs.resistanceCatalogue.disabled=!materielCatalogue;
-
-/*
- * Pour un matériel connu du catalogue, le système,
- * la référence et la valeur de résistance sont déterminés
- * automatiquement par la cartouche ou le clearomiseur.
- */
-inputs.systeme.parentElement.hidden=materielCatalogue;
-inputs.systeme.disabled=false;
-
-inputs.resistance.parentElement.hidden=materielCatalogue;
-inputs.resistance.disabled=false;
-
-inputs.ohms.parentElement.hidden=materielCatalogue || expert;
-inputs.ohms.disabled=expert;
-                const masquerPuissance=cataloguePod &&
-    appareilCatalogue?.puissanceReglable===false;
-
-inputs.watts.parentElement.hidden=masquerPuissance;
-inputs.watts.disabled=masquerPuissance;
-
-                for(const k of ['ohmsExpert','dateCoton']){
-                    inputs[k].parentElement.hidden=!expert;
-                    inputs[k].disabled=!expert;
-                }
-
-                details.hidden=!expert;
-
-                for(const k of [
-                    ...Object.keys(expertChoices),
-                    ...expertText,
-                    ...expertNumbers
-                ]){
-                    inputs[k].disabled=!expert;
-                }
-            };
-
-            inputs.systeme.addEventListener('change',()=>{
-                update();
-
-                if(inputs.systeme.value==='Reconstructible'){
-                    details.open=true;
-                }
-            });
-
-            inputs.cartouche.addEventListener('change',()=>{
-                remplirResistances();
-            });
-            inputs.marqueClearomiseur.addEventListener('change',()=>{
-    remplirClearomiseurs();
-
-    inputs.resistanceCatalogue.replaceChildren();
-
-    const vide=el('option','Choisir une résistance');
-    vide.value='';
-    inputs.resistanceCatalogue.append(vide);
-
-    choixResistances=[];
-    plagePuissance.textContent='';
-
-    update();
-});
-inputs.clearomiseur.addEventListener('change',()=>{
-    remplirResistancesClearomiseur();
-    update();
-});
-            inputs.resistanceCatalogue.addEventListener('change',()=>{
-                appliquerResistance();
-            });
-
-            /*
-             * Modification d'une configuration existante :
-             * on tente de retrouver automatiquement la cartouche
-             * et la résistance déjà enregistrées.
-             */
-            if(c.resistance && cataloguePod){
-                const cartoucheExistante=cartouches.find(cartouche=>{
-                    if(cartouche.resistanceIntegree){
-                        return cartouche.reference===c.resistance;
-                    }
-
-                    let resistances=[
-                        ...(catalogueResistances[cartouche.familleResistance]||[])
-                    ];
-
-                    if(Array.isArray(cartouche.resistancesCompatibles)){
-                        const autorisees=new Set(cartouche.resistancesCompatibles);
-
-                        resistances=resistances.filter(resistance=>
-                            autorisees.has(
-                                `${resistance.reference}|${resistance.valeur}`
-                            )
-                        );
-                    }
-
-                    return resistances.some(resistance=>
-                        resistance.reference===c.resistance &&
-                        String(resistance.valeur)===String(c.ohms)
-                    );
-                });
-
-                if(cartoucheExistante){
-                    inputs.cartouche.value=cartoucheExistante.reference;
-                    remplirResistances();
-
-                    const index=choixResistances.findIndex(choix=>
-                        choix.resistance===c.resistance &&
-                        String(choix.ohms)===String(c.ohms)
-                    );
-
-                    if(index>=0){
-                        inputs.resistanceCatalogue.value=String(index);
-                        appliquerResistance();
-                    }
-                }
-            }
-/*
- * Modification d'une configuration Box existante :
- * on restaure le clearomiseur puis sa résistance.
- */
-if(c.resistance && catalogueBox && c.clearomiseur){
-    inputs.clearomiseur.value=c.clearomiseur;
-
-    remplirResistancesClearomiseur();
-
-    const index=choixResistances.findIndex(choix=>
-        choix.resistance===c.resistance &&
-        String(choix.ohms)===String(c.ohms)
-    );
-
-    if(index>=0){
-        inputs.resistanceCatalogue.value=String(index);
-        appliquerResistance();
-    }
-}
-            details.open=isExpert(c);
-            update();
+        if(!id){
+            editor=configurationEditor(form,()=>({
+                type:inputs.type.value,
+                marque:inputs.marque.value==='__autre__'?inputs.marqueManuelle.value.trim():inputs.marque.value,
+                modele:inputs.modele.value==='__autre__'?inputs.modeleManuel.value.trim():inputs.modele.value
+            }));
+            for(const input of [inputs.marqueManuelle,inputs.modeleManuel])input.addEventListener('change',()=>editor.refresh());
+            inputs.type.addEventListener('change',()=>editor.refresh());
         }
-    );
-}
 
-    function preferencesDialog(){
-        const p=configUser?.preferencesMateriel||{};
-        modal('Mes préférences',[
-            ['tirage','Mon tirage préféré','select',drawLabel(p.tirage)||draws[0],draws],['vapeur','Ma vapeur préférée','select',p.vapeur||clouds[0],clouds],['notes','Ce que je recherche / ce que je veux éviter','textarea',p.notes]
-        ],v=>{if(!configUser)throw Error('Complète d’abord ton profil.');const next={...configUser,preferencesMateriel:{tirage:choice(drawLabel(v.tirage),draws),vapeur:choice(v.vapeur,clouds),notes:clean(v.notes)}};localStorage.setItem('vt_config',JSON.stringify(next));configUser=next;});
+    });
+}
+    // Le même éditeur sert à l'ajout complet et à la modification d'un montage.
+    function configurationEditor(form,getDevice,initial={}){
+        const area=el('fieldset',null,'materiel-editeur');
+        area.append(el('legend','Ce que j’utilise avec cet appareil'));
+        form.append(area);
+        const inputs={};
+        const field=(key,label,type='text',value='',options=null,parent=area)=>{
+            const group=el('label',null,'groupe-champ');
+            const caption=el('span',label);
+            const input=el(options?'select':'input');
+            if(!options)input.type=type;
+            input.name='montage_'+key;
+            if(type==='number'){input.min='0.000001';input.max='10000';input.step='any';}
+            if(type==='text')input.maxLength=2000;
+            group.append(caption,input);parent.append(group);inputs[key]=input;
+            if(options)fill(input,options);
+            input.value=value??'';
+            return input;
+        };
+        function fill(input,options){input.replaceChildren();for(const opt of options){const [value,label]=Array.isArray(opt)?opt:[opt,opt];const o=el('option',label);o.value=value;input.append(o);}}
+        const show=(key,visible)=>{inputs[key].parentElement.hidden=!visible;inputs[key].disabled=!visible;};
+        field('usage','Qu’utilises-tu sur cet appareil ?','select','',[
+            ['','Choisir'],['clearo','Un réservoir avec une résistance toute faite (clearomiseur)'],
+            ['ato','Un montage reconstructible (atomiseur ou dripper)'],['inconnu','Je ne sais pas encore']
+        ]);
+        field('marqueReservoir','Marque du réservoir','select','',[]);
+        field('piece','Cartouche','select','',[]);
+        field('pieceManuelle','Nom de la cartouche / du réservoir (facultatif)');
+        field('systeme','Que remplaces-tu quand c’est usé ?','select',systems[0],[
+            [systems[0],'Je ne sais pas encore'],[systems[1],'Toute la cartouche'],
+            [systems[2],'Une résistance toute faite'],[systems[3],'Le coil et le coton (reconstructible)']
+        ]);
+        field('atomiseur','Marque et modèle de l’atomiseur (facultatif)');
+        field('coil','Résistance','select','',[]);
+        const wattsHint=el('p','','texte-secondaire');area.append(wattsHint);
+        field('resistance','Référence de la résistance / du coil (facultatif)');
+        field('ohms','Valeur de résistance (Ω, facultatif)','number');
+        field('watts','Puissance utilisée (W, facultatif)','number');
+        field('dateResistance','Dernier changement (facultatif)','date');
+        field('dateCoton','Dernier changement de coton (facultatif)','date');
+        const expert=el('details',null,'materiel-expert');expert.append(el('summary','Détails du montage (facultatifs)'));area.append(expert);
+        const labels={famille:'Famille d’atomiseur',source:'Origine du coil',montage:'Nombre de coils',matiere:'Matière',construction:'Construction',diametreFil:'Diamètre du fil (mm)',diametreInterieur:'Diamètre intérieur (mm)',spires:'Nombre de spires',coton:'Coton utilisé',airflow:'Airflow',personnalisation:'Précisions'};
+        for(const [key,options] of Object.entries(expertChoices))field(key,labels[key],'select',options[0],options,expert);
+        for(const key of expertNumbers)field(key,labels[key],'number','',null,expert);
+        for(const key of expertText.filter(k=>k!=='atomiseur'))field(key,labels[key],'text','',null,expert);
+        const opinion=el('details',null,'materiel-expert');opinion.append(el('summary','Mes préférences et notes (facultatives)'));area.append(opinion);
+        field('tirage','Tirage','select',drawLabel(initial.tirage)||draws[0],draws,opinion);
+        field('vapeur','Vapeur','select',initial.vapeur||clouds[0],clouds,opinion);
+        field('notes','Mes notes','text',initial.notes||'',null,opinion);
+        const unknownNote=el('p','Tu pourras compléter ces informations plus tard.','texte-secondaire');area.append(unknownNote);
+        let device,parts=[],coils=[],part=null,key=null;
+        const isPod=()=>device.type==='Pod';
+        const system=()=>inputs.usage.value==='ato'?systems[3]:inputs.usage.value==='inconnu'?systems[0]:part?(part.resistanceIntegree?systems[1]:systems[2]):isPod()?inputs.systeme.value:systems[2];
+        const selectedCoil=()=>coils.find(c=>c.key===inputs.coil.value);
+        const update=()=>{
+            const usage=inputs.usage.value,unknown=usage==='inconnu';
+            const active=!!usage&&(!['pod','clearo'].includes(usage)||!!inputs.piece.value);
+            const reconstructible=system()===systems[3];
+            show('marqueReservoir',usage==='clearo');show('piece',usage==='pod'||usage==='clearo');
+            inputs.piece.parentElement.firstChild.textContent=isPod()?'Quelle cartouche utilises-tu ?':'Modèle du clearomiseur';
+            show('pieceManuelle',(active&&inputs.piece.value==='__autre__'&&!reconstructible)||unknown);
+            show('systeme',usage==='pod'&&inputs.piece.value==='__autre__');
+            show('atomiseur',reconstructible);
+            show('coil',!!part);inputs.coil.required=!!part;
+            show('resistance',active&&!unknown&&!part);
+            show('ohms',active&&!unknown&&!part);
+            const appareil=(catalogueMateriel[device.marque]||[]).find(a=>a.modele===device.modele);
+            show('watts',active&&!unknown&&!(isPod()&&appareil?.puissanceReglable===false));
+            show('dateResistance',active&&!unknown);show('dateCoton',reconstructible);
+            const info=maintenanceInfo({systeme:system()});
+            inputs.dateResistance.parentElement.firstChild.textContent=info.dateLabel+' (facultatif)';
+            expert.hidden=!reconstructible;unknownNote.hidden=!unknown;
+            for(const k of [...Object.keys(expertChoices),...expertNumbers,...expertText.filter(k=>k!=='atomiseur')])inputs[k].disabled=!reconstructible;
+            wattsHint.textContent=selectedCoil()?.puissance?'Plage conseillée : '+selectedCoil().puissance:'';
+        };
+        const loadCoils=()=>{
+            part=parts.find(p=>(p.reference||p.modele)===inputs.piece.value)||null;
+            coils=[];
+            if(part){
+                const source=part.resistanceIntegree?part.variantes:(catalogueResistances[part.familleResistance]||[]);
+                coils=source.filter(r=>!part.resistancesCompatibles||part.resistancesCompatibles.includes(`${r.reference}|${r.valeur}`)).map(r=>({
+                    key:`${r.reference||part.reference}|${r.valeur}`,resistance:r.reference||part.reference,ohms:String(r.valeur),puissance:r.puissance||''
+                }));
+            }
+            fill(inputs.coil,[['','Choisir une résistance'],...coils.map(r=>[r.key,`${r.resistance} · ${r.ohms} Ω`])]);update();
+        };
+        const loadParts=()=>{
+            parts=isPod()?(catalogueCartouches[device.marque]||[]).filter(p=>p.appareilsCompatibles?.includes(device.modele)):(catalogueClearomiseurs[inputs.marqueReservoir.value]||[]);
+            fill(inputs.piece,[['',isPod()?'Choisir une cartouche':'Choisir un clearomiseur'],...parts.map(p=>p.reference||p.modele),['__autre__',isPod()?'Autre cartouche':'Autre modèle']]);
+            if(!parts.length)inputs.piece.value='__autre__';
+            loadCoils();
+        };
+        const restore=()=>{
+            for(const k of ['resistance','ohms','watts','dateResistance','dateCoton'])inputs[k].value=initial[k]??'';
+            for(const k of [...Object.keys(expertChoices),...expertText,...expertNumbers])if(initial.expert?.[k]!=null)inputs[k].value=initial.expert[k];
+            inputs.systeme.value=initial.systeme||systems[0];
+            inputs.pieceManuelle.value=initial.reservoirManuel||'';
+            if(!isPod()&&initial.clearomiseur){
+                const [brand,model]=initial.clearomiseur.split('|');
+                if(model&&(catalogueClearomiseurs[brand]||[]).some(p=>p.modele===model)){
+                    inputs.marqueReservoir.value=brand;loadParts();inputs.piece.value=model;
+                }else{inputs.marqueReservoir.value='__autre__';loadParts();inputs.pieceManuelle.value=initial.reservoirManuel||(initial.clearomiseur==='__autre__'?'':initial.clearomiseur);}
+            }else if(isPod()&&initial.resistance){
+                const previous=parts.find(p=>p.reference===initial.cartouche)||parts.find(p=>p.resistanceIntegree?p.reference===initial.resistance:(catalogueResistances[p.familleResistance]||[]).some(r=>r.reference===initial.resistance&&Number(r.valeur)===Number(initial.ohms)));
+                if(previous)inputs.piece.value=previous.reference;
+                else inputs.piece.value='__autre__';
+            }
+            loadCoils();
+            const coil=coils.find(r=>r.resistance===initial.resistance&&Number(r.ohms)===Number(initial.ohms));
+            if(coil)inputs.coil.value=coil.key;
+            // Une ancienne résistance absente du catalogue reste modifiable en saisie libre.
+            if(part&&initial.resistance&&!coil){inputs.pieceManuelle.value=initial.cartouche||initial.clearomiseur||part.reference||part.modele;inputs.piece.value='__autre__';loadCoils();}
+            update();
+        };
+        const refresh=()=>{
+            device=getDevice();const nextKey=JSON.stringify([device.type,device.marque,device.modele]);
+            if(nextKey===key)return;
+            const first=key===null;key=nextKey;
+            area.hidden=!device.marque||!device.modele;area.disabled=area.hidden;
+            for(const k of ['pieceManuelle','resistance','ohms','watts','dateResistance','dateCoton','atomiseur'])inputs[k].value='';
+            inputs.systeme.value=systems[0];
+            inputs.usage.value=isPod()?'pod':first&&isExpert(initial)?'ato':first&&initial.clearomiseur?'clearo':first&&initial.systeme===systems[0]?'inconnu':'';
+            // L'option pod est interne : la question ne s'affiche que pour les boxes/autres appareils.
+            if(isPod())fill(inputs.usage,[['pod','Cartouche']]);
+            else fill(inputs.usage,[['','Choisir'],['clearo','Un réservoir avec une résistance toute faite (clearomiseur)'],['ato','Un montage reconstructible (atomiseur ou dripper)'],['inconnu','Je ne sais pas encore']]);
+            inputs.usage.value=isPod()?'pod':first&&isExpert(initial)?'ato':first&&initial.clearomiseur?'clearo':first&&initial.systeme===systems[0]?'inconnu':'';
+            show('usage',!isPod());inputs.usage.required=!isPod();
+            fill(inputs.marqueReservoir,[['','Choisir une marque'],...Object.keys(catalogueClearomiseurs).sort((a,b)=>a.localeCompare(b,'fr')),['__autre__','Autre marque']]);
+            loadParts();if(first)restore();update();
+        };
+        inputs.usage.addEventListener('change',()=>{loadParts();update();});
+        inputs.marqueReservoir.addEventListener('change',loadParts);
+        inputs.piece.addEventListener('change',loadCoils);
+        inputs.coil.addEventListener('change',update);inputs.systeme.addEventListener('change',update);
+        refresh();
+        return {refresh,values(){
+            const usage=inputs.usage.value;if(!usage)throw Error('Choisis ce que tu utilises sur cet appareil.');
+            if((usage==='pod'||usage==='clearo')&&!inputs.piece.value)throw Error('Choisis une cartouche ou un réservoir, ou la saisie manuelle.');
+            if(usage==='clearo'&&!inputs.marqueReservoir.value)throw Error('Choisis la marque du réservoir ou « Autre marque ».');
+            const coil=selectedCoil();if(part&&!coil)throw Error('Choisis la résistance utilisée.');
+            const values={systeme:system(),cartouche:isPod()&&part?part.reference:'',clearomiseur:usage==='clearo'&&part?`${inputs.marqueReservoir.value}|${part.modele}`:'',reservoirManuel:inputs.pieceManuelle.disabled?'':inputs.pieceManuelle.value};
+            for(const k of ['resistance','ohms','watts','dateResistance','dateCoton','tirage','vapeur','notes'])values[k]=inputs[k].disabled?'':inputs[k].value;
+            if(coil){values.resistance=coil.resistance;values.ohms=coil.ohms;}
+            values.expert=Object.fromEntries([...Object.keys(expertChoices),...expertText,...expertNumbers].map(k=>[k,inputs[k].value]));
+            return values;
+        }};
     }
+    function configDialog(deviceId,id=null){
+        const d=read().find(d=>d.id===deviceId);if(!d)return;
+        const c=(d.configurations||[]).find(c=>c.id===id)||{};
+        let editor;
+        modal(id?'Modifier ce que j’utilise':'Ajouter une autre cartouche / un montage',[],()=>upsertConfiguration(deviceId,editor.values(),id),
+            'Chaque cartouche ou montage distinct garde son propre suivi. Les flacons associés partagent les dates de ce montage.',null,'Enregistrer',
+            form=>{editor=configurationEditor(form,()=>d,c);});
+    }
+
     function associationDialog(id){
         const f=flacons.find(f=>f.id===id);if(!f)return;
         const options=[['','Aucun matériel associé']];
 
 for(const d of read()){
-    for(const c of d.configurations||[]){
+    for(const c of (d.configurations||[]).filter(c=>!c.supprimee)){
         options.push([
             c.id,
             name({device:d,config:c})
         ]);
     }
 }
-        const dialog=modal('Matériel de '+f.nom,[['configuration','Configuration utilisée','select',f.materielConfigurationId||'',options]],v=>associate(id,v.configuration),'Deux flacons associés à la même configuration partagent la même date de résistance. Utilise des configurations distinctes pour des cartouches distinctes.');
+        const dialog=modal('Matériel de '+f.nom,[['configuration','Configuration utilisée','select',f.materielConfigurationId||'',options]],v=>associate(id,v.configuration),'Les flacons associés à la même cartouche ou au même montage partagent ses dates d’entretien.');
         button(dialog,options.length===1?'Créer mon premier matériel':'Gérer mon matériel',()=>{dialog.close();afficherEcran('ecran-materiel');});
     }
     function maintenanceDialog(id,initial='coton'){
-        const pair=find(id);if(!pair||!isExpert(pair.config))return;
+        const pair=find(id);if(!pair)return;
+        const cotton=isExpert(pair.config)&&initial==='coton';
+        const info=maintenanceInfo(pair.config);
         const now=new Date(),today=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
-        modal('Entretien du montage',[
-            ['action','Élément remplacé','select',initial,[['coton','Le coton uniquement'],['coil','Le coil / mesh uniquement']]],
-            ['date','Date du remplacement','date',today]
-        ],v=>{if(v.action==='coton')setCotton(id,v.date);else setResistance(id,v.date);},'Les deux dates sont indépendantes. Le suivi est partagé par les flacons associés à ce montage.');
+        const count=flacons.filter(f=>!f.termine&&f.startedAt&&f.materielConfigurationId===id).length;
+        modal(cotton?'Changer mon coton':info.action,[['date','Date du changement','date',today]],v=>{
+            if(!v.date)throw Error('Indique la date du changement.');
+            if(cotton)setCotton(id,v.date);else setResistance(id,v.date);
+        },`La date saisie sera partagée par les ${count} flacon(s) en cours associés.`+(isExpert(pair.config)?' Les dates de montage et de coton restent indépendantes.':''),null,'Enregistrer',
+        (form,inputs)=>{inputs.date.required=true;});
     }
     function changeResistance(bottleId){
-        const f=flacons.find(f=>f.id===bottleId);const pair=f&&find(f.materielConfigurationId);if(!pair)return false;
-        if(isExpert(pair.config)){maintenanceDialog(pair.config.id,'coil');return true;}
-        const now=new Date(),today=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
-        const count=flacons.filter(f=>!f.termine&&f.materielConfigurationId===pair.config.id).length;
-        modal('Changer la résistance',[['dateResistance','Date du changement','date',today]],v=>setResistance(pair.config.id,v.dateResistance),`${name(pair)} : cette date s’appliquera aux ${count} flacon(s) associés.`);return true;
+        const f=flacons.find(f=>f.id===bottleId);const pair=f&&!f.termine&&find(f.materielConfigurationId);if(!pair)return false;
+        maintenanceDialog(pair.config.id,'coil');return true;
     }
 
     function render(){
@@ -1014,27 +687,7 @@ for(const d of read()){
     if(!zone)return;
     zone.replaceChildren();
 
-    const prefs=el('div',null,'carte');
-    prefs.append(el('h3','Mes préférences'));
-
-    const p=configUser?.preferencesMateriel;
-
-    prefs.append(
-        el(
-            'p',
-            p
-                ? `${drawLabel(p.tirage)} · Vapeur : ${p.vapeur}`
-                : 'Tirage serré ou aérien, vapeur discrète ou abondante : note ce qui te convient.',
-            'texte-secondaire'
-        )
-    );
-
-    if(p?.notes)prefs.append(el('p',p.notes));
-
-    button(prefs,'Modifier mes préférences',preferencesDialog);
-    zone.append(prefs);
-
-    button(zone,'Ajouter un appareil',()=>deviceDialog(),true);
+    button(zone,'Ajouter mon matériel',()=>deviceDialog(),true);
 
     const all=read();
 
@@ -1042,7 +695,7 @@ for(const d of read()){
         zone.append(
             el(
                 'p',
-                'Commence par ton pod ou ta box. Ajoute ensuite une configuration pour noter sa résistance et ton avis.',
+                'Ajoute ton pod ou ta box avec sa cartouche ou son montage, en une seule fois.',
                 'texte-vide'
             )
         );
@@ -1064,7 +717,7 @@ for(const d of read()){
             el('strong',d.nom),
             el(
                 'span',
-                `${typeLabel(d.type)} · ${d.statut}`,
+                typeLabel(d.type),
                 'texte-secondaire'
             )
         );
@@ -1104,7 +757,7 @@ for(const d of read()){
     ()=>deleteDevice(d.id)
 );
 
-        for(const c of d.configurations||[]){
+        for(const c of (d.configurations||[]).filter(c=>!c.supprimee)){
             const conf=el(
                 'div',
                 null,
@@ -1112,23 +765,26 @@ for(const d of read()){
             );
 
             conf.append(
-                el('h4',resistanceLabel(c.ohms)),
+                el('h4',isExpert(c)?'Mon montage':c.systeme===systems[1]?'Ma cartouche':'Ma résistance'),
                 el(
                     'p',
                     [
-                        c.resistance,
+                        c.cartouche||c.clearomiseur?.replace('|',' · ')||c.reservoirManuel||c.expert?.atomiseur,
+                        c.resistance!==c.cartouche?c.resistance:'',
+                        c.ohms!=null?`${c.ohms} Ω`:'',
                         c.watts!=null ? `${c.watts} W` : ''
                     ].filter(Boolean).join(' · ')||'',
                     'texte-secondaire'
                 )
             );
 
-            conf.append(
-                el(
-                    'p',
-                    `${c.avis} · ${drawLabel(c.tirage)} · Vapeur : ${c.vapeur}`
-                )
-            );
+            const preferences=[
+                c.tirage && c.tirage!=='Non renseigné' ? drawLabel(c.tirage) : '',
+                c.vapeur && c.vapeur!=='Non renseigné' ? `Vapeur : ${c.vapeur}` : ''
+            ].filter(Boolean);
+            if(preferences.length){
+                conf.append(el('p',preferences.join(' · ')));
+            }
 
             if(c.notes){
                 conf.append(el('p',c.notes,'materiel-note'));
@@ -1139,14 +795,12 @@ for(const d of read()){
                     'p',
                     c.dateResistance
                         ? (
-                            isExpert(c)
-                                ? 'Coil / mesh changé le '
-                                : 'Résistance changée le '
+                            maintenanceInfo(c).changed
                         ) +
                         new Date(
                             c.dateResistance+'T12:00:00'
                         ).toLocaleDateString('fr-FR')
-                        : 'Aucun changement de résistance enregistré',
+                        : maintenanceInfo(c).empty,
                     'texte-secondaire'
                 )
             );
@@ -1306,12 +960,23 @@ for(const d of read()){
 
                 conf.append(details);
 
+                if(c.historiqueCotons?.length){
+                    const history=el('details',null,'materiel-expert');
+                    history.append(el('summary',`Historique du coton (${c.historiqueCotons.length})`));
+                    for(const entry of [...c.historiqueCotons].reverse()){
+                        history.append(el('p',`${new Date(entry.debut+'T12:00:00').toLocaleDateString('fr-FR')} → ${new Date(entry.fin+'T12:00:00').toLocaleDateString('fr-FR')} · ${entry.dureeJours} jour(s)`,'texte-secondaire'));
+                    }
+                    conf.append(history);
+                }
+
                 button(
                     conf,
-                    'Entretien coil / coton',
+                    'Changer mon coton',
                     ()=>maintenanceDialog(c.id)
                 );
             }
+
+            button(conf,maintenanceInfo(c).action,()=>maintenanceDialog(c.id,'coil'),true);
 
             const linked=flacons.filter(
                 f=>
@@ -1332,21 +997,23 @@ for(const d of read()){
 
             button(
                 conf,
-                'Modifier / noter mon avis',
+                'Modifier la cartouche / le montage',
                 ()=>configDialog(d.id,c.id)
             );
+
+            button(conf,d.type==='Pod'?'Supprimer ma cartouche':'Supprimer mon montage',()=>deleteConfiguration(c.id));
 
             card.append(conf);
         }
 
         button(
             card,
-            'Ajouter une résistance',
+            (d.configurations||[]).some(c=>!c.supprimee)?'Ajouter une autre cartouche / un montage':'Compléter mon matériel',
             ()=>configDialog(d.id)
         );
 
         zone.append(shell);
     }
 }
-    return {setCotton,maintenanceDialog,find,resistanceDate,bottleLine,freeze,render,associate,setResistance,upsertDevice,upsertConfiguration,associationDialog,changeResistance,deviceDialog,deleteDevice};
+    return {deleteConfiguration,saveMaterial,maintenanceText,changeLabel,setCotton,maintenanceDialog,find,resistanceDate,bottleLine,freeze,render,associate,setResistance,upsertDevice,upsertConfiguration,associationDialog,changeResistance,deviceDialog,deleteDevice};
 })();

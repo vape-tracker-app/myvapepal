@@ -27,6 +27,7 @@ const catalogueMateriel = {
 
     { modele: "LUXE Q", type: "pod", puissanceReglable: false },
     { modele: "LUXE Q2", type: "pod", puissanceReglable: false },
+    { modele: "LUXE Q3", type: "pod", puissanceReglable: false },
     { modele: "LUXE Q2 SE", type: "pod", puissanceReglable: false },
     { modele: "LUXE QS", type: "pod", puissanceReglable: false },
 
@@ -118,11 +119,12 @@ const catalogueMateriel = {
     { modele: "Kroma Z", type: "pod", puissanceReglable: true },
     { modele: "Sensis", type: "pod", puissanceReglable: true },
     { modele: "Sensis EZ", type: "pod", puissanceReglable: true },
-    { modele: "Z Pod Nano", type: "pod", puissanceReglable: false },
+    { modele: "Z Pod Nano", type: "pod", puissanceReglable: true },
     { modele: "Zyon", type: "pod", puissanceReglable: true },
     { modele: "ArcFire", type: "pod", puissanceReglable: false },
     { modele: "Endura V", type: "pod", puissanceReglable: false },
     { modele: "Endura V Pro", type: "pod", puissanceReglable: true },
+    { modele: "Endura V Box", type: "pod", puissanceReglable: true },
     { modele: "Coolfire P60", type: "pod", puissanceReglable: true },
 
     { modele: "CoolFire Z50", type: "box" },
@@ -130,7 +132,7 @@ const catalogueMateriel = {
     { modele: "CoolFire Z80", type: "box" },
     { modele: "Coolfire Z80 NEX", type: "box" },
     { modele: "Coolfire Z Air", type: "box" },
-    { modele: "Coolfire PZPulse", type: "box" },
+    { modele: "Coolfire PZPulse", type: "pod", puissanceReglable: true },
     { modele: "GOZEE", type: "box" },
     { modele: "GOZEE NEX", type: "box" },
     { modele: "Kroma 217", type: "box" },
@@ -269,6 +271,7 @@ const catalogueMateriel = {
 ],
     "Eleaf": [
     { modele: "iVeni", type: "pod", puissanceReglable: true },
+    { modele: "iVeni SE", type: "pod", puissanceReglable: false },
     { modele: "iVeni Air", type: "pod", puissanceReglable: false },
     { modele: "iVeni Duo", type: "pod", puissanceReglable: true },
 
@@ -389,6 +392,8 @@ const catalogueMateriel = {
     { modele: "VINCI Q", type: "pod", puissanceReglable: false },
     { modele: "VINCI Q2", type: "pod", puissanceReglable: false },
     { modele: "VINCI 3", type: "pod", puissanceReglable: true },
+    { modele: "VINCI E120", type: "pod", puissanceReglable: true },
+    { modele: "VINCI E80", type: "pod", puissanceReglable: true },
 
     { modele: "VMATE", type: "pod", puissanceReglable: false },
     { modele: "VMATE E", type: "pod", puissanceReglable: false },
@@ -410,6 +415,10 @@ const catalogueMateriel = {
     { modele: "DRAG 3", type: "box" },
     { modele: "DRAG 3 TPP-X", type: "box" },
     { modele: "DRAG 4", type: "box" },
+    { modele: "DRAG 5", type: "box" },
+    { modele: "DRAG 6", type: "box" },
+    { modele: "VINCI Spark100", type: "box" },
+    { modele: "VINCI Spark220", type: "box" },
     { modele: "DRAG X Plus", type: "box" },
     { modele: "DRAG X Plus Pro", type: "box" }
 ],
@@ -438,6 +447,7 @@ const catalogueMateriel = {
 ],
     "Justfog": [
     { modele: "MYFIT", type: "pod", puissanceReglable: false },
+    { modele: "ARO", type: "pod", puissanceReglable: false },
     { modele: "Better Than", type: "pod", puissanceReglable: false },
     { modele: "Minifit", type: "pod", puissanceReglable: false },
     { modele: "Minifit Max", type: "pod", puissanceReglable: false },
@@ -562,6 +572,11 @@ const catalogueResistances = {
     { reference: "S-Coil", valeur: "1.2", unite: "Ω", puissance: "8-9.5 W" }
 ],
 
+"Innokin PZP MAX": [
+    { reference: "PZP MAX", valeur: "0.2", unite: "Ω", puissance: "60-80 W" },
+    { reference: "PZP MAX", valeur: "0.4", unite: "Ω", puissance: "40-60 W" },
+    { reference: "PZP MAX", valeur: "0.6", unite: "Ω", puissance: "18-23 W" }
+],
 "Innokin PZP": [
     { reference: "PZP", valeur: "0.6", unite: "Ω", puissance: "18-24 W" },
     { reference: "PZP", valeur: "1.0", unite: "Ω", puissance: "9-13 W" },
@@ -1287,6 +1302,7 @@ const catalogueCartouches = {
                 { valeur: "1.2", unite: "Ω" }
             ],
             appareilsCompatibles: [
+                "LUXE Q3",
                 "LUXE Q",
                 "LUXE Q2",
                 "LUXE Q2 SE",
@@ -1456,6 +1472,7 @@ const catalogueCartouches = {
                 { valeur: "1.2", unite: "Ω", puissance: "12 W" }
             ],
             appareilsCompatibles: [
+                "Endura V Box",
                 "Trine",
                 "Trine SE",
                 "Endura V",
@@ -1535,6 +1552,16 @@ const catalogueCartouches = {
         },
 
         {
+            reference: "PZPulse Pod",
+            capacite: 5.5,
+            resistanceIntegree: false,
+            familleResistance: "Innokin PZP MAX",
+            appareilsCompatibles: [
+                "Coolfire PZPulse"
+            ]
+        },
+
+        {
             reference: "Zyon Pod",
             capacite: [2, 4.5],
             resistanceIntegree: false,
@@ -1610,6 +1637,7 @@ const catalogueCartouches = {
                 { valeur: "0.8", unite: "Ω" }
             ],
             appareilsCompatibles: [
+                "Centaurus E40 Ultra",
                 "Thelema Nano",
                 "Thelema Elite 40",
                 "Thelema Elite 45",
@@ -2016,6 +2044,7 @@ const catalogueCartouches = {
                 { valeur: "1.2", unite: "Ω", puissance: "10-12 W" }
             ],
             appareilsCompatibles: [
+                "iVeni SE",
                 "iVeni",
                 "iVeni Air",
                 "iVeni Duo"
@@ -2614,6 +2643,43 @@ const catalogueCartouches = {
         },
 
         {
+            reference: "VINCI PnP X Cartridge DTL",
+            capacite: [2, 5],
+            resistanceIntegree: false,
+            familleResistance: "Voopoo PnP X",
+            appareilsCompatibles: [
+                "VINCI E120",
+                "VINCI E80"
+            ]
+        },
+
+        {
+            reference: "VINCI PnP X Cartridge MTL",
+            capacite: [2, 5],
+            resistanceIntegree: false,
+            familleResistance: "Voopoo PnP X",
+            appareilsCompatibles: [
+                "VINCI E120",
+                "VINCI E80"
+            ]
+        },
+
+        {
+            reference: "VINCI E Cartridge",
+            capacite: [2, 5],
+            resistanceIntegree: true,
+            variantes: [
+                { valeur: "0.3", unite: "Ω" },
+                { valeur: "0.6", unite: "Ω" },
+                { valeur: "0.8", unite: "Ω" }
+            ],
+            appareilsCompatibles: [
+                "VINCI E120",
+                "VINCI E80"
+            ]
+        },
+
+        {
             reference: "PnP-X Pod (Legacy)",
             capacite: [2, 5],
             resistanceIntegree: false,
@@ -2880,6 +2946,19 @@ const catalogueCartouches = {
         ],
 
     "Justfog": [
+        {
+            reference: "ARO Pod",
+            capacite: 2,
+            resistanceIntegree: true,
+            variantes: [
+                { valeur: "0.8", unite: "Ω" },
+                { valeur: "1.0", unite: "Ω" }
+            ],
+            appareilsCompatibles: [
+                "ARO"
+            ]
+        },
+
         {
             reference: "MYFIT Pod",
             capacite: 1.9,

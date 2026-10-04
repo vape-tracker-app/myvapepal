@@ -1509,3 +1509,7 @@ input:focus, select:focus {
 #card-economies-objectif.sans-objectif {
     width: auto;
 }
+/* Formulaire matériel : appareil et cartouche / montage réunis. */
+.materiel-editeur { min-width:0; border:0; border-top:1px solid #f6b5ca35; margin:22px 0 0; padding:18px 0 0; }
+.materiel-editeur > legend { font-weight:700; color:var(--rose-sakura); padding:0 0 12px; }
+.materiel-editeur .groupe-champ > span { display:block; margin-bottom:6px; }
